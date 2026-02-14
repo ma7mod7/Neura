@@ -1,0 +1,10 @@
+1. auth folder
+-useForgotPassword
+-AuthContext
+-useAuth
+-ConfirmEmail.tsx page
+-ForgotPassWord.tsx page
+-ResetPasswordPage.tsx page
+-VerifyEmail.tsx page
+-ForgotPasswordSchema.ts schema
+-
