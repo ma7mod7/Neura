@@ -1,5 +1,4 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 
 

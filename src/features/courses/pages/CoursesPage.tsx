@@ -1,6 +1,7 @@
 import {
     ChevronLeft,
     ChevronRight,
+    
 } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -18,17 +19,22 @@ import { useGetCourses } from '../api/useGetAllCourses';
 import { useNavigate } from 'react-router-dom';
 
 // --- Types for API consistency ---
+export interface Tag {
+    id: number;
+    name: string;
+}
 interface Course {
     id: string;
     image: string;
-    category: string;
+    category: Tag[];
     title: string;
     instructor: string;
     rating: number;
-    reviews: string;
     duration: string;
     lectures: number;
     price: number;
+    enrolled: boolean,
+    bookMarked: boolean,
 }
 
 interface EnrolledCourse {
@@ -68,14 +74,19 @@ const CoursesPage = () => {
     const allCourses: Course[] = Array(12).fill({
         id: 'c1',
         image: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
-        category: 'Artificial Intelligence',
+        category: [{
+            id:1,
+            name:"ai"
+        }],
         title: 'Complete Machine Learning & Data Science Bootcamp',
         instructor: 'Angela Yu',
         rating: 4.8,
-        reviews: '28.8',
         duration: '45h',
         lectures: 138,
-        price: 'E.L 350'
+        price: 'E.L 350',
+        enrolled: true,
+        bookMarked: false,
+        
     });
 
 
@@ -178,8 +189,8 @@ const CoursesPage = () => {
                                         duration: '10h',
                                         lectures: 10,
                                         price: course.price,
-                                        enrolled:course.isEnrolled,
-                                        bookMarked:course.isBookmarked
+                                        enrolled: course.isEnrolled,
+                                        bookMarked: course.isBookmarked
 
                                     }}
                                 />

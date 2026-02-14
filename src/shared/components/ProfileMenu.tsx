@@ -1,6 +1,5 @@
 import {
     BookOpen,
-    Bookmark,
     ListChecks,
     Settings,
     LogOut,

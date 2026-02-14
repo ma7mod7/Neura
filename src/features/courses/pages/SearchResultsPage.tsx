@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
     Search,
     Home,
@@ -7,110 +7,121 @@ import {
     XCircle
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import CourseCard from '../../../shared/components/CourseCard'; 
-import Footer from '../../../shared/components/Footer'; 
+import CourseCard from '../../../shared/components/CourseCard';
+import Footer from '../../../shared/components/Footer';
 
+export interface Tag {
+    id: number;
+    name: string;
+}
 interface Course {
     id: string;
     image: string;
-    category: string;
+    category: Tag[];
     title: string;
     instructor: string;
     rating: number;
-    reviews: string;
     duration: string;
     lectures: number;
-    price: string | 'Free';
+    price: number;
+    enrolled: boolean,
+    bookMarked: boolean,
 }
+
 
 const SearchResultsPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
+
     // بناخد كلمة البحث من الرابط (URL)
     // لو مفيش كلمة بحث، بنفترض إنها "blockchain" زي الصورة
-    const query = searchParams.get('query') || 'blockchain'; 
+    const query = searchParams.get('query') || 'blockchain';
     const [searchQuery, setSearchQuery] = useState(query);
 
     // --- Mock Data (بيانات وهمية شبه اللي في الصورة) ---
     const searchResults: Course[] = [
         {
-            id: '1',
-            image: 'https://placehold.co/600x400/000/fff?text=Python', // حط صورة البايثون هنا
-            category: 'Artificial Intelligence',
+            id: 'c1',
+            image: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
+            category: [{
+                id: 1,
+                name: "ai"
+            }],
             title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
+            instructor: 'Angela Yu',
             rating: 4.8,
-            reviews: '1,250',
             duration: '45h',
             lectures: 138,
-            price: 'EL 350'
+            price:  350,
+            enrolled: true,
+            bookMarked: false,
         },
         {
             id: '2',
             image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: 'Artificial Intelligence',
-            title: 'Complete Machine Learning & Data Science Bootcamp',
+            category: [{
+                id: 1,
+                name: "ai"
+            }], title: 'Complete Machine Learning & Data Science Bootcamp',
             instructor: 'Dr. Angela Yu',
             rating: 4.8,
-            reviews: '1,250',
             duration: '45h',
             lectures: 136,
-            price: 'EL 350'
+            price:  350,
+             enrolled: true,
+            bookMarked: false,
         },
         {
             id: '3',
             image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: 'Artificial Intelligence',
-            title: 'Complete Machine Learning & Data Science Bootcamp',
+            category: [{
+                id: 1,
+                name: "ai"
+            }], title: 'Complete Machine Learning & Data Science Bootcamp',
             instructor: 'Dr. Angela Yu',
             rating: 4.8,
-            reviews: '1,250',
             duration: '45h',
             lectures: 138,
-            price: 'Free' // ده عشان يظهر زرار Enroll Now
+            price: 0,
+            enrolled: true,
+            bookMarked: false,
         },
         {
             id: '4',
             image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: 'Artificial Intelligence',
-            title: 'Complete Machine Learning & Data Science Bootcamp',
+            category: [{
+                id: 1,
+                name: "ai"
+            }], title: 'Complete Machine Learning & Data Science Bootcamp',
             instructor: 'Dr. Angela Yu',
             rating: 4.8,
-            reviews: '1,250',
             duration: '45h',
             lectures: 138,
-            price: 'EL 350'
+            price:  350,
+            enrolled: true,
+            bookMarked: false,
         },
         {
             id: '5',
             image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: 'Artificial Intelligence',
-            title: 'Complete Machine Learning & Data Science Bootcamp',
+            category: [{
+                id: 1,
+                name: "ai"
+            }], title: 'Complete Machine Learning & Data Science Bootcamp',
             instructor: 'Dr. Angela Yu',
             rating: 4.8,
-            reviews: '1,250',
             duration: '45h',
             lectures: 136,
-            price: 'EL 350'
+            price:  350,
+            enrolled: true,
+            bookMarked: false,
         },
-        {
-            id: '6',
-            image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: 'Artificial Intelligence',
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
-            rating: 4.8,
-            reviews: '1,250',
-            duration: '45h',
-            lectures: 138,
-            price: 'Free'
-        },
+
     ];
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-inter">
-            
+
             {/* --- 1. Top Navigation (نفس اللي في صفحتك الرئيسية) --- */}
             <nav className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 py-3 shadow-md">
                 <div className="max-w-[1450px] mx-auto flex items-center justify-between gap-4 md:gap-8">
@@ -130,7 +141,7 @@ const SearchResultsPage = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             // لما يضغط Enter يبحث تاني
-                            onKeyDown={(e) => e.key === 'Enter' && navigate(`/search-results?query=${searchQuery}`)} 
+                            onKeyDown={(e) => e.key === 'Enter' && navigate(`/search-results?query=${searchQuery}`)}
                             className="w-full bg-white rounded-xl py-2.5 pl-12 pr-4 outline-none border border-[#0061EF] text-slate-700 text-sm shadow-sm"
                         />
                     </div>
@@ -150,7 +161,7 @@ const SearchResultsPage = () => {
             </nav>
 
             <main className="max-w-[1450px] mx-auto p-4 md:p-8">
-                
+
                 {/* --- 2. Search Result Header & Filters --- */}
                 <div className="mb-8">
                     {/* Title */}

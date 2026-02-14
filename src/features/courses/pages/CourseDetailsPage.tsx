@@ -13,7 +13,7 @@ import {
 
     ArrowLeft
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Footer from '../../../shared/components/Footer'; // Assuming you have this based on your previous code
 import { CommentsSection } from '../../../shared/components/CommentsSection';
 
@@ -55,7 +55,7 @@ interface Section {
 const CourseDetailsPage = () => {
     const navigate = useNavigate();
     const [openSection, setOpenSection] = useState<number | null>(0);
-    const {courseId}=useParams();
+    //const {courseId}=useParams();
 
     // --- Mock Data (Matching the Image) ---
     const course = {
