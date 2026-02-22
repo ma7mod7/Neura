@@ -7,7 +7,8 @@ import { Provider } from 'react-redux'
 import { BrowserRouter } from "react-router";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { AuthProvider } from './features/auth/context/AuthContext' 
+import { AuthProvider } from './features/auth/context/AuthContext'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient()
 
@@ -18,6 +19,8 @@ createRoot(document.getElementById('root')!).render(
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <App />
+            <ReactQueryDevtools initialIsOpen={false} />
+
           </AuthProvider>
         </QueryClientProvider>
       </Provider>

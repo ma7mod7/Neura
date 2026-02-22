@@ -16,7 +16,7 @@ interface StudentOpinionsProps {
 }
 
 export const CommentsSection = (comments:StudentOpinionsProps) => {
-    console.log(comments)
+
     return (
         <div><div className="mx-auto max-w-7xl px-4 mt-10">
             <div className="relative pb-20">

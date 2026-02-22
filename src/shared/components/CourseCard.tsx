@@ -45,6 +45,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                 <img src={course.image} alt={course.title} className="w-full h-full object-cover p-3 rounded-[1.5rem]  " />
                 <button
                     onClick={handleAddBookmark}
+                    
                     className={`absolute top-5 right-5 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 ${isBookmarked
                         ? 'bg-[#0066FF] text-white' // Active state
                         : 'bg-white/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]' // Inactive state
@@ -97,7 +98,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
                 <div className="lg:mt-auto flex items-center justify-between  ">
                     <div className="flex gap-2">
                     <span className="font-bold text-slate-900">{course.price === 0 ? 'Free' : `${course.price} E.L`}</span>
-                    <span onClick={()=>navigate(`courses/${course.id}`)} className="cursor-pointer">
+                    <span onClick={()=>navigate(`/courses/${course.id}`)} className="cursor-pointer">
                         <ArrowUpRight  size={24} className="bg-blue-600 rounded-full text-white"/>
                     </span>
                     </div>

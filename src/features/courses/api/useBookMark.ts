@@ -1,13 +1,12 @@
 
 // src/features/auth/api/useLogin.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '../../../shared/api/axiosInstance'; 
+import axiosInstance from '../../../shared/api/axiosInstance';
 
 
 
-const bookMarkRequest = async (id:string) => {
+const bookMarkRequest = async (id: string) => {
     const response = await axiosInstance.post(`bookmark/${id}`)
-
     return response;
 };
 
@@ -16,10 +15,12 @@ export const useBookMark = () => {
     return useMutation({
         mutationFn: bookMarkRequest,
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById'] });
             queryClient.invalidateQueries({ queryKey: ['courses'] });
+
         },
         onError: (error: any) => {
-            console.log("field to enroll",error.response)
+            console.log("field to enroll", error.response)
         }
     });
 };

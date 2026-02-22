@@ -14,6 +14,7 @@ import CourseDetailsPage from './features/courses/pages/CourseDetailsPage';
 import ProfilePage from './features/Profile/pages/ProfilePage';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import ComingSoonPage from './shared/pages/ComingSoonPage';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 
 
@@ -29,8 +30,8 @@ function App() {
       <Route path="/auth/forget-password" element={<ForgotPasswordPage />} />
       <Route path="auth/reset-password" element={<ResetPasswordPage />} />
 
-{/* Protected Routes */}
-      <Route element={<ProtectedRoute/>}>
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
         <Route path="/announcements" element={<AnnouncmentPage />} />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:courseId" element={<CourseDetailsPage />} />

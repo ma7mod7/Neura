@@ -68,7 +68,7 @@ const SearchResultsPage = () => {
             duration: '45h',
             lectures: 136,
             price:  350,
-             enrolled: true,
+            enrolled: true,
             bookMarked: false,
         },
         {
