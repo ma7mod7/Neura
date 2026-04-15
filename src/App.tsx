@@ -9,12 +9,13 @@ import ConfirmEmail from './features/auth/pages/ConfirmEmail';
 import VerifyEmail from './features/auth/pages/VerifyEmail';
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
-import AddCoursePage from './features/courses/admin/AddCoursePage';
 import CourseDetailsPage from './features/courses/pages/CourseDetailsPage';
 import ProfilePage from './features/Profile/pages/ProfilePage';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
 import ComingSoonPage from './shared/pages/ComingSoonPage';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import CreateCourse from './features/dashboard/pages/CreateCourse';
+import CourseListDashboard from './features/dashboard/pages/CourseList';
+import StudentList from './features/dashboard/pages/StudentList';
 
 
 
@@ -38,7 +39,10 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/search-results" element={<SearchResultsPage />} />
         { /* Admin Routes */}
-        <Route path="/admin/add-course" element={<AddCoursePage />} />
+        <Route path="/admin/course-list" element={<CourseListDashboard />} />
+        <Route path="/admin/create-course" element={<CreateCourse />} />
+        <Route path="/admin/students" element={<StudentList />} />
+
       </Route>
 
       {/* Fallback route - Redirect any unknown path to home */}

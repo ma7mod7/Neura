@@ -6,7 +6,7 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 
 
 const bookMarkRequest = async (id: string) => {
-    const response = await axiosInstance.post(`bookmark/${id}`)
+    const response = await axiosInstance.post(`/api/Courses/${id}/bookmark`)
     return response;
 };
 
