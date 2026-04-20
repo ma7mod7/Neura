@@ -25,3 +25,8 @@ export const courseSchema = z.object({
 });
 
 export type CourseSchemaTypes = z.infer<typeof courseSchema>;
+
+export type CourseApiPayload = Omit<CourseSchemaTypes, "LearningOutcomes" | "Prerequisites"> & {
+    LearningOutcomes: string[];
+    Prerequisites: string[];
+};

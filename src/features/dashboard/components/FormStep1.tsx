@@ -8,33 +8,28 @@ import { fetchCourseTags } from "../api/courseApi";
 
 interface PropsTypes {
     currentStep: number;
-    onSubmitData: (data: CourseSchemaTypes) => Promise<void>; 
-    isSaving: boolean; 
-    initialData?: Partial<CourseSchemaTypes> | null; 
+    onSubmitData: (data: CourseSchemaTypes) => Promise<void>;
+    isSaving: boolean;
+    initialData?: Partial<CourseSchemaTypes> | null;
     initialImageUrl?: string | null;
 }
 
 export default function FormStep1({ currentStep, onSubmitData, isSaving, initialData, initialImageUrl }: PropsTypes) {
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(initialImageUrl || null);
-    
+
     const [isTagsDropdownOpen, setIsTagsDropdownOpen] = useState(false);
-    
+
     const {
         register,
         control,
         handleSubmit,
         setValue,
         watch,
-        reset, 
+        reset,
         formState: { errors }
     } = useForm<CourseSchemaTypes>({
         resolver: zodResolver(courseSchema),
-        defaultValues: {
-            LearningOutcomes: [{ value: 'Build complete web applications from scratch' }],
-            Prerequisites: [{ value: 'Basic understanding of HTML & CSS' }],
-            Tags: [] 
-        }
     });
 
     const selectedTags = watch('Tags') || [];
@@ -43,7 +38,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
     const { data: availableTags, isLoading: isLoadingTags, isError: isTagsError } = useQuery({
         queryKey: ['courseTags'],
         queryFn: fetchCourseTags,
-        staleTime: 1000 * 60 * 5, 
+        staleTime: 1000 * 60 * 5,
     });
     useEffect(() => {
         if (initialData) {
@@ -72,7 +67,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
     };
 
     const handleRemoveTag = (tagId: number, e: React.MouseEvent) => {
-        e.stopPropagation(); 
+        e.stopPropagation();
         setValue('Tags', selectedTags.filter(id => id !== tagId), { shouldValidate: true });
     };
 
@@ -107,7 +102,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                 <input {...register("Title")} className="w-full border border-blue-300 rounded p-2 focus:outline-blue-500" disabled={isSaving} />
                                 {errors.Title && <span className="text-red-500 text-xs mt-1">{errors.Title.message}</span>}
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-semibold mb-1">Description</label>
                                 <input {...register("description")} className="w-full border border-blue-300 rounded p-2 focus:outline-blue-500" disabled={isSaving} />
@@ -120,15 +115,14 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                 <input {...register("price")} className="w-full border border-blue-300 rounded p-2 focus:outline-blue-500" disabled={isSaving} />
                                 {errors.price && <span className="text-red-500 text-xs mt-1">{errors.price.message}</span>}
                             </div>
-                            
+
                             {/* ================= Tags Multi-Select Dropdown ================= */}
                             <div className="relative">
                                 <label className="block text-sm font-semibold mb-1">Course Tags</label>
-                                
-                                <div 
-                                    className={`w-full min-h-[42px] border rounded p-2 flex flex-wrap items-center gap-2 cursor-pointer transition-colors ${
-                                        errors.Tags ? 'border-red-500' : 'border-blue-300 hover:border-blue-400'
-                                    } ${isSaving ? 'opacity-60 cursor-not-allowed' : 'bg-white'}`}
+
+                                <div
+                                    className={`w-full min-h-[42px] border rounded p-2 flex flex-wrap items-center gap-2 cursor-pointer transition-colors ${errors.Tags ? 'border-red-500' : 'border-blue-300 hover:border-blue-400'
+                                        } ${isSaving ? 'opacity-60 cursor-not-allowed' : 'bg-white'}`}
                                     onClick={() => !isSaving && setIsTagsDropdownOpen(!isTagsDropdownOpen)}
                                 >
                                     {selectedTags.length === 0 && (
@@ -136,7 +130,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                     )}
 
                                     {selectedTags.map(tagId => {
-                                        const tagObj = availableTags.find(t => t.id === tagId);
+                                        const tagObj = availableTags?.find((t: { id: number; name: string }) => t.id === tagId);
                                         return tagObj ? (
                                             <span key={tagId} className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-md font-medium">
                                                 {tagObj.name}
@@ -160,20 +154,19 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                 {isTagsDropdownOpen && !isSaving && !isLoadingTags && !isTagsError && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setIsTagsDropdownOpen(false)}></div>
-                                        
+
                                         <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                             {availableTags.length === 0 ? (
                                                 <div className="p-3 text-sm text-gray-500 text-center">No tags available</div>
                                             ) : (
-                                                availableTags.map(tag => {
+                                                availableTags.map((tag: { id: number; name: string }) => {
                                                     const isSelected = selectedTags.includes(tag.id);
                                                     return (
-                                                        <div 
+                                                        <div
                                                             key={tag.id}
                                                             onClick={() => handleToggleTag(tag.id)}
-                                                            className={`flex items-center justify-between p-3 text-sm cursor-pointer transition-colors ${
-                                                                isSelected ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
-                                                            }`}
+                                                            className={`flex items-center justify-between p-3 text-sm cursor-pointer transition-colors ${isSelected ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
+                                                                }`}
                                                         >
                                                             <span>{tag.name}</span>
                                                             {isSelected && <Check size={16} className="text-blue-600" />}
@@ -196,17 +189,16 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                 <input {...register("instructorName")} className="w-full border border-blue-300 rounded p-2 focus:outline-blue-500" disabled={isSaving} />
                                 {errors.instructorName && <span className="text-red-500 text-xs mt-1">{errors.instructorName.message}</span>}
                             </div>
-                            
-                       
+
+
                         </div>
                     </div>
 
                     {/* Right Column */}
                     <div className="space-y-6">
                         <div
-                            className={`border border-blue-300 border-dashed rounded-lg p-10 flex flex-col items-center justify-center text-blue-600 bg-white hover:bg-blue-50 cursor-pointer transition-colors relative h-64 overflow-hidden group ${
-                                errors.Image ? 'border-red-500' : ''
-                            } ${isSaving ? 'opacity-50 pointer-events-none' : ''}`}
+                            className={`border border-blue-300 border-dashed rounded-lg p-10 flex flex-col items-center justify-center text-blue-600 bg-white hover:bg-blue-50 cursor-pointer transition-colors relative h-64 overflow-hidden group ${errors.Image ? 'border-red-500' : ''
+                                } ${isSaving ? 'opacity-50 pointer-events-none' : ''}`}
                             onClick={() => imageInputRef.current?.click()}
                         >
                             {imagePreview ? (
@@ -227,7 +219,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                                 </>
                             )}
                             <input type="file" accept="image/*" className="hidden" ref={imageInputRef} onChange={handleImageChange} disabled={isSaving} />
-                            
+
                             {/* إظهار خطأ الصورة بشكل أوضح */}
                             {errors?.Image && (
                                 <span className="text-red-500 text-xs font-medium absolute bottom-4 bg-white px-2 py-1 rounded">
@@ -270,7 +262,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
                 </div>
 
                 <div className="flex justify-end mt-4">
-                    <button  type="submit" disabled={isSaving} className={`px-6 py-2 rounded flex items-center gap-2 transition text-white ${isSaving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                    <button type="submit" disabled={isSaving} className={`px-6 py-2 rounded flex items-center gap-2 transition text-white ${isSaving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
                         {isSaving ? <><Loader2 className="animate-spin" size={20} /> Saving...</> : <>Save & continue <span className="text-xl">→</span></>}
                     </button>
                 </div>

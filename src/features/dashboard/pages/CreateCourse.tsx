@@ -1,18 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     Plus, PlaySquare, FileText, ChevronDown, X,
-    Pencil, Trash2, GripVertical, UploadCloud, Check, Loader2
+    Pencil, Trash2, GripVertical, UploadCloud, Check,
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import FormStep1 from '../components/FormStep1';
-import { type CourseSchemaTypes } from '../schema/CourseFormSchema';
+import { type CourseApiPayload, type CourseSchemaTypes } from '../schema/CourseFormSchema';
 import { v4 as uuidv4 } from 'uuid';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { fetchCourseMetadata, saveCourseStep1 } from '../api/courseApi'; // تأكد من المسار
-import imageCompression from 'browser-image-compression';
-
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createCourseSection, deleteCourseSection, fetchCourseMetadata, saveCourseStep1, updateCourseSection, type CreateCourseSectionPayload } from '../api/courseApi';
 type ItemType = 'lesson' | 'resource' | 'quiz';
 
 interface ContentItem {
@@ -42,6 +40,7 @@ interface ModalConfig {
 
 export default function CreateCourse() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     // ================= State Declarations (Must be at the top) =================
     const [currentStep, setCurrentStep] = useState<number>(() => {
@@ -49,7 +48,7 @@ export default function CreateCourse() {
         return savedStep ? parseInt(savedStep) : 1;
     });
 
-    const [courseId, setCourseId] = useState<string | null>(null);
+    const [courseId, setCourseId] = useState<string | null>(() => localStorage.getItem('courseDraftId'));
     const [sections, setSections] = useState<Section[]>([]);
     const [courseBasicData, setCourseBasicData] = useState<Partial<CourseSchemaTypes> | null>(null);
     const [syncStatus, setSyncStatus] = useState<'Loading' | 'Saved' | 'Saving...' | 'Error'>('Loading');
@@ -63,15 +62,15 @@ export default function CreateCourse() {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ================= Mutations (TanStack Query) =================
+    // ================= Mutations (Make course metadata) =================
     const saveCourseMutation = useMutation({
-        mutationFn: (formData: CourseSchemaTypes) => saveCourseStep1(formData, courseId),
+        mutationFn: (formData: CourseApiPayload) => saveCourseStep1(formData, courseId),
         onSuccess: (data) => {
-            // لو ده كورس جديد، الباك إند هيرجع الـ ID الجديد
             console.log("from query mutation", data)
-            if (!courseId) setCourseId(data.id);
+            if (!courseId) setCourseId(data);
             setSyncStatus('Saved');
             setCurrentStep(2);
+            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
@@ -80,34 +79,86 @@ export default function CreateCourse() {
         }
     });
     // ================= 1. Fetch Draft using TanStack Query =================
-    const { data: draftData, isLoading: isFetchingDraft } = useQuery({
+    const { data: draftData, } = useQuery({
         queryKey: ['courseDraft', courseId],
         queryFn: () => fetchCourseMetadata(courseId!),
         enabled: !!courseId,
         staleTime: Infinity,
     });
+    // =================  mutate course section =================
+   const createSectionMutation = useMutation({
+        mutationFn: (variables: { courseId: string; sectionData: CreateCourseSectionPayload }) =>
+            createCourseSection(variables.courseId, variables.sectionData),
+        onSuccess: (data) => {
+            const realSectionId = String(data.id); 
+
+            setSections(prevSections => [
+                ...prevSections,
+                { id: realSectionId, title: modalInputValue, isExpanded: true, items: [] }
+            ]);
+
+            setSyncStatus('Saved');
+            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            closeModal();
+        },
+        onError: (error) => {
+            console.error("Mutation Error:", error);
+            setSyncStatus('Error');
+            alert("Failed to create section. Please try again.");
+        }
+    });
+    // =================  update course section =================
+
+    const updateSectionMutation = useMutation({
+        mutationFn: (variables: { sectionId: string; sectionData: CreateCourseSectionPayload }) =>
+            updateCourseSection(variables.sectionId, variables.sectionData),
+
+        // ⭐ التعديل الثاني: استلام variables كمتغير ثاني (parameter) في الدالة
+        onSuccess: (data, variables) => {
+            console.log("from query mutation update section", data);
+
+            setSections(prevSections =>
+                prevSections.map(sec =>
+                    sec.id === variables.sectionId ? { ...sec, title: modalInputValue } : sec
+                )
+            );
+
+            setSyncStatus('Saved');
+            closeModal();
+        },
+        onError: (error) => {
+            console.error("Mutation Error:", error);
+            setSyncStatus('Error');
+            alert("Failed to update section. Please try again.");
+        }
+    });
+    // =================  delete course section =================
+const deleteSectionMutation = useMutation({
+        mutationFn: (sectionId: string) => deleteCourseSection(Number(sectionId)),
+        
+        onSuccess: (data, sectionId) => {
+            console.log("from query mutation delete section", data);
+            setSections(prevSections => prevSections.filter(sec => sec.id !== sectionId));
+            setSyncStatus('Saved');
+            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+        },
+        onError: (error) => {
+            console.error("Mutation Error:", error);
+            setSyncStatus('Error');
+            alert("Failed to delete section. Please try again.");
+        }
+    });
+
     // ================= Handlers =================
     const handleStep1Submit = async (data: CourseSchemaTypes) => {
         console.log("form step 1", data);
         setSyncStatus('Saving...');
-
-        // if (data.Image instanceof File) {
-        //     const options = {
-        //         maxSizeMB: 0.5,
-        //         maxWidthOrHeight: 1280,
-        //         useWebWorker: true
-        //     };
-        //     try {
-                
-        //         const compressedFile = await imageCompression(data.Image, options);
-        //         data.Image = compressedFile;
-        //     } catch (error) {
-        //     console.log("Compression error", error);
-
-        //     }
-        // }
-
-        saveCourseMutation.mutate(data);
+        const formattedData = {
+            ...data,
+            LearningOutcomes: data.LearningOutcomes.map((item) => item.value),
+            Prerequisites: data.Prerequisites.map((item) => item.value),
+        };
+        saveCourseMutation.mutate(formattedData);
     };
 
     const handleStepClick = (stepNumber: number) => {
@@ -139,7 +190,9 @@ export default function CreateCourse() {
         setSections([]);
         setCurrentStep(1);
         localStorage.removeItem('courseDraftStep');
+        localStorage.removeItem('courseDraftId');
         setSyncStatus('Saved');
+
     };
 
     // ================= Initial Fetch & Storage =================
@@ -221,12 +274,29 @@ export default function CreateCourse() {
         try {
             if (modalConfig.type === 'section') {
                 if (modalConfig.action === 'add') {
-                    // TODO: [BACKEND INTEGRATION] Create Section API
-                    const newSectionId = uuidv4();
-                    setSections([...sections, { id: newSectionId, title: modalInputValue, isExpanded: true, items: [] }]);
+                    if (!courseId) {
+                        alert("Please save course details before adding a section.");
+                        setSyncStatus('Error');
+                        closeModal();
+                        return;
+                    }
+
+                    // نبعت الطلب للباك إند
+                    createSectionMutation.mutate({
+                        courseId,
+                        sectionData: { title: modalInputValue, position: sections.length + 1 }
+                    });
+
+                    return;
+
                 } else {
-                    // TODO: [BACKEND INTEGRATION] Update Section API
-                    setSections(sections.map(sec => sec.id === modalConfig.sectionId ? { ...sec, title: modalInputValue } : sec));
+                    // Update Section API
+                    updateSectionMutation.mutate({
+                        sectionId: modalConfig.sectionId!,
+                        sectionData: { title: modalInputValue, position: sections.findIndex(sec => sec.id === modalConfig.sectionId) + 1 }
+                    });
+
+                    return;
                 }
             } else if (modalConfig.type && modalConfig.sectionId) {
 
@@ -259,41 +329,34 @@ export default function CreateCourse() {
         closeModal();
     };
 
-    const deleteSection = async (id: string) => {
-        if (!window.confirm("Are you sure you want to delete this section?")) return;
+    const deleteSection = (id: string) => {
 
-        const previousSections = [...sections];
-        setSections(sections.filter(sec => sec.id !== id));
         setSyncStatus('Saving...');
-
-        try {
-            // TODO: [BACKEND INTEGRATION] Delete Section API
-            await new Promise(res => setTimeout(res, 300));
-            setSyncStatus('Saved');
-        } catch (error) {
-            void error
-            setSections(previousSections); // التراجع في حالة الخطأ (Optimistic Update)
-            setSyncStatus('Error');
-            alert("Failed to delete section.");
-        }
+        deleteSectionMutation.mutate(id);
     };
 
     const deleteItem = async (sectionId: string, itemId: string) => {
         if (!window.confirm("Are you sure you want to delete this item?")) return;
 
-        const previousSections = [...sections];
-        setSections(sections.map(sec => sec.id === sectionId ? { ...sec, items: sec.items.filter(item => item.id !== itemId) } : sec));
         setSyncStatus('Saving...');
 
         try {
             // TODO: [BACKEND INTEGRATION] Delete Item API
-            await new Promise(res => setTimeout(res, 300));
+            // هنا في المستقبل هتستدعي الـ Mutation الخاص بحذف الـ Item
+            await new Promise(res => setTimeout(res, 300)); // محاكاة لطلب الباك إند
+
+            // 2. الحذف من الشاشة (فقط بعد ما الباك إند يرد بنجاح)
+            setSections(prevSections =>
+                prevSections.map(sec =>
+                    sec.id === sectionId ? { ...sec, items: sec.items.filter(item => item.id !== itemId) } : sec
+                )
+            );
             setSyncStatus('Saved');
         } catch (error) {
-            void error
-            setSections(previousSections);
+            // لو حصل خطأ، الشاشة هتفضل زي ما هي (لأننا محذفناش حاجة منها أصلاً)
+            console.error(error);
             setSyncStatus('Error');
-            alert("Failed to delete item.");
+            alert("Failed to delete item. Please try again.");
         }
     };
 
@@ -302,7 +365,7 @@ export default function CreateCourse() {
     };
 
     // ================= Drag and Drop Logic =================
-    const onDragEnd = async (result) => {
+    const onDragEnd = async (result: any) => {
         const { destination, source, type } = result;
 
         if (!destination) return;

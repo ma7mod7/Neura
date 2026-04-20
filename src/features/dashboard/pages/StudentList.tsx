@@ -159,7 +159,7 @@ export default function StudentList() {
 
                                                     {/* Delete Button */}
                                                     <button 
-                                                        onClick={() => handleDelete(student.id, student.name)}
+                                                        onClick={() => handleDelete(student.id)}
                                                         className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors"
                                                         title="Delete Student"
                                                     >

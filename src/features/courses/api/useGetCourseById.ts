@@ -27,6 +27,7 @@ export interface CourseMetaData {
     isOwner: boolean;
     totalReviews: number;
     numberOfStudents: number;
+
 }
 
 export interface Lesson {

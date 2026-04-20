@@ -1,4 +1,4 @@
-import type { CourseSchemaTypes } from "../schema/CourseFormSchema";
+import type { CourseApiPayload } from "../schema/CourseFormSchema";
 import axiosInstance from "../../../shared/api/axiosInstance";
 
 
@@ -19,7 +19,7 @@ export const fetchCourseTags = async () => {
 
 // 2. Save Course Step 1 API
 // This function sends the FormData to the backend
-export const saveCourseStep1 = async (formData: CourseSchemaTypes, courseId: string | null) => {
+export const saveCourseStep1 = async (formData: CourseApiPayload, courseId: string | null) => {
     try {
         if (!courseId) {
             // Create a new draft course
@@ -30,7 +30,6 @@ export const saveCourseStep1 = async (formData: CourseSchemaTypes, courseId: str
 
 
         } else {
-            console.log("hello from save course step 1 api", formData, courseId)
             // Update existing draft course
             const response = await axiosInstance.put(`/api/Courses/${courseId}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -61,5 +60,30 @@ export interface CourseMetadataResponse {
 
 export const fetchCourseMetadata = async (courseId: string): Promise<CourseMetadataResponse> => {
     const response = await axiosInstance.get(`/api/Courses/${courseId}/metadata`);
+    return response.data; 
+};
+
+
+// 3. Create Course Section API
+export interface CreateCourseSectionPayload {
+    title: string;
+    position: number;
+}
+
+export const createCourseSection = async (courseId: string, sectionData: CreateCourseSectionPayload) => {
+    const response = await axiosInstance.post(`/api/courses/${courseId}/sections`, sectionData);
+    console.log("from create course section api", response)
+    return response.data; 
+};
+
+// 4. Update Course Section API
+export const updateCourseSection = async ( sectionId: string, sectionData: CreateCourseSectionPayload) => {
+    const response = await axiosInstance.put(`/api/sections/${sectionId}`, sectionData);
+    return response.data; 
+};
+
+// 5. Delete Course Section API
+export const deleteCourseSection = async (sectionId: number) => {
+    const response = await axiosInstance.delete(`/api/sections/${sectionId}`);
     return response.data; 
 };

@@ -21,6 +21,7 @@ const getInstById = async (courseId:string): Promise<User> => {
     const response = await axiosInstance.get(`api/Users/course/${courseId}`, {
     });
     
+    
     return response.data;
 };
 
