@@ -22,7 +22,7 @@ interface Course {
 
 }
 
-const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
+const CourseCard: React.FC<{ course: Course }> = ({ course }: { course: Course }) => {
     const navigate=useNavigate()
     const isBookmarked = course.bookMarked;
     const isEnrolled = course.enrolled;

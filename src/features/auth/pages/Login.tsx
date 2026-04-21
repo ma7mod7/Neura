@@ -65,6 +65,7 @@ const LoginPage = () => {
     const onSubmit = (data: LoginFormValues) => {
         mutate(data, {
             onSuccess: (response) => {
+                console.log(response.token);
                 login(response);
                 reset();
                 navigate('/announcements');

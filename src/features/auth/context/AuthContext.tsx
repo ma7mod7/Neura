@@ -9,15 +9,17 @@ interface User {
     firstName: string;
     lastName: string;
     discordHandle: string;
-
 }
+
 interface AuthResponse extends User {
     token: string;
-    expiresin: number;
+    expiresin: number; 
     refreshToken: string;
     refreshTokenExpiration: string;
 }
+
 interface AuthContextType {
+    email: string;
     user: User | null;
     token: string | null;
     isAuthenticated: boolean;
@@ -26,7 +28,6 @@ interface AuthContextType {
     logout: () => void;
 }
 
-// 2. إنشاء الـ Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -34,15 +35,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const logout = () => {
+        setToken(null);
+        setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('tokenExpiration'); 
+        delete axios.defaults.headers.common['Authorization'];
+    };
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
-        
+        const storedExpiration = localStorage.getItem('tokenExpiration'); 
+
         const isValidToken = storedToken && storedToken !== "undefined" && storedToken !== "null";
         const isValidUser = storedUser && storedUser !== "undefined" && storedUser !== "null";
 
-        if (isValidToken && isValidUser) {
+        if (isValidToken && isValidUser && storedExpiration) {
+            const currentTime = new Date().getTime();
+            const expirationTime = parseInt(storedExpiration, 10);
+
+            // 2. التحقق مما إذا كان التوكن قد انتهى
+            if (currentTime > expirationTime) {
+                logout();
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const parsedUser = JSON.parse(storedUser);
                 setToken(storedToken);
@@ -50,34 +71,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             } catch (error) {
                 console.error("Error parsing user from storage", error);
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                logout();
             }
+        } else {
+            logout();
         }
         setIsLoading(false);
     }, []);
 
     const login = (authData: AuthResponse) => {
-        const { token,
-            refreshToken, ...userData } = authData;
+        const { token, refreshToken, expiresin, ...userData } = authData;
+    
+        const expirationTime = new Date().getTime() + (expiresin * 60 * 1000); 
+
         setToken(token);
         setUser(userData);
 
         localStorage.setItem('token', token);
         localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('tokenExpiration', expirationTime.toString()); 
 
-        
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    };
-
-    // 5. دالة تسجيل الخروج
-    const logout = () => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        delete axios.defaults.headers.common['Authorization'];
     };
 
     return (
@@ -86,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             token,
             isAuthenticated: !!token,
             isLoading,
+            
             login,
             logout
         }}>

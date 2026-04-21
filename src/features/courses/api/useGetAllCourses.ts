@@ -1,33 +1,11 @@
 import {  useQuery } from '@tanstack/react-query';
 import axiosInstance from '../../../shared/api/axiosInstance'; 
+import type { PaginatedCourseResponse } from '../../../shared/types/course';
 
 
-export interface Tag {
-    id: number;
-    name: string;
-}
-export interface CourseListItem {
-    keyId: string;
-    title: string;
-    instructorName: string;
-    isCompleted: boolean;
-    isEnrolled: boolean;
-    price: number;
-    imageUrl: string;
-    rating: number;
-    isBookmarked: boolean;
-    tags: Tag[];
-}
 
-export interface CourseResponse {
-    items: CourseListItem[];
-    pageNumber: number;
-    totalPages: number;
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-}
 
-const getCourses = async (page: number): Promise<CourseResponse> => {
+const getCourses = async (page: number): Promise<PaginatedCourseResponse> => {
 
     const response = await axiosInstance.get('api/Courses', {
         params: {

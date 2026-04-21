@@ -16,6 +16,7 @@ import ComingSoonPage from './shared/pages/ComingSoonPage';
 import CreateCourse from './features/dashboard/pages/CreateCourse';
 import CourseListDashboard from './features/dashboard/pages/CourseList';
 import StudentList from './features/dashboard/pages/StudentList';
+import ProfileEditPage from './features/Profile/pages/ProfileEdit';
 
 
 
@@ -37,6 +38,7 @@ function App() {
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:courseId" element={<CourseDetailsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/edit" element={<ProfileEditPage />} />
         <Route path="/search-results" element={<SearchResultsPage />} />
         { /* Admin Routes */}
         <Route path="/admin/course-list" element={<CourseListDashboard />} />
