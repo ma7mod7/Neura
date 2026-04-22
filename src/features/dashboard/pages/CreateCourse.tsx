@@ -10,8 +10,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createCourseSection, deleteCourseSection, fetchCourseMetadata, saveCourseStep1, updateCourseSection, type CreateCourseSectionPayload } from '../api/courseApi';
+import { createCourseSection, deleteCourseSection, deleteLesson, fetchCourseMetadata, saveCourseStep1, updateCourseSection, type CreateCourseSectionPayload } from '../api/courseApi';
 type ItemType = 'lesson' | 'resource' | 'quiz';
+
+//video imports
+import {
+    createSectionItem,
+    getVideoUploadSignature,
+    saveLessonVideoMetadata
+} from '../api/courseApi';
+import { uploadToCloudinary } from '../../../utils/cloudinaryUpload';
 
 interface ContentItem {
     id: string;
@@ -19,6 +27,7 @@ interface ContentItem {
     title: string;
     fileName?: string;
     fileUrl?: string;
+    position?: number;
 }
 
 interface Section {
@@ -60,6 +69,9 @@ export default function CreateCourse() {
     const [openMenuSectionId, setOpenMenuSectionId] = useState<string | null>(null);
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    //video upload state
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadStatusText, setUploadStatusText] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // ================= Mutations (Make course metadata) =================
@@ -78,6 +90,16 @@ export default function CreateCourse() {
             alert("Failed to save course details. Please try again.");
         }
     });
+    // =================  delete lesson/item =================
+    const deleteItemMutation = useMutation({
+        mutationFn: (itemId: string) => deleteLesson(Number(itemId)),
+        onSuccess: (data) => {
+            console.log("from query mutation delete item", data);
+            // بنعمل Invalidate علشان لو فيه داتا تانية معتمدة على الدروس تتحدث
+            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+        }
+        // مش هنكتب onError أو تحديث الشاشة هنا، لأننا عاملينهم تحت في الدالة الأصلية جوه try...catch
+    });
     // ================= 1. Fetch Draft using TanStack Query =================
     const { data: draftData, } = useQuery({
         queryKey: ['courseDraft', courseId],
@@ -86,11 +108,11 @@ export default function CreateCourse() {
         staleTime: Infinity,
     });
     // =================  mutate course section =================
-   const createSectionMutation = useMutation({
+    const createSectionMutation = useMutation({
         mutationFn: (variables: { courseId: string; sectionData: CreateCourseSectionPayload }) =>
             createCourseSection(variables.courseId, variables.sectionData),
         onSuccess: (data) => {
-            const realSectionId = String(data.id); 
+            const realSectionId = String(data.id);
 
             setSections(prevSections => [
                 ...prevSections,
@@ -133,9 +155,9 @@ export default function CreateCourse() {
         }
     });
     // =================  delete course section =================
-const deleteSectionMutation = useMutation({
+    const deleteSectionMutation = useMutation({
         mutationFn: (sectionId: string) => deleteCourseSection(Number(sectionId)),
-        
+
         onSuccess: (data, sectionId) => {
             console.log("from query mutation delete section", data);
             setSections(prevSections => prevSections.filter(sec => sec.id !== sectionId));
@@ -250,56 +272,163 @@ const deleteSectionMutation = useMutation({
     };
 
     const handleModalSubmit = async () => {
+        // Prevent empty submissions
         if (!modalInputValue.trim()) return;
 
-        setSyncStatus('Saving...');
-        let uploadedFileUrl = '';
-
-        if (modalFile) {
-            setIsUploading(true);
-            try {
-                // TODO: [BACKEND INTEGRATION] File Upload API
-                await new Promise(resolve => setTimeout(resolve, 100));
-                uploadedFileUrl = `https://mock-storage.com/files/${modalFile.name}`;
-            } catch (error) {
-                void error
-                alert("Failed to upload the file.");
-                setIsUploading(false);
-                setSyncStatus('Error');
-                return;
-            }
-            setIsUploading(false);
-        }
-
-        try {
-            if (modalConfig.type === 'section') {
-                if (modalConfig.action === 'add') {
-                    if (!courseId) {
-                        alert("Please save course details before adding a section.");
-                        setSyncStatus('Error');
-                        closeModal();
-                        return;
-                    }
-
-                    // نبعت الطلب للباك إند
-                    createSectionMutation.mutate({
-                        courseId,
-                        sectionData: { title: modalInputValue, position: sections.length + 1 }
-                    });
-
-                    return;
-
-                } else {
-                    // Update Section API
-                    updateSectionMutation.mutate({
-                        sectionId: modalConfig.sectionId!,
-                        sectionData: { title: modalInputValue, position: sections.findIndex(sec => sec.id === modalConfig.sectionId) + 1 }
-                    });
-
+        // ============================================================================
+        // ==================== 1. SECTION FLOW (TanStack Query) ======================
+        // ============================================================================
+        if (modalConfig.type === 'section') {
+            if (modalConfig.action === 'add') {
+                // Ensure course is saved first
+                if (!courseId) {
+                    alert("Please save course details before adding a section.");
+                    setSyncStatus('Error');
+                    closeModal();
                     return;
                 }
-            } else if (modalConfig.type && modalConfig.sectionId) {
 
+                // Trigger TanStack mutation to add a new section
+                createSectionMutation.mutate({
+                    courseId,
+                    sectionData: { title: modalInputValue, position: sections.length + 1 }
+                });
+
+                return; // Exit early, onSuccess will handle UI updates and closing modal
+
+            } else {
+                // Trigger TanStack mutation to update existing section
+                updateSectionMutation.mutate({
+                    sectionId: modalConfig.sectionId!,
+                    sectionData: {
+                        title: modalInputValue,
+                        position: sections.findIndex(sec => sec.id === modalConfig.sectionId) + 1
+                    }
+                });
+
+                return; // Exit early, onSuccess will handle UI updates and closing modal
+            }
+        }
+
+        // ============================================================================
+        // ==================== 2. ITEMS FLOW (Lessons, Resources, Quizzes) ===========
+        // ============================================================================
+        else if (modalConfig.type && modalConfig.sectionId) {
+
+            // ------------------------------------------------------------------------
+            // A. Video Lesson Upload Flow (Add Action Only)
+            // ------------------------------------------------------------------------
+            if (modalConfig.type === 'lesson' && modalConfig.action === 'add') {
+                if (!modalFile) {
+                    alert("Please select a video file first.");
+                    return;
+                }
+
+                setIsUploading(true);
+                setSyncStatus('Saving...');
+
+                try {
+                    // Step 1: Create the lesson in DB to get the real ID
+                    setUploadStatusText('Creating lesson...');
+                    const currentSection = sections.find(s => s.id === modalConfig.sectionId);
+                    const currentItems = currentSection?.items || [];
+                    const maxPosition = currentItems.reduce((max, item) => Math.max(max, item.position || 0), 0);
+                    const newPosition = maxPosition + 1;
+
+
+                    const newLessonResponse = await createSectionItem(Number(modalConfig.sectionId), {
+                        title: modalInputValue,
+                        type: 1,
+                        position: newPosition
+                    });
+                    console.log("Created lesson response", newLessonResponse);
+
+                    // Extract real ID based on backend response
+                    const realLessonId = String(newLessonResponse.data.lessonId || newLessonResponse.data?.id);
+
+                    // Step 2: Request upload signature from backend
+                    setUploadStatusText('Getting upload permissions...');
+                    const signatureData = await getVideoUploadSignature(realLessonId, {
+                        fileName: modalFile.name,
+                        fileSize: modalFile.size,
+                        mimeType: modalFile.type
+                    });
+
+                    // Step 3: Upload video directly to Cloudinary and track progress
+                    setUploadStatusText('Uploading video...');
+                    const uploadResult = await uploadToCloudinary(modalFile, signatureData, (progress) => {
+                        setUploadProgress(progress);
+                        setUploadStatusText(`Uploading video... ${progress}%`);
+                    });
+
+                    if (!uploadResult.success || !uploadResult.data) {
+                        throw new Error(uploadResult.error || "Upload to Cloudinary failed.");
+                    }
+
+                    // Step 4: Save video metadata to backend
+                    setUploadStatusText('Saving video details...');
+                    await saveLessonVideoMetadata(realLessonId, {
+                        publicId: uploadResult.data.public_id,
+                        videoUrl: uploadResult.data.secure_url,
+                        durationSeconds: uploadResult.data.duration,
+                        fileSize: uploadResult.data.bytes,
+                        format: uploadResult.data.format
+                    });
+
+                    // Step 5: Update the UI with the new lesson (Optimistic UI Update)
+                    const newItem: ContentItem = {
+                        id: realLessonId,
+                        type: 'lesson',
+                        title: modalInputValue,
+                        fileName: modalFile.name,
+                        fileUrl: uploadResult.data.secure_url,
+                        position: newPosition
+                    };
+
+                    setSections(prevSections => prevSections.map(sec =>
+                        sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
+                    ));
+
+                    setSyncStatus('Saved');
+                } catch (error) {
+                    console.error("Video Upload Error:", error);
+                    setSyncStatus('Error');
+                    alert("An error occurred during video upload. Please try again.");
+                } finally {
+                    // Reset upload states and close modal
+                    setIsUploading(false);
+                    setUploadProgress(0);
+                    setUploadStatusText('');
+                    closeModal();
+                }
+
+                return; // Exit early, flow is complete
+            }
+
+            // ------------------------------------------------------------------------
+            // B. Resource / Quiz / Lesson Edit Flow (Mocked for now)
+            // ------------------------------------------------------------------------
+            setSyncStatus('Saving...');
+            let uploadedFileUrl = '';
+
+            // Mock file upload for non-video files
+            if (modalFile && modalConfig.type !== 'lesson') {
+                setIsUploading(true);
+                try {
+                    // MOCK File Upload Delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    uploadedFileUrl = `https://mock-storage.com/files/${modalFile.name}`;
+                } catch (error) {
+                    void error
+                    alert("Failed to upload the file.");
+                    setIsUploading(false);
+                    setSyncStatus('Error');
+                    return;
+                }
+                setIsUploading(false);
+            }
+
+            try {
                 const payload = {
                     title: modalInputValue,
                     type: modalConfig.type,
@@ -308,25 +437,30 @@ const deleteSectionMutation = useMutation({
                 };
 
                 if (modalConfig.action === 'add') {
-                    // TODO: [BACKEND INTEGRATION] Create Item API
-                    const newItemId = uuidv4();
+                    // MOCK Create Item
+                    const newItemId = uuidv4(); // Temporary UUID until connected to API
                     const newItem: ContentItem = { id: newItemId, ...payload };
-                    setSections(sections.map(sec => sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec));
-                } else {
-                    // TODO: [BACKEND INTEGRATION] Update Item API
-                    setSections(sections.map(sec => sec.id === modalConfig.sectionId ? {
-                        ...sec,
-                        items: sec.items.map(item => item.id === modalConfig.itemId ? { ...item, ...payload } : item)
-                    } : sec));
-                }
-            }
-            setSyncStatus('Saved');
-        } catch (error) {
-            console.error(error);
-            setSyncStatus('Error');
-        }
 
-        closeModal();
+                    setSections(prevSections => prevSections.map(sec =>
+                        sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
+                    ));
+                } else {
+                    // MOCK Update Item
+                    setSections(prevSections => prevSections.map(sec =>
+                        sec.id === modalConfig.sectionId ? {
+                            ...sec,
+                            items: sec.items.map(item => item.id === modalConfig.itemId ? { ...item, ...payload } : item)
+                        } : sec
+                    ));
+                }
+                setSyncStatus('Saved');
+            } catch (error) {
+                console.error(error);
+                setSyncStatus('Error');
+            }
+
+            closeModal();
+        }
     };
 
     const deleteSection = (id: string) => {
@@ -341,19 +475,16 @@ const deleteSectionMutation = useMutation({
         setSyncStatus('Saving...');
 
         try {
-            // TODO: [BACKEND INTEGRATION] Delete Item API
-            // هنا في المستقبل هتستدعي الـ Mutation الخاص بحذف الـ Item
-            await new Promise(res => setTimeout(res, 300)); // محاكاة لطلب الباك إند
+            await deleteItemMutation.mutateAsync(itemId);
 
-            // 2. الحذف من الشاشة (فقط بعد ما الباك إند يرد بنجاح)
             setSections(prevSections =>
                 prevSections.map(sec =>
                     sec.id === sectionId ? { ...sec, items: sec.items.filter(item => item.id !== itemId) } : sec
                 )
             );
+
             setSyncStatus('Saved');
         } catch (error) {
-            // لو حصل خطأ، الشاشة هتفضل زي ما هي (لأننا محذفناش حاجة منها أصلاً)
             console.error(error);
             setSyncStatus('Error');
             alert("Failed to delete item. Please try again.");
@@ -547,9 +678,7 @@ const deleteSectionMutation = useMutation({
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">
-                                                                                                <button onClick={() => openModal(item.type, 'edit', section.id, item.id, item.title, item.fileName)} className="text-gray-400 hover:text-blue-600 transition-colors">
-                                                                                                    <Pencil size={16} />
-                                                                                                </button>
+
                                                                                                 <button onClick={() => deleteItem(section.id, item.id)} className="text-gray-400 hover:text-red-600 transition-colors">
                                                                                                     <Trash2 size={16} />
                                                                                                 </button>
@@ -641,6 +770,20 @@ const deleteSectionMutation = useMutation({
                                         accept={modalConfig.type === 'lesson' ? "video/*" : ".pdf,.doc,.docx,.ppt,.pptx,.txt"}
                                         onChange={handleFileChange}
                                     />
+                                </div>
+                            )}
+                            {isUploading && modalConfig.type === 'lesson' && (
+                                <div className="mt-2 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                                        <span>{uploadStatusText}</span>
+                                        <span className="text-blue-600">{uploadProgress}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                                            style={{ width: `${uploadProgress}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
                             )}
 

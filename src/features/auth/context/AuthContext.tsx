@@ -43,46 +43,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('tokenExpiration'); 
         delete axios.defaults.headers.common['Authorization'];
+        
+        window.location.href = '/auth/login'; 
     };
-
-    useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        const storedExpiration = localStorage.getItem('tokenExpiration'); 
-
-        const isValidToken = storedToken && storedToken !== "undefined" && storedToken !== "null";
-        const isValidUser = storedUser && storedUser !== "undefined" && storedUser !== "null";
-
-        if (isValidToken && isValidUser && storedExpiration) {
-            const currentTime = new Date().getTime();
-            const expirationTime = parseInt(storedExpiration, 10);
-
-            // 2. التحقق مما إذا كان التوكن قد انتهى
-            if (currentTime > expirationTime) {
-                logout();
-                setIsLoading(false);
-                return;
-            }
-
-            try {
-                const parsedUser = JSON.parse(storedUser);
-                setToken(storedToken);
-                setUser(parsedUser);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-            } catch (error) {
-                console.error("Error parsing user from storage", error);
-                logout();
-            }
-        } else {
-            logout();
-        }
-        setIsLoading(false);
-    }, []);
 
     const login = (authData: AuthResponse) => {
         const { token, refreshToken, expiresin, ...userData } = authData;
     
-        const expirationTime = new Date().getTime() + (expiresin * 60 * 1000); 
+        const expirationTime = new Date().getTime() + (expiresin * 1000); 
 
         setToken(token);
         setUser(userData);
@@ -95,13 +63,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
 
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        const storedExpiration = localStorage.getItem('tokenExpiration'); 
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+
+        const isValidToken = storedToken && storedToken !== "undefined" && storedToken !== "null";
+        const isValidUser = storedUser && storedUser !== "undefined" && storedUser !== "null";
+
+        if (isValidToken && isValidUser && storedExpiration) {
+            const currentTime = new Date().getTime();
+            const expirationTime = parseInt(storedExpiration, 10);
+
+            // التحقق مما إذا كان التوكن قد انتهى
+            if (currentTime > expirationTime) {
+                // محاولة تجديد التوكن إذا كان لدينا Refresh Token
+                if (storedRefreshToken) {
+                    // ملاحظة: تأكد من تعديل المسار الأساسي (Base URL) ليتطابق مع مشروعك
+                    axios.post('/Auth/refresh', { refreshToken: storedRefreshToken })
+                        .then(response => {
+                            // نجح التجديد! نستخدم دالة login لتحديث البيانات
+                            login(response.data);
+                        })
+                        .catch(error => {
+                            // فشل التجديد (الـ Refresh Token انتهى أيضاً أو غير صالح)
+                            console.error("Session expired. Please login again.", error);
+                            logout();
+                        })
+                        .finally(() => {
+                            setIsLoading(false);
+                        });
+                    return; // نوقف التنفيذ هنا لانتظار استجابة الـ API
+                } else {
+                    // لا يوجد Refresh Token، اطرد المستخدم
+                    logout();
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            // إذا كان التوكن لا يزال صالحاً، نقوم بوضعه في الـ State
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setToken(storedToken);
+                setUser(parsedUser);
+                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            } catch (error) {
+                console.error("Error parsing user from storage", error);
+                logout();
+            }
+        } else {
+            // تنظيف البيانات في حال كانت غير مكتملة أو معطوبة بدون عمل توجيه
+            setToken(null);
+            setUser(null);
+            delete axios.defaults.headers.common['Authorization'];
+        }
+        
+        setIsLoading(false);
+    }, []);
+
     return (
         <AuthContext.Provider value={{
             user,
             token,
             isAuthenticated: !!token,
             isLoading,
-            
             login,
             logout
         }}>
