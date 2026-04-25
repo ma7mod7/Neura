@@ -64,18 +64,18 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
     }, []);
 
     return (
-        <div ref={menuRef} className="absolute top-full right-0 mt-4 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+        <div ref={menuRef} className="absolute top-full right-0 mt-4 w-64 bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-xl border border-slate-100 dark:border-[#2a2a2e] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
 
             {/* --- Header Section (User Info) --- */}
-            <div onClick={() => navigate('/profile')} className="p-4 border-b border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-blue-50">
+            <div onClick={() => navigate('/profile')} className="p-4 border-b border-slate-100 dark:border-[#2a2a2e] flex items-center gap-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-[#2a2a2e] transition-colors">
                 <img
                     src="https://avatar.iran.liara.run/public/30"
                     alt="User"
-                    className="w-10 h-10 rounded-full border border-slate-200 object-cover"
+                    className="w-10 h-10 rounded-full border border-slate-200 dark:border-[#3a3a3e] object-cover"
                 />
                 <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 text-sm">{user?.firstName} {user?.lastName}</span>
-                    <span className="text-xs text-slate-500">{user?.userName}</span>
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">{user?.firstName} {user?.lastName}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{user?.userName}</span>
                 </div>
             </div>
 
@@ -86,7 +86,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                         key={index}
                         onClick={() => navigate(item.path)}
                         className={
-                            `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-1 text-slate-600 hover:bg-blue-100 hover:text-slate-900 `}
+                            `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-1 text-slate-600 dark:text-slate-300 hover:bg-blue-100 hover:text-slate-900 dark:hover:text-white `}
                     >
                         <item.icon size={18} strokeWidth={item.isActive ? 2.5 : 2} />
                         {item.label}
@@ -96,7 +96,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                 {/* Sign Out (Separate Item) */}
                 <button
                     onClick={() => logout()}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-500 transition-all mt-1"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 transition-all mt-1"
                 >
                     <LogOut size={18} />
                     Sign Out

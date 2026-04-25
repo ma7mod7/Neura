@@ -58,19 +58,19 @@ export default function StudentList() {
     );
 
     return (
-        <div className="flex min-h-screen bg-[#EAEAEA] font-sans">
+        <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
             {/* القائمة الجانبية */}
             <Sidebar />
 
             {/* المحتوى الرئيسي */}
             <main className="flex-1 ml-64 p-8">
-                <div className="bg-white rounded-xl shadow-sm p-8 min-h-[calc(100vh-4rem)] flex flex-col">
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm p-8 min-h-[calc(100vh-4rem)] flex flex-col">
                     
                     {/* ====== Header & Search ====== */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">Students Management</h1>
-                            <p className="text-sm text-gray-500 mt-1">Manage enrolled students, freeze accounts, or remove them.</p>
+                            <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E0E0E0]">Students Management</h1>
+                            <p className="text-sm text-gray-500 dark:text-[#d0d0E0] mt-1">Manage enrolled students, freeze accounts, or remove them.</p>
                         </div>
 
                         {/* Search Bar */}
@@ -80,9 +80,9 @@ export default function StudentList() {
                                 placeholder="Search by name or email..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-[#2a2a2e] dark:bg-[#0e0e10] dark:text-[#E0E0E0] dark:placeholder:text-[#d0d0E0]/50 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                             />
-                            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-[#d0d0E0]" size={18} />
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@ export default function StudentList() {
                                     filteredStudents.map((student, index) => (
                                         <tr 
                                             key={student.id} 
-                                            className={`border-b border-transparent hover:bg-blue-50/50 transition-colors ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                                            className={`border-b border-transparent hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-colors ${index % 2 === 0 ? 'bg-gray-50 dark:bg-[#0e0e10]' : 'bg-white dark:bg-[#1A1A1A]'}`}
                                         >
                                             {/* Student Info */}
                                             <td className="p-4">
@@ -111,22 +111,22 @@ export default function StudentList() {
                                                     <img 
                                                         src={student.avatar} 
                                                         alt={student.name} 
-                                                        className="w-10 h-10 rounded-full border border-gray-200 object-cover"
+                                                        className="w-10 h-10 rounded-full border border-gray-200 dark:border-[#2a2a2e] object-cover"
                                                     />
                                                     <div>
-                                                        <h3 className="text-sm font-semibold text-blue-900">{student.name}</h3>
-                                                        <p className="text-xs text-gray-500 mt-0.5">{student.email}</p>
+                                                        <h3 className="text-sm font-semibold text-blue-900 dark:text-[#E0E0E0]">{student.name}</h3>
+                                                        <p className="text-xs text-gray-500 dark:text-[#d0d0E0] mt-0.5">{student.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {/* Enrolled Courses */}
-                                            <td className="p-4 text-center text-sm font-medium text-gray-700">
+                                            <td className="p-4 text-center text-sm font-medium text-gray-700 dark:text-[#d0d0E0]">
                                                 {student.enrolledCourses}
                                             </td>
 
                                             {/* Join Date */}
-                                            <td className="p-4 text-center text-sm text-gray-500">
+                                            <td className="p-4 text-center text-sm text-gray-500 dark:text-[#d0d0E0]">
                                                 {student.joinDate}
                                             </td>
 
@@ -134,8 +134,8 @@ export default function StudentList() {
                                             <td className="p-4 text-center">
                                                 <span className={`inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full border ${
                                                     student.status === 'Active' 
-                                                        ? 'bg-green-50 text-green-600 border-green-300' 
-                                                        : 'bg-slate-100 text-slate-600 border-slate-300'
+                                                        ? 'bg-green-50 dark:bg-green-500/10 text-green-600 border-green-300 dark:border-green-500/30' 
+                                                        : 'bg-slate-100 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-500/30'
                                                 }`}>
                                                     {student.status}
                                                 </span>
@@ -149,8 +149,8 @@ export default function StudentList() {
                                                         onClick={() => handleToggleFreeze(student.id, student.status)}
                                                         className={`p-1.5 rounded transition-colors ${
                                                             student.status === 'Active' 
-                                                            ? 'text-blue-500 hover:bg-blue-100' 
-                                                            : 'text-green-600 hover:bg-green-100'
+                                                            ? 'text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-500/10' 
+                                                            : 'text-green-600 hover:bg-green-100 dark:hover:bg-green-500/10'
                                                         }`}
                                                         title={student.status === 'Active' ? 'Freeze Account' : 'Unfreeze Account'}
                                                     >
@@ -160,7 +160,7 @@ export default function StudentList() {
                                                     {/* Delete Button */}
                                                     <button 
                                                         onClick={() => handleDelete(student.id)}
-                                                        className="p-1.5 text-red-500 hover:bg-red-100 rounded transition-colors"
+                                                        className="p-1.5 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/10 rounded transition-colors"
                                                         title="Delete Student"
                                                     >
                                                         <Trash2 size={18} />
@@ -171,7 +171,7 @@ export default function StudentList() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="p-8 text-center text-gray-500">
+                                        <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-[#d0d0E0]">
                                             No students found matching your search.
                                         </td>
                                     </tr>
@@ -181,18 +181,18 @@ export default function StudentList() {
                     </div>
 
                     {/* ====== Pagination ====== */}
-                    <div className="flex items-center justify-between mt-8 border-t border-gray-100 pt-6">
-                        <span className="text-sm text-gray-500">
+                    <div className="flex items-center justify-between mt-8 border-t border-gray-100 dark:border-[#2a2a2e] pt-6">
+                        <span className="text-sm text-gray-500 dark:text-[#d0d0E0]">
                             Showing {filteredStudents.length} of {students.length} students
                         </span>
                         
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-[#d0d0E0]">
                             <button className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                                 <ChevronLeft size={16} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded">1</button>
-                            <button className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded text-gray-800">2</button>
-                            <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded">3</button>
+                            <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-[#2a2a2e] rounded">1</button>
+                            <button className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-[#2a2a2e] rounded text-gray-800 dark:text-[#E0E0E0]">2</button>
+                            <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-[#2a2a2e] rounded">3</button>
                             <button className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                                 <ChevronRight size={16} />
                             </button>

@@ -93,7 +93,7 @@ const CoursesPage = () => {
 
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-inter">
+        <div className="min-h-screen bg-[#F8FAFC]  dark:bg-[#0e0e10] font-inter">
 
             {/* --- PART 1: Top Navigation --- */}
             <SearchBar />
@@ -103,7 +103,7 @@ const CoursesPage = () => {
                 {/* --- PART 2: Welcome & Hero Banner --- */}
                 <div className="flex items-center gap-3 mb-8">
                     <img src="https://avatar.iran.liara.run/public/30" className="w-10 h-10 rounded-full border-2 border-[#0061EF]  object-cover p-0.5 " alt="Profile" />
-                    <h2 className="text-xl font-bold text-slate-800">Welcome back, {user?.firstName} {user?.lastName}</h2>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Welcome back, {user?.firstName} {user?.lastName}</h2>
                 </div>
                 <div className="mx-auto max-w-[1450px]">
                     <div className="rounded-[2rem]  bg-[#0061EF] px-6 lg:px-12 py-1 flex flex-col lg:flex-row items-center gap-12 text-white">
@@ -122,7 +122,7 @@ const CoursesPage = () => {
                 {/* --- PART 3: My Learning Swiper Section --- */}
                 <div className="mb-16 relative">
                     <div className="flex items-center justify-between mb-6 mt-6">
-                        <h2 className="text-xl font-bold text-slate-800">My Learning</h2>
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white">My Learning</h2>
                         <button onClick={() => navigate('/my-learning')} className="text-[#0061EF] font-bold text-sm hover:underline">
                             View All
                         </button>
@@ -164,7 +164,7 @@ const CoursesPage = () => {
                 <div className=" flex flex-col lg:gap-10 gap-24">
                     {/* Recently Searched */}
                     <section>
-                        <h2 className="text-xl font-bold text-slate-800 mb-8 ">Recently Searched</h2>
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8 ">Recently Searched</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {allCourses.slice(0, 3).map((course) => (
                                 <CourseCard key={course.id} course={course} />
@@ -175,18 +175,18 @@ const CoursesPage = () => {
 
                     {/* All Courses / Recommended */}
                     <section>
-                        <h2 className="text-xl font-bold text-slate-800 mb-8">All Courses</h2>
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8">All Courses</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {coursesData?.items?.map((course) => (
 
                                 <CourseCard
-                                    key={course.keyId}
+                                    key={course.keyId ?? ''}
                                     course={{
-                                        id: course.keyId,
-                                        image: course.imageUrl,
+                                        id: course.keyId ?? '',
+                                        image: course.imageUrl??'',
                                         category: course.tags || [],
-                                        title: course.title,
-                                        instructor: course.instructorName,
+                                        title: course.title??'',
+                                        instructor: course.instructorName??'',
                                         rating: course.rating,
                                         duration: '10h',
                                         lectures: 10,
@@ -204,19 +204,19 @@ const CoursesPage = () => {
                         <button
                             onClick={handlePrevPage}
                             disabled={!coursesData?.hasPreviousPage}
-                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-[#2a2a2e] disabled:cursor-not-allowed transition-all"
                         >
                             <ChevronLeft size={28} strokeWidth={2.5} />
                         </button>
 
-                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#A0A0A0] text-white font-bold text-xl">
+                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#A0A0A0] dark:bg-[#2a2a2e] text-white font-bold text-xl">
                             {page}
                         </div>
 
                         <button
                             onClick={handleNextPage}
                             disabled={!coursesData?.hasNextPage}
-                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-[#2a2a2e] disabled:cursor-not-allowed transition-all"
                         >
                             <ChevronRight size={28} strokeWidth={2.5} />
                         </button>

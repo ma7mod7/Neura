@@ -40,7 +40,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }: { course: Course }
 
 
     return (
-        <div  className="bg-[#F6FAFF]  xl:w-[440px] rounded-[1rem] overflow-hidden shadow-md border border-[#0061EF] flex flex-col h-full hover:shadow-xl transition-shadow ">
+        <div  className="bg-[#F6FAFF] dark:bg-[#1A1A1A] xl:w-[440px] rounded-[1rem] overflow-hidden shadow-md border border-[#0061EF] dark:border-[#0061EF]/40 flex flex-col h-full hover:shadow-xl transition-shadow ">
             <div className="relative aspect-video ">
                 <img src={course.image} alt={course.title} className="w-full h-full object-cover p-3 rounded-[1.5rem]  " />
                 <button
@@ -48,7 +48,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }: { course: Course }
                     
                     className={`absolute top-5 right-5 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 ${isBookmarked
                         ? 'bg-[#0066FF] text-white' // Active state
-                        : 'bg-white/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]' // Inactive state
+                        : 'bg-white/90 dark:bg-[#2a2a2e]/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]' // Inactive state
                         }`}
                 >
                     <Bookmark
@@ -66,30 +66,30 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }: { course: Course }
                         course.category.map((tag) => (
                             <span
                                 key={tag.id}
-                                className="text-[10px] font-bold text-[#0061EF] uppercase tracking-wider bg-blue-100 px-2 py-0.5 rounded"
+                                className="text-[10px] font-bold text-[#0061EF] uppercase tracking-wider bg-blue-100 dark:bg-[#0061EF]/15 px-2 py-0.5 rounded"
                             >
                                 #{tag.name}
                             </span>
                         ))
                     ) : (
 
-                        <span className="text-[10px] font-bold text-gray-400">#General</span>
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500">#General</span>
                     )}
                 </div>
 
-                <h3 className="font-bold text-slate-800  mb-1 line-clamp-2">{course.title}</h3>
-                <p className="text-slate-500 text-xs mb-4">Dr. {course.instructor}</p>
+                <h3 className="font-bold text-slate-800 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Dr. {course.instructor}</p>
 
                 <div className="flex items-center gap-2 mb-6">
-                    <div className="flex items-center gap-1 border  border-slate-300 rounded-lg p-1">
+                    <div className="flex items-center gap-1 border  border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
                         <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                        <span className="text-xs font-bold text-slate-700">{course.rating}</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{course.rating}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 border border-slate-300 rounded-lg p-1">
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
                         <Clock size={14} />
                         <span className="text-[10px]">{course.duration}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-slate-400 border border-slate-300 rounded-lg p-1">
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
                         <BookOpen size={14} />
                         <span className="text-[10px]">{course.lectures} lectures</span>
                     </div>
@@ -97,12 +97,12 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }: { course: Course }
 
                 <div className="lg:mt-auto flex items-center justify-between  ">
                     <div className="flex gap-2">
-                    <span className="font-bold text-slate-900">{course.price === 0 ? 'Free' : `${course.price} E.L`}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{course.price === 0 ? 'Free' : `${course.price} E.L`}</span>
                     <span onClick={()=>navigate(`/courses/${course.id}`)} className="cursor-pointer">
                         <ArrowUpRight  size={24} className="bg-blue-600 rounded-full text-white"/>
                     </span>
                     </div>
-                    <button onClick={handleEnroll} disabled={isPending || isEnrolled} className="text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white transition-all">
+                    <button onClick={handleEnroll} disabled={isPending || isEnrolled} className="text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white dark:border-[#0061EF]/60 dark:hover:border-[#0061EF] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                         {isPending
                             ? "Loading..."
                             : (course.price === 0 ? (isEnrolled ? "Course Enrolled" : "Enroll") : "Add to Cart")

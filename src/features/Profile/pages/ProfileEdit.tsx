@@ -55,44 +55,44 @@ const ProfileEditPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-inter">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0e0e10] font-inter">
             <NavBar />
 
             <main className="mx-auto p-6 md:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
+
                     {/* --- LEFT SIDEBAR --- */}
                     <SideBar />
 
                     {/* --- RIGHT CONTENT --- */}
                     <div className="lg:col-span-9 space-y-6">
-                        <h1 className="text-2xl font-bold text-slate-800">Edit Profile</h1>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Edit Profile</h1>
 
                         {/* --- FORM 1: Personal Info --- */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+                        <div className="bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-sm border border-slate-100 dark:border-[#2a2a2e] p-6 md:p-8">
                             <form onSubmit={handleSubmitName(onSubmitName)} className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4 text-[#0061EF]">
                                     <User size={20} />
-                                    <h2 className="text-lg font-semibold text-slate-800">Personal Information</h2>
+                                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Personal Information</h2>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-600">First Name</label>
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400">First Name</label>
                                         <input
                                             {...registerName('firstName')}
                                             type="text"
                                             placeholder="Enter your first name"
-                                            className={`w-full bg-slate-50 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsName.firstName ? 'border-red-300 focus:ring-red-500' : 'border-slate-200'}`}
+                                            className={`w-full bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsName.firstName ? 'border-red-300 focus:ring-red-500' : 'border-slate-200 dark:border-[#2a2a2e]'}`}
                                         />
                                         {errorsName.firstName && <p className="text-xs text-red-500">{errorsName.firstName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-600">Last Name</label>
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400">Last Name</label>
                                         <input
                                             {...registerName('lastName')}
                                             type="text"
                                             placeholder="Enter your last name"
-                                            className={`w-full bg-slate-50 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsName.lastName ? 'border-red-300 focus:ring-red-500' : 'border-slate-200'}`}
+                                            className={`w-full bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsName.lastName ? 'border-red-300 focus:ring-red-500' : 'border-slate-200 dark:border-[#2a2a2e]'}`}
                                         />
                                         {errorsName.lastName && <p className="text-xs text-red-500">{errorsName.lastName.message}</p>}
                                     </div>
@@ -111,42 +111,42 @@ const ProfileEditPage = () => {
                         </div>
 
                         {/* --- FORM 2: Password --- */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+                        <div className="bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-sm border border-slate-100 dark:border-[#2a2a2e] p-6 md:p-8">
                             <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4 text-[#0061EF]">
                                     <Lock size={20} />
-                                    <h2 className="text-lg font-semibold text-slate-800">Change Password</h2>
+                                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Change Password</h2>
                                 </div>
-                                
+
                                 <div className="space-y-2 w-full md:w-1/2">
-                                    <label className="text-sm font-medium text-slate-600">Current Password</label>
+                                    <label className="text-sm font-medium text-slate-600 dark:text-slate-400">Current Password</label>
                                     <input
                                         {...registerPassword('currentPassword')}
                                         type="password"
                                         placeholder="Enter current password"
-                                        className={`w-full bg-slate-50 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.currentPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200'}`}
+                                        className={`w-full bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.currentPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200 dark:border-[#2a2a2e]'}`}
                                     />
                                     {errorsPassword.currentPassword && <p className="text-xs text-red-500">{errorsPassword.currentPassword.message}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-600">New Password</label>
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400">New Password</label>
                                         <input
                                             {...registerPassword('newPassword')}
                                             type="password"
                                             placeholder="Enter new password"
-                                            className={`w-full bg-slate-50 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.newPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200'}`}
+                                            className={`w-full bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.newPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200 dark:border-[#2a2a2e]'}`}
                                         />
                                         {errorsPassword.newPassword && <p className="text-xs text-red-500">{errorsPassword.newPassword.message}</p>}
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-600">Confirm New Password</label>
+                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-400">Confirm New Password</label>
                                         <input
                                             {...registerPassword('confirmPassword')}
                                             type="password"
                                             placeholder="Confirm new password"
-                                            className={`w-full bg-slate-50 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.confirmPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200'}`}
+                                            className={`w-full bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 border rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-[#0061EF] text-sm ${errorsPassword.confirmPassword ? 'border-red-300 focus:ring-red-500' : 'border-slate-200 dark:border-[#2a2a2e]'}`}
                                         />
                                         {errorsPassword.confirmPassword && <p className="text-xs text-red-500">{errorsPassword.confirmPassword.message}</p>}
                                     </div>
