@@ -121,17 +121,20 @@ const ProfilePage = () => {
                                     {data?.items.map((course) => (
                                         // تأكد إن كومبوننت الـ CourseCard بيستقبل البروبس بنفس أسماء الـ API الجديد
                                         <CourseCard  course={{
-                                        id: course.keyId,
-                                        image: course.imageUrl,
-                                        category: course.tags || [],
+                                        keyId: course.keyId,
+                                        imageUrl: course.imageUrl,
+                                        tags: course.tags || [],
                                         title: course.title,
-                                        instructor: course.instructorName,
+                                        instructorName: course.instructorName,
                                         rating: course.rating,
-                                        duration: '10h',
-                                        lectures: 10,
+                                        hours: 10,
+                                        totalReviews: course.totalReviews,
+                                        numberOfLessons: course.numberOfLessons,
                                         price: course.price,
-                                        enrolled: course.isEnrolled,
-                                        bookMarked: course.isBookmarked
+                                        isEnrolled: course.isEnrolled,
+                                        isBookmarked: course.isBookmarked,
+                                        isEnrollmentOpen: course.isEnrollmentOpen,
+
 
                                     }} />
                                     ))}

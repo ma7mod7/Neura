@@ -9,7 +9,7 @@ import { type CourseApiPayload, type CourseSchemaTypes } from '../schema/CourseF
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast'; // ⭐ تم استيراد مكتبة Toast
+import toast from 'react-hot-toast'; 
 
 // --- General API Imports ---
 import {
@@ -71,7 +71,6 @@ export default function CreateCourse() {
     const queryClient = useQueryClient();
 
     // ================= State Declarations =================
-    // ⭐ التعديل: دائماً نبدأ من الخطوة 1
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [courseId, setCourseId] = useState<string | null>(() => localStorage.getItem('courseDraftId'));
     const [sections, setSections] = useState<Section[]>([]);
@@ -86,7 +85,7 @@ export default function CreateCourse() {
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    // ⭐ Confirm Dialog State (بديل window.confirm)
+    // Confirm Dialog State
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
 
     // HTML Content for Resources
@@ -104,7 +103,6 @@ export default function CreateCourse() {
 
     // ================= Mutations =================
 
-    // 1. Save Course Data
     const saveCourseMutation = useMutation({
         mutationFn: (formData: CourseApiPayload) => saveCourseStep1(formData, courseId),
         onSuccess: (data) => {
@@ -121,7 +119,6 @@ export default function CreateCourse() {
         }
     });
 
-    // 2. Delete Normal Item
     const deleteItemMutation = useMutation({
         mutationFn: (itemId: string) => deleteLesson(Number(itemId)),
         onSuccess: () => {
@@ -129,7 +126,6 @@ export default function CreateCourse() {
         }
     });
 
-    // 2.b Delete Exam (Quiz)
     const deleteQuizMutation = useMutation({
         mutationFn: (itemId: string) => deleteExam(Number(itemId)),
         onSuccess: () => {
@@ -137,16 +133,6 @@ export default function CreateCourse() {
         }
     });
 
-    // 3. Update Item Info
-    const updateItemMutation = useMutation({
-        mutationFn: (variables: { itemId: string; payload: any }) =>
-            updateLessonInfo(Number(variables.itemId), variables.payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
-        }
-    });
-
-    // 4. Update Article HTML
     const updateArticleMutation = useMutation({
         mutationFn: (variables: { itemId: string; payload: { htmlContent: string } }) =>
             updateLessonArticle(Number(variables.itemId), variables.payload),
@@ -159,7 +145,6 @@ export default function CreateCourse() {
         }
     });
 
-    // 5. Section Mutations
     const createSectionMutation = useMutation({
         mutationFn: (variables: { courseId: string; sectionData: CreateCourseSectionPayload }) =>
             createCourseSection(variables.courseId, variables.sectionData),
@@ -184,7 +169,7 @@ export default function CreateCourse() {
     const updateSectionMutation = useMutation({
         mutationFn: (variables: { sectionId: string; sectionData: CreateCourseSectionPayload }) =>
             updateCourseSection(variables.sectionId, variables.sectionData),
-        onSuccess: (data, variables) => {
+        onSuccess: (variables) => {
             setSections(prevSections =>
                 prevSections.map(sec =>
                     sec.id === variables.sectionId ? { ...sec, title: modalInputValue } : sec
@@ -203,7 +188,7 @@ export default function CreateCourse() {
 
     const deleteSectionMutation = useMutation({
         mutationFn: (sectionId: string) => deleteCourseSection(Number(sectionId)),
-        onSuccess: (data, sectionId) => {
+        onSuccess: ( sectionId) => {
             setSections(prevSections => prevSections.filter(sec => sec.id !== sectionId));
             setSyncStatus('Saved');
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
@@ -273,9 +258,9 @@ export default function CreateCourse() {
                 if (courseId) {
                     setSyncStatus('Saving...');
                     try {
-                        // TODO: Backend delete call
                         await new Promise(res => setTimeout(res, 500));
                     } catch (error) {
+                        void error;
                         toast.error("Failed to delete draft from server.");
                         setSyncStatus('Error');
                         return;
@@ -361,21 +346,24 @@ export default function CreateCourse() {
 
                 setIsUploading(true);
                 setSyncStatus('Saving...');
+                let createdItemId: string | null = null; // ⭐ Rollback flag
 
                 try {
                     setUploadStatusText('Creating lesson...');
                     const newLessonResponse = await createSectionItem(Number(modalConfig.sectionId), {
                         title: modalInputValue,
-                        type: 0, // Lesson enum
+                        type: 1, // ⭐ 1 = Video
                         position: newPosition
                     });
 
-                    const extractedId = newLessonResponse?.id || newLessonResponse?.Id || newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId;
+                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId 
                     const realLessonId = String(extractedId);
 
                     if (!extractedId || realLessonId === 'undefined') {
                         throw new Error("Could not extract Lesson ID from backend response.");
                     }
+                    
+                    createdItemId = realLessonId; // ⭐ Mark for rollback
 
                     setUploadStatusText('Getting upload permissions...');
                     const signatureData = await getVideoUploadSignature(realLessonId, {
@@ -416,12 +404,18 @@ export default function CreateCourse() {
                         sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                     ));
 
+                    createdItemId = null; // ⭐ Success, clear rollback flag
                     setSyncStatus('Saved');
                     toast.success("Video lesson uploaded successfully!");
                 } catch (error) {
                     console.error("Video Upload Error:", error);
                     setSyncStatus('Error');
                     toast.error("An error occurred during video upload. Please try again.");
+                    
+                    // ⭐ Rollback: Delete the orphaned lesson if upload failed
+                    if (createdItemId) {
+                        await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
+                    }
                 } finally {
                     setIsUploading(false);
                     setUploadProgress(0);
@@ -434,18 +428,20 @@ export default function CreateCourse() {
             // B. Quiz Flow
             if (modalConfig.type === 'quiz') {
                 setSyncStatus('Saving...');
+                let createdItemId: string | null = null;
                 try {
                     if (modalConfig.action === 'add') {
                         const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
                             title: modalInputValue,
-                            type: 3,
+                            type: 3, // ⭐ 3 = Quiz
                             position: newPosition
                         });
 
-                        const extractedId = newItemResponse?.id || newItemResponse?.Id || newItemResponse?.data?.id || newItemResponse?.data?.lessonId;
+                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
                         const realItemId = Number(extractedId);
 
                         if (!realItemId) throw new Error("Failed to get Quiz ID");
+                        createdItemId = String(realItemId);
 
                         const newItem: ContentItem = {
                             id: String(realItemId),
@@ -458,6 +454,7 @@ export default function CreateCourse() {
                             sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                         ));
 
+                        createdItemId = null; 
                         closeModal();
                         setQuizEditorConfig({ isOpen: true, lessonId: realItemId, title: modalInputValue });
                     }
@@ -466,12 +463,16 @@ export default function CreateCourse() {
                     console.error(error);
                     setSyncStatus('Error');
                     toast.error("Failed to initialize quiz.");
+                    if (createdItemId) {
+                        await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
+                    }
                 }
                 return;
             }
 
             // C. Resource Flow
             setSyncStatus('Saving...');
+            let createdItemId: string | null = null; // ⭐ Rollback flag
             try {
                 if (modalConfig.action === 'add') {
                     if (modalConfig.type === 'resource' && (!modalHtmlContent || modalHtmlContent === '<p></p>')) {
@@ -482,16 +483,18 @@ export default function CreateCourse() {
 
                     const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
                         title: modalInputValue,
-                        type: 1, // Resource enum
+                        type: 2, // ⭐ 2 = Article (Resource)
                         position: newPosition
                     });
 
-                    const extractedId = newItemResponse?.id || newItemResponse?.Id || newItemResponse?.data?.id || newItemResponse?.data?.lessonId;
+                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
                     const realItemId = String(extractedId);
 
                     if (!extractedId || realItemId === 'undefined') {
                         throw new Error("Could not extract Item ID from backend response.");
                     }
+                    
+                    createdItemId = realItemId; // ⭐ Mark for rollback
 
                     if (modalConfig.type === 'resource') {
                         await updateArticleMutation.mutateAsync({
@@ -511,6 +514,8 @@ export default function CreateCourse() {
                     setSections(prevSections => prevSections.map(sec =>
                         sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                     ));
+                    
+                    createdItemId = null; // ⭐ Success, clear rollback flag
                     toast.success("Resource added successfully!");
 
                 } else {
@@ -521,16 +526,6 @@ export default function CreateCourse() {
                             payload: { htmlContent: modalHtmlContent }
                         });
                     }
-
-                    // Update title info
-                    await updateItemMutation.mutateAsync({
-                        itemId: modalConfig.itemId!,
-                        payload: {
-                            title: modalInputValue,
-                            description: null,
-                            isPreview: false
-                        }
-                    });
 
                     setSections(prevSections => prevSections.map(sec =>
                         sec.id === modalConfig.sectionId ? {
@@ -549,9 +544,14 @@ export default function CreateCourse() {
                 console.error(error);
                 setSyncStatus('Error');
                 toast.error("Failed to save resource.");
+                
+                // ⭐ Rollback: Delete the orphaned resource if updating article failed
+                if (createdItemId) {
+                    await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
+                }
+            } finally {
+                closeModal();
             }
-
-            closeModal();
         }
     };
 
@@ -636,7 +636,6 @@ export default function CreateCourse() {
 
         setSyncStatus('Saving...');
         try {
-            // TODO: Backend Reorder Call
             await new Promise(res => setTimeout(res, 400));
             setSyncStatus('Saved');
         } catch (error) {

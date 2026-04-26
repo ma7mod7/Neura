@@ -1,4 +1,4 @@
-import type { SignedVideoUploadResponse } from "../features/uploadVideo/types/video";
+import type { SignedVideoUploadResponse } from "../features/dashboard/api/courseApi";
 
 export interface CloudinaryUploadResponse {
     public_id: string;
@@ -33,13 +33,13 @@ export async function uploadToCloudinary(
         formData.append('folder', credentials.folder);
         formData.append('public_id', credentials.publicId);
 
-        if (credentials.eager) {
-            formData.append('eager', credentials.eager);
+        if ((credentials as any).eager) {
+            formData.append('eager', (credentials as any).eager);
             formData.append('eager_async', 'true');
         }
 
-        if (credentials.notificationUrl) {
-            formData.append('notification_url', credentials.notificationUrl);
+        if ((credentials as any).notificationUrl) {
+            formData.append('notification_url', (credentials as any).notificationUrl);
         }
 
         // تتبع حالة الرفع (Progress)

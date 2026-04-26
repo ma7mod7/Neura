@@ -24,19 +24,7 @@ export interface Tag {
     id: number;
     name: string;
 }
-interface Course {
-    id: string;
-    image: string;
-    category: Tag[];
-    title: string;
-    instructor: string;
-    rating: number;
-    duration: string;
-    lectures: number;
-    price: number;
-    enrolled: boolean,
-    bookMarked: boolean,
-}
+
 
 interface EnrolledCourse {
     id: string;
@@ -73,21 +61,28 @@ const CoursesPage = () => {
         { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
     ];
 
-    const allCourses: Course[] = Array(12).fill({
-        id: 'c1',
-        image: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
+    const allCourses = Array(12).fill({
+        keyId: 'c1',
+        imageUrl: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
         category: [{
             id:1,
             name:"ai"
         }],
         title: 'Complete Machine Learning & Data Science Bootcamp',
-        instructor: 'Angela Yu',
+        instructorName: 'Angela Yu',
         rating: 4.8,
-        duration: '45h',
-        lectures: 138,
-        price: 'E.L 350',
+
         enrolled: true,
         bookMarked: false,
+        tags: [{ id: 1, name: "ai" }],
+        totalReviews: 1200,
+        hours: 45,
+        numberOfLessons: 138,
+        price: 350,
+        isEnrolled: true,
+        isBookmarked: false,
+        isEnrollmentOpen: true,
+
         
     });
 
