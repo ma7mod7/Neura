@@ -125,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{
+            email: user?.email ?? '',
             user,
             token,
             isAuthenticated: !!token,

@@ -31,14 +31,12 @@ export default function CourseListDashboard() {
     const paginationData = data?.courses;
 
     return (
-        <div className="flex min-h-screen bg-[#EAEAEA] font-sans">
+        <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
             <Sidebar />
-
             <main className="flex-1 ml-64 p-8">
-                <div className="bg-white rounded-xl shadow-sm p-8 min-h-[calc(100vh-4rem)] flex flex-col">
-
+                <div className="bg-white rounded-xl dark:bg-[#1A1A1A] shadow-sm p-8 min-h-[calc(100vh-4rem)] flex flex-col">
                     {/* Header Action */}
-                    <div className="flex justify-end mb-6">
+                    <div className="flex justify-end mb-6 ">
                         <button 
                             onClick={() => navigate('/admin/create-course')}  
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
@@ -47,11 +45,9 @@ export default function CourseListDashboard() {
                             Create Course
                         </button>
                     </div>
-
                     {/* Loading & Error States */}
-                    {isLoading && <div className="text-center py-10">Loading courses...</div>}
+                    {isLoading && <div className="text-center py-10 text-gray-500 dark:text-[#d0d0E0]">Loading courses...</div>}
                     {isError && <div className="text-center py-10 text-red-500">Error loading courses.</div>}
-
                     {/* Table */}
                     {!isLoading && !isError && (
                         <div className="flex-1">

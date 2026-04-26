@@ -16,10 +16,10 @@ import { useProfileCourses } from '../hooks/useProfileCourses';
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) => {
     const colors: Record<string, { border: string, text: string, iconBg: string, bgColor: string }> = {
-        blue: { border: 'border-blue-200', text: 'text-blue-600', iconBg: 'text-blue-600', bgColor: "bg-blue-50" },
-        green: { border: 'border-green-200', text: 'text-green-600', iconBg: 'text-green-600', bgColor: "bg-green-50" },
-        purple: { border: 'border-purple-200', text: 'text-purple-600', iconBg: 'text-purple-600', bgColor: "bg-purple-50" },
-        orange: { border: 'border-orange-200', text: 'text-orange-600', iconBg: 'text-orange-600', bgColor: "bg-orange-50" },
+        blue: { border: 'border-blue-200 dark:border-blue-900', text: 'text-blue-600', iconBg: 'text-blue-600', bgColor: "bg-blue-50 dark:bg-blue-900/20" },
+        green: { border: 'border-green-200 dark:border-green-900', text: 'text-green-600', iconBg: 'text-green-600', bgColor: "bg-green-50 dark:bg-green-900/20" },
+        purple: { border: 'border-purple-200 dark:border-purple-900', text: 'text-purple-600', iconBg: 'text-purple-600', bgColor: "bg-purple-50 dark:bg-purple-900/20" },
+        orange: { border: 'border-orange-200 dark:border-orange-900', text: 'text-orange-600', iconBg: 'text-orange-600', bgColor: "bg-orange-50 dark:bg-orange-900/20" },
     };
 
     const theme = colors[color];
@@ -47,20 +47,20 @@ const ProfilePage = () => {
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
-        setPageNumber(1); 
+        setPageNumber(1);
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-inter">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0e0e10] font-inter">
             <NavBar />
 
             <main className="mx-auto p-6 md:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
+
                     <SideBar />
 
                     <div className="lg:col-span-9 space-y-8">
-                        <h1 className="text-2xl font-bold text-slate-800">My Learning</h1>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">My Learning</h1>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <StatCard label="Total Courses" value="6" icon={GraduationCap} color="blue" />
@@ -71,7 +71,7 @@ const ProfilePage = () => {
 
                         {/* Filters & Search */}
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-100 w-full md:w-auto overflow-x-auto">
+                            <div className="flex items-center gap-2 bg-white dark:bg-[#1c1c1f] p-1 rounded-xl border border-slate-100 dark:border-[#2a2a2e] w-full md:w-auto overflow-x-auto">
                                 {['My Courses', 'In Progress', 'Completed', 'Bookmarked'].map((tab) => (
                                     <button
                                         key={tab}
@@ -79,7 +79,7 @@ const ProfilePage = () => {
                                         className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                                             activeTab === tab
                                                 ? 'bg-[#0061EF] text-white shadow-md'
-                                                : 'text-slate-500 hover:bg-slate-50'
+                                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#2a2a2e]'
                                         }`}
                                     >
                                         {tab}
@@ -97,7 +97,7 @@ const ProfilePage = () => {
                                         setPageNumber(1); // إعادة الصفحة لـ 1 عند البحث
                                     }}
                                     placeholder="Search Your Course"
-                                    className="w-full bg-blue-50/50 border border-blue-100 rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400"
+                                    className="w-full bg-blue-50/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 border border-blue-100 dark:border-[#2a2a2e] rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400"
                                 />
                             </div>
                         </div>
@@ -112,7 +112,7 @@ const ProfilePage = () => {
                                 something went wrong while fetching your courses. Please try again later.
                             </div>
                         ) : data?.items?.length === 0 ? (
-                            <div className="text-center py-12 text-slate-500 font-medium">
+                            <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium">
                                 No courses found. Try adjusting your search or filter to find what you're looking for.
                             </div>
                         ) : (
@@ -143,29 +143,29 @@ const ProfilePage = () => {
                                 {/* Pagination */}
                                 {data && data.totalPages > 1 && (
                                     <div className="flex justify-end items-center gap-2 mt-4">
-                                        <button 
+                                        <button
                                             onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
                                             disabled={!data.hasPreviousPage}
                                             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
-                                                data.hasPreviousPage 
-                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700' 
-                                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                data.hasPreviousPage
+                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700'
+                                                : 'bg-slate-200 dark:bg-[#2a2a2e] text-slate-400 cursor-not-allowed'
                                             }`}
                                         >
                                             <ChevronLeft size={18} />
                                         </button>
-                                        
-                                        <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 text-slate-600 font-bold text-sm">
+
+                                        <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-[#2a2a2e] text-slate-600 dark:text-slate-300 font-bold text-sm">
                                             {data.pageNumber}
                                         </span>
-                                        
-                                        <button 
+
+                                        <button
                                             onClick={() => setPageNumber(prev => prev + 1)}
                                             disabled={!data.hasNextPage}
                                             className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
-                                                data.hasNextPage 
-                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700' 
-                                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                data.hasNextPage
+                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700'
+                                                : 'bg-slate-200 dark:bg-[#2a2a2e] text-slate-400 cursor-not-allowed'
                                             }`}
                                         >
                                             <ChevronRight size={18} />
