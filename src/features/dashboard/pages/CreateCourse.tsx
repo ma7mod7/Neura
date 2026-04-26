@@ -878,7 +878,7 @@ export default function CreateCourse() {
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <UploadCloud size={24} className="text-blue-500 mb-2" />
-                                    <span className="text-sm font-medium text-gray-700 text-center">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-[#d0d0E0] text-center">
                                         {modalFileName ? modalFileName : 'Click to upload Video'}
                                     </span>
                                     <input

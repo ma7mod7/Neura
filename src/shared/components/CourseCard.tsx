@@ -66,8 +66,8 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                     )}
                 </div>
 
-                <h3 className="font-bold text-slate-800  mb-1 line-clamp-2">{course.title}</h3>
-                <p className="text-slate-500 text-xs mb-4">Dr. {course.instructorName}</p>
+                <h3 className="font-bold text-slate-800 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Dr. {course.instructorName}</p>
 
                 <div className="flex items-center gap-2 mb-6">
                     <div className="flex items-center gap-1 border  border-slate-300 rounded-lg p-1">
