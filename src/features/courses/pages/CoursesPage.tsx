@@ -182,18 +182,19 @@ const CoursesPage = () => {
                                 <CourseCard
                                     key={course.keyId}
                                     course={{
-                                        id: course.keyId,
-                                        image: course.imageUrl,
-                                        category: course.tags || [],
+                                        keyId: course.keyId,
+                                        imageUrl: course.imageUrl,
+                                        tags: course.tags || [],
                                         title: course.title,
-                                        instructor: course.instructorName,
-                                        rating: course.rating,
-                                        duration: '10h',
-                                        lectures: 10,
+                                        instructorName: course.instructorName,
+                                        totalReviews: course.totalReviews,
+                                        hours:course.hours,
                                         price: course.price,
-                                        enrolled: course.isEnrolled,
-                                        bookMarked: course.isBookmarked
-
+                                        isEnrolled: course.isEnrolled,
+                                        isBookmarked: course.isBookmarked,
+                                        isEnrollmentOpen: course.isEnrollmentOpen,
+                                        numberOfLessons:course.numberOfLessons,
+                                        rating: course.rating
                                     }}
                                 />
                             ))}

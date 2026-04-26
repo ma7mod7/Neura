@@ -6,7 +6,7 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 
 
 const enrollRequest = async (id:string) => {
-    const response = await axiosInstance.post(`api/Courses/enroll/${id}`)
+    const response = await axiosInstance.post(`/api/courses/${id}/enroll`)
     console.log("hello world")
     console.log(response)
     return response;

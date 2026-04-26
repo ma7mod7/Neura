@@ -3,20 +3,19 @@ export interface Tag {
     name: string;
 }
 export interface CourseListItem {
-keyId: string | null;
-    title: string | null;
-    instructorName: string | null;
-    imageUrl: string | null;
+    keyId: string ;
+    title: string ;
+    instructorName: string ;
+    imageUrl: string ;
     price: number;
     rating: number;
-    numberOfStudents: number;
-    status: number;
-    statusName: string | null;
     isEnrollmentOpen: boolean;
     isBookmarked: boolean;
     isEnrolled: boolean;
     totalReviews: number;
     tags: Tag[];
+    numberOfLessons: number;
+    hours: number;
 }
 
 export interface PaginatedCourseResponse {
