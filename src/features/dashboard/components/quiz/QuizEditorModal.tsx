@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { X, Settings, ListChecks, Plus, Trash2, Save } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { createExamMetadata, addExamQuestion, deleteExamQuestion, type CreateQuestionPayload } from '../../api/quizApi';
+import toast from 'react-hot-toast'; // ⭐ تم الاستيراد
 
 interface QuizEditorModalProps {
     isOpen: boolean;
@@ -16,7 +17,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
     const [examId, setExamId] = useState<number | null>(null);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'error'>('idle');
 
-    // --- Settings State (Using Defaults you requested) ---
+    // --- Settings State ---
     const [settings, setSettings] = useState({
         durationInMinutes: 30,
         maxAttempts: 3,
@@ -26,11 +27,11 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
     });
 
     // --- Questions State ---
-    const [questions, setQuestions] = useState<any[]>([]); // List of added questions
+    const [questions, setQuestions] = useState<any[]>([]); 
     const [currentQuestion, setCurrentQuestion] = useState<CreateQuestionPayload>({
         questionText: '',
         points: 1,
-        questionType: 0, // 0: MCQ, 1: T/F, 2: Multiple Select
+        questionType: 0, 
         options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }]
     });
 
@@ -50,30 +51,34 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
             numberOfQuestionsToServe: null, 
         }),
         onSuccess: (data) => {
-            // Assume backend returns the created exam with its ID
             const newExamId = data.id || data.data?.id;
             setExamId(newExamId);
             setSyncStatus('idle');
-            setActiveTab('questions'); // Move to questions tab automatically
+            setActiveTab('questions'); 
+            toast.success("Exam settings saved!"); // ⭐ Toast
         },
         onError: (error) => {
             console.error(error);
             setSyncStatus('error');
-            alert("Failed to save exam settings.");
+            toast.error("Failed to save exam settings."); // ⭐ Toast
         }
     });
 
     const addQuestionMutation = useMutation({
         mutationFn: (payload: CreateQuestionPayload) => addExamQuestion(examId!, payload),
         onSuccess: (data, payload) => {
-            // Optimistic update for UI list
             setQuestions([...questions, { ...payload, id: data.id || Date.now() }]);
-            // Reset current question form
             setCurrentQuestion({
                 questionText: '', points: 1, questionType: 0,
                 options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }]
             });
             setSyncStatus('idle');
+            toast.success("Question added successfully!"); // ⭐ Toast
+        },
+        onError: (error) => {
+            console.error(error);
+            setSyncStatus('error');
+            toast.error("Failed to add question. Please check your inputs."); // ⭐ Toast
         }
     });
 
@@ -81,6 +86,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
         mutationFn: (questionId: number) => deleteExamQuestion(examId!, questionId),
         onSuccess: (_, questionId) => {
             setQuestions(questions.filter(q => q.id !== questionId));
+            toast.success("Question deleted!"); // ⭐ Toast
         }
     });
 
@@ -100,8 +106,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
     const handleUpdateOption = (index: number, field: 'text' | 'isCorrect', value: any) => {
         const newOptions = [...(currentQuestion.options || [])];
         
-        // If Single Choice (0) or T/F (1) and user checks an option, uncheck others
-        if (field === 'isCorrect' && value === true && currentQuestion.questionType !== 2) {
+        if (field === 'isCorrect' && value === true && currentQuestion.questionType !== 1) {
             newOptions.forEach(opt => opt.isCorrect = false);
         }
         
@@ -116,15 +121,24 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
 
     const handleQuestionTypeChange = (type: number) => {
         let defaultOptions = [{ text: '', isCorrect: false }, { text: '', isCorrect: false }];
-        if (type === 1) { // True/False presets
+        if (type === 2) { 
             defaultOptions = [{ text: 'True', isCorrect: true }, { text: 'False', isCorrect: false }];
         }
         setCurrentQuestion({ ...currentQuestion, questionType: type, options: defaultOptions });
     };
 
     const handleSaveQuestion = () => {
-        if (!currentQuestion.questionText) return alert("Question text is required");
-        if (!currentQuestion.options?.some(opt => opt.isCorrect)) return alert("Please mark at least one correct answer");
+        if (!currentQuestion.questionText?.trim()) {
+            return toast.error("Question text is required."); // ⭐ Toast
+        }
+        if (!currentQuestion.options?.some(opt => opt.isCorrect)) {
+            return toast.error("Please mark at least one correct answer."); // ⭐ Toast
+        }
+        
+        const hasEmptyOption = currentQuestion.options?.some(opt => !opt.text.trim());
+        if (hasEmptyOption) {
+            return toast.error("All options must have text. Please fill or remove empty options."); // ⭐ Toast
+        }
         
         setSyncStatus('saving');
         addQuestionMutation.mutate(currentQuestion);
@@ -134,7 +148,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
 
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 backdrop-blur-sm">
-            <div className="bg-gray-100 rounded-xl w-full max-w-7xl h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95">
+            <div className="bg-gray-100 rounded-xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95">
                 
                 {/* Header */}
                 <div className="bg-white px-6 py-4 flex justify-between items-center border-b">
@@ -152,7 +166,10 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
                             <Settings size={18} /> Metadata & Rules
                         </button>
                         <button 
-                            onClick={() => examId ? setActiveTab('questions') : alert("Save settings first!")}
+                            onClick={() => {
+                                if (!examId) toast.error("Save settings first!"); // ⭐ Toast
+                                else setActiveTab('questions');
+                            }}
                             className={`w-full flex items-center gap-3 p-3 rounded-lg font-medium transition-colors ${activeTab === 'questions' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-50'}`}
                         >
                             <ListChecks size={18} /> Questions
@@ -217,8 +234,8 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
                                             className="border rounded p-2 flex-1"
                                         >
                                             <option value={0}>Single Choice (MCQ)</option>
-                                            <option value={1}>True / False</option>
-                                            <option value={2}>Multiple Correct Answers</option>
+                                            <option value={1}>Multiple Correct Answers</option>
+                                            <option value={2}>True / False</option>
                                         </select>
                                         <div className="flex items-center gap-2 border rounded p-2 w-32">
                                             <span className="text-sm text-gray-500">Points:</span>
@@ -238,7 +255,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
                                         {currentQuestion.options?.map((opt, idx) => (
                                             <div key={idx} className={`flex items-center gap-3 p-2 rounded border ${opt.isCorrect ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
                                                 <input 
-                                                    type={currentQuestion.questionType === 2 ? "checkbox" : "radio"} 
+                                                    type={currentQuestion.questionType === 1 ? "checkbox" : "radio"} 
                                                     name="correctAnswer"
                                                     checked={opt.isCorrect}
                                                     onChange={(e) => handleUpdateOption(idx, 'isCorrect', e.target.checked)}
@@ -249,15 +266,15 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
                                                     placeholder={`Option ${idx + 1}`}
                                                     value={opt.text}
                                                     onChange={(e) => handleUpdateOption(idx, 'text', e.target.value)}
-                                                    disabled={currentQuestion.questionType === 1} // Disable typing if T/F
+                                                    disabled={currentQuestion.questionType === 2} 
                                                     className="flex-1 bg-transparent outline-none"
                                                 />
-                                                {currentQuestion.questionType !== 1 && (
+                                                {currentQuestion.questionType !== 2 && (
                                                     <button onClick={() => handleRemoveOption(idx)} className="text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
                                                 )}
                                             </div>
                                         ))}
-                                        {currentQuestion.questionType !== 1 && (
+                                        {currentQuestion.questionType !== 2 && (
                                             <button onClick={handleAddOption} className="text-sm text-blue-600 font-medium flex items-center gap-1 mt-2">
                                                 <Plus size={16} /> Add Option
                                             </button>
@@ -269,7 +286,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
                                         disabled={syncStatus === 'saving'}
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium w-full"
                                     >
-                                        Add Question to Quiz
+                                        {syncStatus === 'saving' ? 'Saving...' : 'Add Question to Quiz'}
                                     </button>
                                 </div>
 

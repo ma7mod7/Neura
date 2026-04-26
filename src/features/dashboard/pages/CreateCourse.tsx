@@ -9,17 +9,18 @@ import { type CourseApiPayload, type CourseSchemaTypes } from '../schema/CourseF
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast'; // ⭐ تم استيراد مكتبة Toast
 
 // --- General API Imports ---
-import { 
-    createCourseSection, 
-    deleteCourseSection, 
-    deleteLesson, 
-    fetchCourseMetadata, 
-    saveCourseStep1, 
-    updateCourseSection, 
+import {
+    createCourseSection,
+    deleteCourseSection,
+    deleteLesson,
+    fetchCourseMetadata,
+    saveCourseStep1,
+    updateCourseSection,
     type CreateCourseSectionPayload,
-    updateLessonArticle 
+    updateLessonArticle
 } from '../api/courseApi';
 
 // --- Video Imports ---
@@ -31,12 +32,11 @@ import {
 import { uploadToCloudinary } from '../../../utils/cloudinaryUpload';
 
 // --- Quiz Imports ---
-// ⭐ تم استيراد دالة deleteExam لحذف الامتحانات
-import { deleteExam } from '../api/quizApi'; 
+import { deleteExam } from '../api/quizApi';
 
 // --- Custom Components ---
 import { RichTextEditor } from '../components/RichTextEditor';
-import { QuizEditorModal } from '../components/quiz/QuizEditorModal'; 
+import { QuizEditorModal } from '../components/quiz/QuizEditorModal';
 
 type ItemType = 'lesson' | 'resource' | 'quiz';
 
@@ -71,11 +71,8 @@ export default function CreateCourse() {
     const queryClient = useQueryClient();
 
     // ================= State Declarations =================
-    const [currentStep, setCurrentStep] = useState<number>(() => {
-        const savedStep = localStorage.getItem('courseDraftStep');
-        return savedStep ? parseInt(savedStep) : 1;
-    });
-
+    // ⭐ التعديل: دائماً نبدأ من الخطوة 1
+    const [currentStep, setCurrentStep] = useState<number>(1);
     const [courseId, setCourseId] = useState<string | null>(() => localStorage.getItem('courseDraftId'));
     const [sections, setSections] = useState<Section[]>([]);
     const [courseBasicData, setCourseBasicData] = useState<Partial<CourseSchemaTypes> | null>(null);
@@ -88,7 +85,10 @@ export default function CreateCourse() {
     const [openMenuSectionId, setOpenMenuSectionId] = useState<string | null>(null);
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    
+
+    // ⭐ Confirm Dialog State (بديل window.confirm)
+    const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
+
     // HTML Content for Resources
     const [modalHtmlContent, setModalHtmlContent] = useState('');
 
@@ -98,7 +98,7 @@ export default function CreateCourse() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Quiz Editor State
-    const [quizEditorConfig, setQuizEditorConfig] = useState<{isOpen: boolean, lessonId: number, title: string}>({
+    const [quizEditorConfig, setQuizEditorConfig] = useState<{ isOpen: boolean, lessonId: number, title: string }>({
         isOpen: false, lessonId: 0, title: ''
     });
 
@@ -112,15 +112,16 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
             setCurrentStep(2);
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            toast.success("Course details saved successfully!");
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
             setSyncStatus('Error');
-            alert("Failed to save course details. Please try again.");
+            toast.error("Failed to save course details. Please try again.");
         }
     });
 
-    // 2. Delete Normal Item (Lesson/Resource)
+    // 2. Delete Normal Item
     const deleteItemMutation = useMutation({
         mutationFn: (itemId: string) => deleteLesson(Number(itemId)),
         onSuccess: () => {
@@ -128,7 +129,7 @@ export default function CreateCourse() {
         }
     });
 
-    // ⭐ 2.b Delete Exam (Quiz)
+    // 2.b Delete Exam (Quiz)
     const deleteQuizMutation = useMutation({
         mutationFn: (itemId: string) => deleteExam(Number(itemId)),
         onSuccess: () => {
@@ -136,9 +137,9 @@ export default function CreateCourse() {
         }
     });
 
-    // 3. Update Item Info (Title, etc.)
+    // 3. Update Item Info
     const updateItemMutation = useMutation({
-        mutationFn: (variables: { itemId: string; payload: any }) => 
+        mutationFn: (variables: { itemId: string; payload: any }) =>
             updateLessonInfo(Number(variables.itemId), variables.payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
@@ -147,14 +148,14 @@ export default function CreateCourse() {
 
     // 4. Update Article HTML
     const updateArticleMutation = useMutation({
-        mutationFn: (variables: { itemId: string; payload: { htmlContent: string } }) => 
+        mutationFn: (variables: { itemId: string; payload: { htmlContent: string } }) =>
             updateLessonArticle(Number(variables.itemId), variables.payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
-            alert("Failed to save the article content.");
+            toast.error("Failed to save the article content.");
         }
     });
 
@@ -171,11 +172,12 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
             closeModal();
+            toast.success("Section created successfully!");
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
             setSyncStatus('Error');
-            alert("Failed to create section. Please try again.");
+            toast.error("Failed to create section. Please try again.");
         }
     });
 
@@ -190,11 +192,12 @@ export default function CreateCourse() {
             );
             setSyncStatus('Saved');
             closeModal();
+            toast.success("Section updated successfully!");
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
             setSyncStatus('Error');
-            alert("Failed to update section. Please try again.");
+            toast.error("Failed to update section. Please try again.");
         }
     });
 
@@ -204,11 +207,12 @@ export default function CreateCourse() {
             setSections(prevSections => prevSections.filter(sec => sec.id !== sectionId));
             setSyncStatus('Saved');
             queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            toast.success("Section deleted!");
         },
         onError: (error) => {
             console.error("Mutation Error:", error);
             setSyncStatus('Error');
-            alert("Failed to delete section. Please try again.");
+            toast.error("Failed to delete section. Please try again.");
         }
     });
 
@@ -240,10 +244,6 @@ export default function CreateCourse() {
         }
     }, [draftData]);
 
-    useEffect(() => {
-        localStorage.setItem('courseDraftStep', currentStep.toString());
-    }, [currentStep]);
-
     // ================= Handlers =================
     const handleStep1Submit = async (data: CourseSchemaTypes) => {
         setSyncStatus('Saving...');
@@ -257,34 +257,38 @@ export default function CreateCourse() {
 
     const handleStepClick = (stepNumber: number) => {
         if (stepNumber === 2 && !courseId) {
-            alert("Please save course details first to continue.");
+            toast.error("Please save course details first to continue.");
             return;
         }
         setCurrentStep(stepNumber);
     };
 
-    const handleClearDraft = async () => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this draft completely?");
-        if (!confirmDelete) return;
-
-        if (courseId) {
-            setSyncStatus('Saving...');
-            try {
-                // TODO: Backend delete call
-                await new Promise(res => setTimeout(res, 500));
-            } catch (error) {
-                alert("Failed to delete draft from server.");
-                setSyncStatus('Error');
-                return;
+    const handleClearDraft = () => {
+        setConfirmDialog({
+            isOpen: true,
+            title: "Clear Draft",
+            message: "Are you sure you want to delete this draft completely? This cannot be undone.",
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                if (courseId) {
+                    setSyncStatus('Saving...');
+                    try {
+                        // TODO: Backend delete call
+                        await new Promise(res => setTimeout(res, 500));
+                    } catch (error) {
+                        toast.error("Failed to delete draft from server.");
+                        setSyncStatus('Error');
+                        return;
+                    }
+                }
+                setCourseId(null);
+                setSections([]);
+                setCurrentStep(1);
+                localStorage.removeItem('courseDraftId');
+                setSyncStatus('Saved');
+                toast.success("Draft cleared successfully.");
             }
-        }
-
-        setCourseId(null);
-        setSections([]);
-        setCurrentStep(1);
-        localStorage.removeItem('courseDraftStep');
-        localStorage.removeItem('courseDraftId');
-        setSyncStatus('Saved');
+        });
     };
 
     const openModal = (type: 'section' | ItemType, action: 'add' | 'edit', sectionId?: string, itemId?: string, initialTitle: string = '', initialFileName: string = '') => {
@@ -299,7 +303,7 @@ export default function CreateCourse() {
         setModalInputValue('');
         setModalFileName('');
         setModalFile(null);
-        setModalHtmlContent(''); 
+        setModalHtmlContent('');
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +322,7 @@ export default function CreateCourse() {
         if (modalConfig.type === 'section') {
             if (modalConfig.action === 'add') {
                 if (!courseId) {
-                    alert("Please save course details before adding a section.");
+                    toast.error("Please save course details before adding a section.");
                     setSyncStatus('Error');
                     closeModal();
                     return;
@@ -327,7 +331,7 @@ export default function CreateCourse() {
                     courseId,
                     sectionData: { title: modalInputValue, position: sections.length + 1 }
                 });
-                return; 
+                return;
             } else {
                 updateSectionMutation.mutate({
                     sectionId: modalConfig.sectionId!,
@@ -336,13 +340,13 @@ export default function CreateCourse() {
                         position: sections.findIndex(sec => sec.id === modalConfig.sectionId) + 1
                     }
                 });
-                return; 
+                return;
             }
         }
 
         // ---------------- 2. ITEMS FLOW ----------------
         else if (modalConfig.type && modalConfig.sectionId) {
-            
+
             const currentSection = sections.find(s => s.id === modalConfig.sectionId);
             const currentItems = currentSection?.items || [];
             const maxPosition = currentItems.reduce((max, item) => Math.max(max, item.position || 0), 0);
@@ -351,7 +355,7 @@ export default function CreateCourse() {
             // A. Video Lesson Upload Flow
             if (modalConfig.type === 'lesson' && modalConfig.action === 'add') {
                 if (!modalFile) {
-                    alert("Please select a video file first.");
+                    toast.error("Please select a video file first.");
                     return;
                 }
 
@@ -365,7 +369,7 @@ export default function CreateCourse() {
                         type: 0, // Lesson enum
                         position: newPosition
                     });
-                    
+
                     const extractedId = newLessonResponse?.id || newLessonResponse?.Id || newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId;
                     const realLessonId = String(extractedId);
 
@@ -413,17 +417,18 @@ export default function CreateCourse() {
                     ));
 
                     setSyncStatus('Saved');
+                    toast.success("Video lesson uploaded successfully!");
                 } catch (error) {
                     console.error("Video Upload Error:", error);
                     setSyncStatus('Error');
-                    alert("An error occurred during video upload. Please try again.");
+                    toast.error("An error occurred during video upload. Please try again.");
                 } finally {
                     setIsUploading(false);
                     setUploadProgress(0);
                     setUploadStatusText('');
                     closeModal();
                 }
-                return; 
+                return;
             }
 
             // B. Quiz Flow
@@ -433,23 +438,23 @@ export default function CreateCourse() {
                     if (modalConfig.action === 'add') {
                         const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
                             title: modalInputValue,
-                            type: 3, // ⭐ تم التصحيح لـ 3 للامتحانات
+                            type: 3,
                             position: newPosition
                         });
-                        
+
                         const extractedId = newItemResponse?.id || newItemResponse?.Id || newItemResponse?.data?.id || newItemResponse?.data?.lessonId;
                         const realItemId = Number(extractedId);
 
                         if (!realItemId) throw new Error("Failed to get Quiz ID");
 
-                        const newItem: ContentItem = { 
-                            id: String(realItemId), 
+                        const newItem: ContentItem = {
+                            id: String(realItemId),
                             type: 'quiz',
                             title: modalInputValue,
                             position: newPosition
                         };
-                        
-                        setSections(prevSections => prevSections.map(sec => 
+
+                        setSections(prevSections => prevSections.map(sec =>
                             sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                         ));
 
@@ -460,20 +465,27 @@ export default function CreateCourse() {
                 } catch (error) {
                     console.error(error);
                     setSyncStatus('Error');
+                    toast.error("Failed to initialize quiz.");
                 }
-                return; 
+                return;
             }
 
             // C. Resource Flow
             setSyncStatus('Saving...');
             try {
                 if (modalConfig.action === 'add') {
+                    if (modalConfig.type === 'resource' && (!modalHtmlContent || modalHtmlContent === '<p></p>')) {
+                        toast.error("Please enter some content for the resource.");
+                        setSyncStatus('Error');
+                        return;
+                    }
+
                     const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
                         title: modalInputValue,
                         type: 1, // Resource enum
                         position: newPosition
                     });
-                    
+
                     const extractedId = newItemResponse?.id || newItemResponse?.Id || newItemResponse?.data?.id || newItemResponse?.data?.lessonId;
                     const realItemId = String(extractedId);
 
@@ -481,24 +493,25 @@ export default function CreateCourse() {
                         throw new Error("Could not extract Item ID from backend response.");
                     }
 
-                    if (modalConfig.type === 'resource' && modalHtmlContent) {
+                    if (modalConfig.type === 'resource') {
                         await updateArticleMutation.mutateAsync({
                             itemId: realItemId,
                             payload: { htmlContent: modalHtmlContent }
                         });
                     }
 
-                    const newItem: ContentItem = { 
-                        id: realItemId, 
+                    const newItem: ContentItem = {
+                        id: realItemId,
                         type: modalConfig.type as ItemType,
                         title: modalInputValue,
                         position: newPosition,
-                        fileUrl: modalConfig.type === 'resource' ? modalHtmlContent : undefined 
+                        fileUrl: modalConfig.type === 'resource' ? modalHtmlContent : undefined
                     };
-                    
-                    setSections(prevSections => prevSections.map(sec => 
+
+                    setSections(prevSections => prevSections.map(sec =>
                         sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                     ));
+                    toast.success("Resource added successfully!");
 
                 } else {
                     // Edit Mode for Resource
@@ -512,28 +525,30 @@ export default function CreateCourse() {
                     // Update title info
                     await updateItemMutation.mutateAsync({
                         itemId: modalConfig.itemId!,
-                        payload: { 
+                        payload: {
                             title: modalInputValue,
                             description: null,
                             isPreview: false
                         }
                     });
-                    
-                    setSections(prevSections => prevSections.map(sec => 
+
+                    setSections(prevSections => prevSections.map(sec =>
                         sec.id === modalConfig.sectionId ? {
                             ...sec,
-                            items: sec.items.map(item => item.id === modalConfig.itemId ? { 
-                                ...item, 
+                            items: sec.items.map(item => item.id === modalConfig.itemId ? {
+                                ...item,
                                 title: modalInputValue,
                                 fileUrl: modalConfig.type === 'resource' ? modalHtmlContent : item.fileUrl
                             } : item)
                         } : sec
                     ));
+                    toast.success("Resource updated successfully!");
                 }
                 setSyncStatus('Saved');
             } catch (error) {
                 console.error(error);
                 setSyncStatus('Error');
+                toast.error("Failed to save resource.");
             }
 
             closeModal();
@@ -541,34 +556,47 @@ export default function CreateCourse() {
     };
 
     const deleteSection = (id: string) => {
-        setSyncStatus('Saving...');
-        deleteSectionMutation.mutate(id);
+        setConfirmDialog({
+            isOpen: true,
+            title: "Delete Section",
+            message: "Are you sure you want to delete this section? All lessons inside will be removed.",
+            onConfirm: () => {
+                setConfirmDialog(null);
+                setSyncStatus('Saving...');
+                deleteSectionMutation.mutate(id);
+            }
+        });
     };
 
-    // ⭐ تم تعديل دالة الحذف لاستقبال نوع العنصر للتمييز في الـ API
-    const deleteItem = async (sectionId: string, itemId: string, itemType: ItemType) => {
-        if (!window.confirm("Are you sure you want to delete this item?")) return;
-        setSyncStatus('Saving...');
-        try {
-            if (itemType === 'quiz') {
-                // استخدام API المخصص بحذف الامتحانات
-                await deleteQuizMutation.mutateAsync(itemId);
-            } else {
-                // استخدام API المخصص لحذف الدروس العادية/المصادر
-                await deleteItemMutation.mutateAsync(itemId);
-            }
+    const deleteItem = (sectionId: string, itemId: string, itemType: ItemType) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: `Delete ${itemType}`,
+            message: `Are you sure you want to delete this ${itemType}? This action cannot be undone.`,
+            onConfirm: async () => {
+                setConfirmDialog(null);
+                setSyncStatus('Saving...');
+                try {
+                    if (itemType === 'quiz') {
+                        await deleteQuizMutation.mutateAsync(itemId);
+                    } else {
+                        await deleteItemMutation.mutateAsync(itemId);
+                    }
 
-            setSections(prevSections =>
-                prevSections.map(sec =>
-                    sec.id === sectionId ? { ...sec, items: sec.items.filter(item => item.id !== itemId) } : sec
-                )
-            );
-            setSyncStatus('Saved');
-        } catch (error) {
-            console.error(error);
-            setSyncStatus('Error');
-            alert("Failed to delete item. Please try again.");
-        }
+                    setSections(prevSections =>
+                        prevSections.map(sec =>
+                            sec.id === sectionId ? { ...sec, items: sec.items.filter(item => item.id !== itemId) } : sec
+                        )
+                    );
+                    setSyncStatus('Saved');
+                    toast.success(`${itemType} deleted successfully!`);
+                } catch (error) {
+                    console.error(error);
+                    setSyncStatus('Error');
+                    toast.error(`Failed to delete ${itemType}. Please try again.`);
+                }
+            }
+        });
     };
 
     const toggleSection = (id: string) => {
@@ -619,20 +647,20 @@ export default function CreateCourse() {
 
     const handlePublishCourse = async () => {
         if (sections.length === 0) {
-            alert("Please add at least one section and lesson before publishing.");
+            toast.error("Please add at least one section and lesson before publishing.");
             return;
         }
 
         try {
             setSyncStatus('Saving...');
             await new Promise(resolve => setTimeout(resolve, 1000));
-            localStorage.removeItem('courseDraftStep');
-            alert("Course Published Successfully!");
+            localStorage.removeItem('courseDraftId');
+            toast.success("Course Published Successfully!");
             navigate('/admin/course-list');
         } catch (error) {
             console.error("Error publishing course:", error);
             setSyncStatus('Error');
-            alert("Failed to publish course. Please try again.");
+            toast.error("Failed to publish course. Please try again.");
         }
     }
 
@@ -752,22 +780,20 @@ export default function CreateCourse() {
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">
-                                                                                                {/* ⭐ تم إضافة القلم لفتح نافذة التعديل حسب النوع */}
                                                                                                 {(item.type === 'resource' || item.type === 'quiz') && (
-                                                                                                    <button 
+                                                                                                    <button
                                                                                                         onClick={() => {
                                                                                                             if (item.type === 'resource') {
                                                                                                                 openModal('resource', 'edit', section.id, item.id, item.title);
                                                                                                             } else if (item.type === 'quiz') {
                                                                                                                 setQuizEditorConfig({ isOpen: true, lessonId: Number(item.id), title: item.title });
                                                                                                             }
-                                                                                                        }} 
+                                                                                                        }}
                                                                                                         className="text-gray-400 hover:text-blue-600 transition-colors"
                                                                                                     >
                                                                                                         <Pencil size={16} />
                                                                                                     </button>
                                                                                                 )}
-                                                                                                {/* ⭐ تم تمرير item.type لدالة החذف */}
                                                                                                 <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 hover:text-red-600 transition-colors">
                                                                                                     <Trash2 size={16} />
                                                                                                 </button>
@@ -833,7 +859,6 @@ export default function CreateCourse() {
                             <button onClick={closeModal} className="text-gray-500 hover:text-black bg-white rounded-full p-0.5"><X size={16} /></button>
                         </div>
                         <div className="p-6 space-y-6 overflow-y-auto">
-                            {/* Title Input */}
                             <input
                                 type="text"
                                 value={modalInputValue}
@@ -848,7 +873,6 @@ export default function CreateCourse() {
                                 }}
                             />
 
-                            {/* ====== File Uploader for Video Lessons ====== */}
                             {modalConfig.type === 'lesson' && (
                                 <div
                                     className="border-2 border-dashed border-gray-400 bg-white rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
@@ -868,18 +892,16 @@ export default function CreateCourse() {
                                 </div>
                             )}
 
-                            {/* ====== TipTap Editor for Resources ====== */}
                             {modalConfig.type === 'resource' && (
                                 <div className="mt-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Resource Content</label>
-                                    <RichTextEditor 
-                                        content={modalHtmlContent} 
-                                        onChange={(html) => setModalHtmlContent(html)} 
+                                    <RichTextEditor
+                                        content={modalHtmlContent}
+                                        onChange={(html) => setModalHtmlContent(html)}
                                     />
                                 </div>
                             )}
 
-                            {/* Upload Progress for Video Lessons */}
                             {isUploading && modalConfig.type === 'lesson' && (
                                 <div className="mt-2 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                                     <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
@@ -908,12 +930,30 @@ export default function CreateCourse() {
             )}
 
             {/* ====== Quiz Full-Screen Editor ====== */}
-            <QuizEditorModal 
+            <QuizEditorModal
                 isOpen={quizEditorConfig.isOpen}
                 onClose={() => setQuizEditorConfig({ isOpen: false, lessonId: 0, title: '' })}
                 lessonId={quizEditorConfig.lessonId}
                 quizTitle={quizEditorConfig.title}
             />
+
+            {/* ====== Confirm Dialog ====== */}
+            {confirmDialog?.isOpen && (
+                <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl animate-in zoom-in-95">
+                        <h3 className="text-lg font-bold text-gray-800 mb-2">{confirmDialog.title}</h3>
+                        <p className="text-gray-600 mb-6 text-sm">{confirmDialog.message}</p>
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={confirmDialog.onConfirm} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

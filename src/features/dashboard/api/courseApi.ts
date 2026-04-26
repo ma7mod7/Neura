@@ -161,15 +161,10 @@ export const createSectionItem = async (sectionId: number, payload: CreateLesson
 
 
 export const deleteLesson = async (lessonId: number) => {
-    const response = await axiosInstance.delete(`/api/Lessons/${lessonId}/video`); 
+    const response = await axiosInstance.delete(`/api/Lessons/${lessonId}`); 
     return response.data; 
 };
 
-// Delete Lesson / Item API (تم تصحيح الرابط ليحذف العنصر نفسه وليس الفيديو فقط)
-export const deleteExam = async (lessonId: number) => {
-    const response = await axiosInstance.delete(`/api/Exams/${lessonId}`); 
-    return response.data; 
-};
 
 // ================= Update Article Content API =================
 export interface UpdateArticlePayload {

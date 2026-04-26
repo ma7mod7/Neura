@@ -20,6 +20,7 @@ export interface CreateExamPayload {
 
 export const createExamMetadata = async (payload: CreateExamPayload) => {
     const response = await axiosInstance.post('/api/Exams', payload);
+
     return response.data;
 };
 
@@ -40,6 +41,7 @@ export interface CreateQuestionPayload {
 
 export const addExamQuestion = async (examId: number, payload: CreateQuestionPayload) => {
     const response = await axiosInstance.post(`/api/exams/${examId}/questions`, payload);
+    console.log('Add Question Response:', response.data); 
     return response.data;
 };
 
@@ -55,6 +57,8 @@ export const deleteExamQuestion = async (examId: number, questionId: number) => 
 
 // Delete the entire Exam metadata if needed (optional based on your backend)
 export const deleteExam = async (examId: number) => {
+    console.log(`Deleting exam with ID: ${examId}`);
     const response = await axiosInstance.delete(`/api/Exams/${examId}`);
     return response.data;
 };
+

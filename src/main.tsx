@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { AuthProvider } from './features/auth/context/AuthContext'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { Toaster } from 'react-hot-toast'
 
 const queryClient = new QueryClient()
 
@@ -20,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
           <AuthProvider>
             <App />
             <ReactQueryDevtools initialIsOpen={false} />
-
+            <Toaster />
           </AuthProvider>
         </QueryClientProvider>
       </Provider>
