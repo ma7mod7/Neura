@@ -10,6 +10,7 @@ const bookMarkRequest = async (id: string) => {
     return response;
 };
 
+
 export const useBookMark = () => {
     const queryClient = useQueryClient();
     return useMutation({

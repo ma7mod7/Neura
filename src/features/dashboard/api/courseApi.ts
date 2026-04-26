@@ -161,8 +161,19 @@ export const createSectionItem = async (sectionId: number, payload: CreateLesson
 
 
 export const deleteLesson = async (lessonId: number) => {
-    const response = await axiosInstance.delete(`/api/Lessons/${lessonId}/video`); 
+    const response = await axiosInstance.delete(`/api/Lessons/${lessonId}`); 
     return response.data; 
 };
 
 
+// ================= Update Article Content API =================
+export interface UpdateArticlePayload {
+    htmlContent: string | null;
+}
+
+export const updateLessonArticle = async (lessonId: number, payload: UpdateArticlePayload) => {
+    // بناءً على الصورة، المسار هو /api/Lessons/{id}/article
+    const response = await axiosInstance.put(`/api/Lessons/${lessonId}/article`, payload);
+    console.log("updateLessonArticle response", response.data);
+    return response.data;
+};

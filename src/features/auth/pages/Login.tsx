@@ -65,14 +65,14 @@ const LoginPage = () => {
     const onSubmit = (data: LoginFormValues) => {
         mutate(data, {
             onSuccess: (response) => {
-                console.log(response.token);
+                
                 login(response);
                 reset();
                 navigate('/announcements');
             },
             onError: (error) => {
                 const errorMessage = error.response?.data?.errors?.[1];
-                console.log(errorMessage);
+                
                 setError("root", {
                     type: "manual",
                     message: errorMessage,

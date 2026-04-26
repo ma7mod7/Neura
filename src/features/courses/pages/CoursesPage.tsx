@@ -24,19 +24,7 @@ export interface Tag {
     id: number;
     name: string;
 }
-interface Course {
-    id: string;
-    image: string;
-    category: Tag[];
-    title: string;
-    instructor: string;
-    rating: number;
-    duration: string;
-    lectures: number;
-    price: number;
-    enrolled: boolean,
-    bookMarked: boolean,
-}
+
 
 interface EnrolledCourse {
     id: string;
@@ -73,21 +61,28 @@ const CoursesPage = () => {
         { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
     ];
 
-    const allCourses: Course[] = Array(12).fill({
-        id: 'c1',
-        image: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
+    const allCourses = Array(12).fill({
+        keyId: 'c1',
+        imageUrl: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
         category: [{
             id:1,
             name:"ai"
         }],
         title: 'Complete Machine Learning & Data Science Bootcamp',
-        instructor: 'Angela Yu',
+        instructorName: 'Angela Yu',
         rating: 4.8,
-        duration: '45h',
-        lectures: 138,
-        price: 'E.L 350',
+
         enrolled: true,
         bookMarked: false,
+        tags: [{ id: 1, name: "ai" }],
+        totalReviews: 1200,
+        hours: 45,
+        numberOfLessons: 138,
+        price: 350,
+        isEnrolled: true,
+        isBookmarked: false,
+        isEnrollmentOpen: true,
+
         
     });
 
@@ -182,18 +177,19 @@ const CoursesPage = () => {
                                 <CourseCard
                                     key={course.keyId ?? ''}
                                     course={{
-                                        id: course.keyId ?? '',
-                                        image: course.imageUrl??'',
-                                        category: course.tags || [],
-                                        title: course.title??'',
-                                        instructor: course.instructorName??'',
-                                        rating: course.rating,
-                                        duration: '10h',
-                                        lectures: 10,
+                                        keyId: course.keyId,
+                                        imageUrl: course.imageUrl,
+                                        tags: course.tags || [],
+                                        title: course.title,
+                                        instructorName: course.instructorName,
+                                        totalReviews: course.totalReviews,
+                                        hours:course.hours,
                                         price: course.price,
-                                        enrolled: course.isEnrolled,
-                                        bookMarked: course.isBookmarked
-
+                                        isEnrolled: course.isEnrolled,
+                                        isBookmarked: course.isBookmarked,
+                                        isEnrollmentOpen: course.isEnrollmentOpen,
+                                        numberOfLessons:course.numberOfLessons,
+                                        rating: course.rating
                                     }}
                                 />
                             ))}

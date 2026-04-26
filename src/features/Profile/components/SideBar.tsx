@@ -55,8 +55,8 @@ const SideBar = () => {
                             />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{user?.firstName} {user?.lastName}</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-3">{user?.userName}</p>
+                            <h2 className="text-lg font-bold text-slate-900">{user?.firstName} {user?.lastName}</h2>
+                            <p className="text-slate-500 text-sm mb-3">{user?.userName}</p>
                             <span className="bg-[#FFB52B] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
                                 # 21558
                             </span>

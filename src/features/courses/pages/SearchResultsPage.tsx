@@ -14,19 +14,7 @@ export interface Tag {
     id: number;
     name: string;
 }
-interface Course {
-    id: string;
-    image: string;
-    category: Tag[];
-    title: string;
-    instructor: string;
-    rating: number;
-    duration: string;
-    lectures: number;
-    price: number;
-    enrolled: boolean,
-    bookMarked: boolean,
-}
+
 
 
 const SearchResultsPage = () => {
@@ -39,72 +27,56 @@ const SearchResultsPage = () => {
     const [searchQuery, setSearchQuery] = useState(query);
 
     // --- Mock Data (بيانات وهمية شبه اللي في الصورة) ---
-    const searchResults: Course[] = [
+    const searchResults = [
         {
-            id: 'c1',
-            image: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
-            category: [{ id: 1, name: "ai" }],
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Angela Yu',
-            rating: 4.8,
-            duration: '45h',
-            lectures: 138,
-            price: 350,
-            enrolled: true,
-            bookMarked: false,
-        },
-        {
-            id: '2',
-            image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: [{ id: 1, name: "ai" }],
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
-            rating: 4.8,
-            duration: '45h',
-            lectures: 136,
-            price: 350,
-            enrolled: true,
-            bookMarked: false,
-        },
-        {
-            id: '3',
-            image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: [{ id: 1, name: "ai" }],
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
-            rating: 4.8,
-            duration: '45h',
-            lectures: 138,
-            price: 0,
-            enrolled: true,
-            bookMarked: false,
-        },
-        {
-            id: '4',
-            image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: [{ id: 1, name: "ai" }],
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
-            rating: 4.8,
-            duration: '45h',
-            lectures: 138,
-            price: 350,
-            enrolled: true,
-            bookMarked: false,
-        },
-        {
-            id: '5',
-            image: 'https://placehold.co/600x400/000/fff?text=Python',
-            category: [{ id: 1, name: "ai" }],
-            title: 'Complete Machine Learning & Data Science Bootcamp',
-            instructor: 'Dr. Angela Yu',
-            rating: 4.8,
-            duration: '45h',
-            lectures: 136,
-            price: 350,
-            enrolled: true,
-            bookMarked: false,
-        },
+        keyId: 'c1',
+        imageUrl: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
+        category: [{
+            id:1,
+            name:"ai"
+        }],
+        title: 'Complete Machine Learning & Data Science Bootcamp',
+        instructorName: 'Angela Yu',
+        rating: 4.8,
+
+        enrolled: true,
+        bookMarked: false,
+        tags: [{ id: 1, name: "ai" }],
+        totalReviews: 1200,
+        hours: 45,
+        numberOfLessons: 138,
+        price: 350,
+        isEnrolled: true,
+        isBookmarked: false,
+        isEnrollmentOpen: true,
+
+        
+    },
+    {
+        keyId: 'c2',
+        imageUrl: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
+        category: [{
+            id:1,
+            name:"ai"
+        }],
+        title: 'Complete Machine Learning & Data Science Bootcamp',
+        instructorName: 'Angela Yu',
+        rating: 4.8,
+
+        enrolled: true,
+        bookMarked: false,
+        tags: [{ id: 1, name: "ai" }],
+        totalReviews: 1200,
+        hours: 45,
+        numberOfLessons: 138,
+        price: 350,
+        isEnrolled: true,
+        isBookmarked: false,
+        isEnrollmentOpen: true,
+
+        
+    }
+
     ];
 
     return (
@@ -185,7 +157,7 @@ const SearchResultsPage = () => {
                 {/* --- 3. Results Grid --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-20">
                     {searchResults.map((course) => (
-                        <CourseCard key={course.id} course={course} />
+                        <CourseCard key={course.keyId} course={course} />
                     ))}
                 </div>
 

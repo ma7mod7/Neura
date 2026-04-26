@@ -111,7 +111,7 @@ const CourseDetailsPage = () => {
                             <div className="flex gap-3 mb-4">
                                 {courseMetaData?.tags.map((tag,id) => (
                                     <span key={id} className="bg-[#0061EF] text-xs font-bold px-3 py-1 rounded text-white">
-                                        {tag}
+                                        {tag.name}
                                     </span>
                                 ))}
                             </div>

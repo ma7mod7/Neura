@@ -120,19 +120,23 @@ const ProfilePage = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     {data?.items.map((course) => (
                                         // تأكد إن كومبوننت الـ CourseCard بيستقبل البروبس بنفس أسماء الـ API الجديد
-                                        <CourseCard course={{
-                                            id: course.keyId ?? '',
-                                            image: course.imageUrl??'',
-                                            category: course.tags || [],
-                                            title: course.title??'',
-                                            instructor: course.instructorName??'',
-                                            rating: course.rating,
-                                            duration: '10h',
-                                            lectures: 10,
-                                            price: course.price,
-                                            enrolled: course.isEnrolled,
-                                            bookMarked: course.isBookmarked
-                                        }} />
+                                        <CourseCard  course={{
+                                        keyId: course.keyId,
+                                        imageUrl: course.imageUrl,
+                                        tags: course.tags || [],
+                                        title: course.title,
+                                        instructorName: course.instructorName,
+                                        rating: course.rating,
+                                        hours: 10,
+                                        totalReviews: course.totalReviews,
+                                        numberOfLessons: course.numberOfLessons,
+                                        price: course.price,
+                                        isEnrolled: course.isEnrolled,
+                                        isBookmarked: course.isBookmarked,
+                                        isEnrollmentOpen: course.isEnrollmentOpen,
+
+
+                                    }} />
                                     ))}
                                 </div>
 
