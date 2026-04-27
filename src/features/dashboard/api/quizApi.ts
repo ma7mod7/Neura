@@ -58,7 +58,7 @@ export const deleteExamQuestion = async (examId: number, questionId: number) => 
 // Delete the entire Exam metadata if needed (optional based on your backend)
 export const deleteExam = async (examId: number) => {
     console.log(`Deleting exam with ID: ${examId}`);
-    const response = await axiosInstance.delete(`/api/Exams/${examId}`);
+    const response = await axiosInstance.delete(`/api/Lessons/${examId}`);
     return response.data;
 };
 
