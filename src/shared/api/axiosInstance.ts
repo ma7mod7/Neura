@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: '/',    
+    //    baseURL: 'http://neura.runasp.net/',    
+    baseURL: '/api',    
     headers: {
         'Content-Type': 'application/json',
     },
