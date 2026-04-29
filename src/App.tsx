@@ -17,11 +17,13 @@ import CreateCourse from './features/dashboard/pages/CreateCourse';
 import CourseListDashboard from './features/dashboard/pages/CourseList';
 import StudentList from './features/dashboard/pages/StudentList';
 import ProfileEditPage from './features/Profile/pages/ProfileEdit';
+import { ThemeProvider } from "./shared/context/ThemeContext";
 
 
 
 function App() {
   return (
+    <ThemeProvider>
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
@@ -51,6 +53,7 @@ function App() {
       <Route path="*" element={<ComingSoonPage />} />
       {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
     </Routes>
+     </ThemeProvider>
   );
 }
 

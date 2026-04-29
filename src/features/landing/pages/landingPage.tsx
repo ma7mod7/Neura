@@ -31,7 +31,7 @@ import ServicesImg from '../../../assets/Services.png';
 import Course from '../../../assets/course.png';
 import Study from '../../../assets/study.png';
 import Oursupport from '../../../assets/oursupport.png';
-import Logo from '../../../assets/logo.jpg'
+import Logo from '../../../assets/logo.png'
 
 import Acpc23 from '../../../assets/acpc23.jpg';
 import Acpc24 from '../../../assets/acpc24.jpg';

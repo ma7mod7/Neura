@@ -11,7 +11,7 @@ export default function Sidebar() {
     const currentPath = location.pathname;
 
     return (
-        <aside className="w-64 bg-white flex flex-col fixed h-full shadow-md z-10">
+        <aside className="w-64 bg-white dark:bg-[#1c1c1f] flex flex-col fixed h-full shadow-md z-10">
             {/* ================= Header ================= */}
             <div className="p-6 flex items-center gap-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
@@ -76,7 +76,7 @@ export default function Sidebar() {
                     onClick={() => navigate('/admin/students')}
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors font-medium ${currentPath.includes('/admin/students')
                             ? 'bg-blue-600 text-white' // Active Style
-                            : 'text-gray-700 hover:bg-gray-100' // Inactive Style
+                            : 'text-gray-700 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-[#2a2a2e]' // Inactive Style
                         }`}
                 >
                     <Users size={20} />
@@ -85,10 +85,10 @@ export default function Sidebar() {
             </nav>
 
             {/* ================= Bottom Action ================= */}
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t border-gray-100 dark:border-[#2a2a2e]">
                 <button
                     onClick={() => navigate('/courses')}
-                    className="flex items-center gap-3 p-3 w-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+                    className="flex items-center gap-3 p-3 w-full text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 rounded-lg transition-colors font-medium"
                 >
                     <ArrowLeft size={20} />
                     <span>Back to Courses</span>

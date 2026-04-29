@@ -114,7 +114,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 logout();
             }
         } else {
-            // تنظيف البيانات في حال كانت غير مكتملة أو معطوبة بدون عمل توجيه
             setToken(null);
             setUser(null);
             delete axios.defaults.headers.common['Authorization'];
@@ -125,10 +124,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{
+            email: user?.email ?? '',
             user,
             token,
             isAuthenticated: !!token,
-            email: user?.email || '',
             isLoading,
             login,
             logout

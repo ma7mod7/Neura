@@ -3,7 +3,7 @@ import { Bell, Home, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from '../../../shared/components/ProfileMenu';
-import Logo from '../../../assets/logo.jpg'
+import Logo from '../../../assets/logo.png'
 
 const mockSuggestions = [
     { id: '1', type: 'course', name: 'Machine Learning Bootcamp' },
@@ -69,7 +69,7 @@ export const SearchBar = () => {
 
     return (
         <div>
-            <nav className="sticky top-0 z-50 bg-white border-b border-slate-100 px-4 py-3 shadow-md">
+            <nav className="sticky top-0 z-50 bg-white dark:bg-[#0e0e10]/70 dark:backdrop-blur-md border-b border-slate-100 dark:border-[#1c1c1f]  px-4 py-3 shadow-md">
                 <div className="max-w-[1450px] mx-auto flex items-center justify-between gap-4 md:gap-8">
                     <div className="flex items-center gap-2 shrink-0">
                         <img src={Logo} alt="" className="h-12 rounded-full w-auto object-contain" />
@@ -78,26 +78,27 @@ export const SearchBar = () => {
                     </div>
 
                     <div ref={searchRef} className="flex-1 max-w-2xl relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => handleSearchChange(e.target.value)}
                             placeholder="Search for anything"
-                            className="w-full bg-slate-50 rounded-xl py-2.5 pl-12 pr-4 outline-none border border-slate-200 focus:ring-2 ring-[#0061EF] focus:bg-white transition-all text-sm"
+                            className="w-full bg-slate-50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 rounded-xl py-2.5 pl-12 pr-4 outline-none border border-slate-200 dark:border-[#2a2a2e] focus:ring-2 ring-[#0061EF] focus:bg-white dark:focus:bg-[#2a2a2e] transition-all text-sm"
                         />
                     </div>
                     {isDropdownOpen && suggestions.length > 0 && (
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 ml-9 w-[800px] bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 ml-9 w-[800px] bg-white dark:bg-[#1c1c1f] border border-slate-200 dark:border-[#2a2a2e] rounded-xl shadow-lg z-50 overflow-hidden">
                             {suggestions.map((item) => (
                                 <button
                                     type="button"
                                     key={item.id}
                                     onClick={(e) => { e.preventDefault(); handleSelectSuggestion(item); }}
-                                    className="w-full text-left px-4 py-3 hover:bg-slate-100 text-sm"
+                                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:hover:bg-[#2a2a2e] text-sm text-slate-800 dark:text-slate-200 
+                                            transition-colors"
                                 >
                                     <span className="font-medium">{item.name}</span>
-                                    <span className="ml-2 text-xs text-slate-400">
+                                    <span className="ml-2 text-xs text-slate-400  dark:text-slate-500">
                                         {item.type}
                                     </span>
                                 </button>
@@ -106,10 +107,10 @@ export const SearchBar = () => {
                     )}
                     {/* --- Suggestions Dropdown --- */}
                     <div className="flex items-center gap-3 md:gap-5 relative">
-                        <button onClick={() => navigate('/announcements')} className="p-2 text-slate-600 hover:text-[#0061EF] transition-colors">
+                        <button onClick={() => navigate('/announcements')} className="p-2 text-slate-600 dark:text-slate-400 hover:text-[#0061EF] dark:hover:text-[#0061EF] transition-colors">
                             <Home size={22} />
                         </button>
-                        <button className="p-2 text-slate-600 hover:text-[#0061EF] transition-colors relative">
+                        <button className="p-2 text-slate-600 dark:text-slate-400 hover:text-[#0061EF] dark:hover:text-[#0061EF] transition-colors relative">
                             <Bell size={22} />
                             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>

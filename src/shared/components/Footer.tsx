@@ -1,5 +1,5 @@
 import { FacebookIcon, Github, Linkedin } from 'lucide-react'
-import Logo from '../../assets/logo.jpg'
+import Logo from '../../assets/logo.png'
 
 const navLinks = [
     { name: 'Home', href: '#home' },

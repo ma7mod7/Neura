@@ -260,7 +260,6 @@ export default function CreateCourse() {
                     try {
                         await new Promise(res => setTimeout(res, 500));
                     } catch (error) {
-                        void error;
                         toast.error("Failed to delete draft from server.");
                         setSyncStatus('Error');
                         return;
@@ -346,7 +345,7 @@ export default function CreateCourse() {
 
                 setIsUploading(true);
                 setSyncStatus('Saving...');
-                let createdItemId: string | null = null; // ⭐ Rollback flag
+                let createdItemId: string | null = null; 
 
                 try {
                     setUploadStatusText('Creating lesson...');
@@ -356,14 +355,14 @@ export default function CreateCourse() {
                         position: newPosition
                     });
 
-                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId 
+                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId || newLessonResponse?.id || newLessonResponse?.Id;
                     const realLessonId = String(extractedId);
 
                     if (!extractedId || realLessonId === 'undefined') {
                         throw new Error("Could not extract Lesson ID from backend response.");
                     }
                     
-                    createdItemId = realLessonId; // ⭐ Mark for rollback
+                    createdItemId = realLessonId; 
 
                     setUploadStatusText('Getting upload permissions...');
                     const signatureData = await getVideoUploadSignature(realLessonId, {
@@ -404,7 +403,7 @@ export default function CreateCourse() {
                         sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                     ));
 
-                    createdItemId = null; // ⭐ Success, clear rollback flag
+                    createdItemId = null; 
                     setSyncStatus('Saved');
                     toast.success("Video lesson uploaded successfully!");
                 } catch (error) {
@@ -412,7 +411,6 @@ export default function CreateCourse() {
                     setSyncStatus('Error');
                     toast.error("An error occurred during video upload. Please try again.");
                     
-                    // ⭐ Rollback: Delete the orphaned lesson if upload failed
                     if (createdItemId) {
                         await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
                     }
@@ -437,7 +435,7 @@ export default function CreateCourse() {
                             position: newPosition
                         });
 
-                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
+                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId || newItemResponse?.id || newItemResponse?.Id;
                         const realItemId = Number(extractedId);
 
                         if (!realItemId) throw new Error("Failed to get Quiz ID");
@@ -472,7 +470,7 @@ export default function CreateCourse() {
 
             // C. Resource Flow
             setSyncStatus('Saving...');
-            let createdItemId: string | null = null; // ⭐ Rollback flag
+            let createdItemId: string | null = null; 
             try {
                 if (modalConfig.action === 'add') {
                     if (modalConfig.type === 'resource' && (!modalHtmlContent || modalHtmlContent === '<p></p>')) {
@@ -487,14 +485,14 @@ export default function CreateCourse() {
                         position: newPosition
                     });
 
-                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
+                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId || newItemResponse?.id || newItemResponse?.Id;
                     const realItemId = String(extractedId);
 
                     if (!extractedId || realItemId === 'undefined') {
                         throw new Error("Could not extract Item ID from backend response.");
                     }
                     
-                    createdItemId = realItemId; // ⭐ Mark for rollback
+                    createdItemId = realItemId; 
 
                     if (modalConfig.type === 'resource') {
                         await updateArticleMutation.mutateAsync({
@@ -515,7 +513,7 @@ export default function CreateCourse() {
                         sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
                     ));
                     
-                    createdItemId = null; // ⭐ Success, clear rollback flag
+                    createdItemId = null; 
                     toast.success("Resource added successfully!");
 
                 } else {
@@ -545,7 +543,6 @@ export default function CreateCourse() {
                 setSyncStatus('Error');
                 toast.error("Failed to save resource.");
                 
-                // ⭐ Rollback: Delete the orphaned resource if updating article failed
                 if (createdItemId) {
                     await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
                 }
@@ -664,12 +661,12 @@ export default function CreateCourse() {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#EAEAEA] font-sans">
+        <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
             <Sidebar />
 
             <main className="flex-1 ml-64 p-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">Create New Course</h1>
+                <div className="flex justify-between items-center mb-6 ">
+                    <h1 className="text-2xl font-bold dark:text-[#E0E0E0]">Create New Course</h1>
 
                     <div className="flex items-center gap-4">
                         <div className="text-sm font-medium">
@@ -681,7 +678,7 @@ export default function CreateCourse() {
                         <button
                             type="button"
                             onClick={handleClearDraft}
-                            className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50 transition"
+                            className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition"
                         >
                             Clear Draft
                         </button>
@@ -692,13 +689,13 @@ export default function CreateCourse() {
                 <div className="flex justify-center mb-10 relative">
                     <div className="flex items-center gap-4 relative z-10">
                         <div className="flex flex-col items-center cursor-pointer" onClick={() => handleStepClick(1)}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${currentStep === 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>1</div>
-                            <span className={`text-xs mt-2 font-medium ${currentStep === 1 ? 'text-blue-600' : 'text-gray-500'}`}>Course Details</span>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${currentStep === 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-[#2a2a2e] text-gray-600 dark:text-[#d0d0E0]'}`}>1</div>
+                            <span className={`text-xs mt-2 font-medium ${currentStep === 1 ? 'text-blue-600' : 'text-gray-500 dark:text-[#d0d0E0]'}`}>Course Details</span>
                         </div>
-                        <div className="w-32 h-0.5 bg-gray-300 -mt-6"></div>
+                        <div className="w-32 h-0.5 bg-gray-300 dark:bg-[#2a2a2e] -mt-6"></div>
                         <div className="flex flex-col items-center cursor-pointer" onClick={() => handleStepClick(2)}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${currentStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>2</div>
-                            <span className={`text-xs mt-2 font-medium ${currentStep === 2 ? 'text-blue-600' : 'text-gray-500'}`}>Course Content</span>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${currentStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-[#2a2a2e] text-gray-600 dark:text-[#d0d0E0]'}`}>2</div>
+                            <span className={`text-xs mt-2 font-medium ${currentStep === 2 ? 'text-blue-600' : 'text-gray-500 dark:text-[#d0d0E0]'}`}>Course Content</span>
                         </div>
                     </div>
                 </div>
@@ -713,9 +710,9 @@ export default function CreateCourse() {
 
                 {/* ====== Step 2: Course Content ====== */}
                 {currentStep === 2 && (
-                    <div className="bg-white rounded-xl p-8 shadow-sm flex flex-col gap-4 max-w-4xl mx-auto min-h-[500px]">
+                    <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-8 shadow-sm flex flex-col gap-4 max-w-4xl mx-auto min-h-[500px]">
 
-                        <button type="button" onClick={() => openModal('section', 'add')} className="w-full border border-blue-300 border-dashed text-blue-600 rounded-lg p-3 flex justify-center items-center gap-2 hover:bg-blue-50 transition mb-4">
+                        <button type="button" onClick={() => openModal('section', 'add')} className="w-full border border-blue-300 dark:border-blue-500/50 border-dashed text-blue-600 dark:text-blue-400 rounded-lg p-3 flex justify-center items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition mb-4">
                             Add Section <Plus size={16} />
                         </button>
 
@@ -726,16 +723,16 @@ export default function CreateCourse() {
                                         {sections.map((section, index) => (
                                             <Draggable key={section.id} draggableId={section.id} index={index}>
                                                 {(provided) => (
-                                                    <div ref={provided.innerRef} {...provided.draggableProps} className="border rounded-lg overflow-hidden bg-white">
+                                                    <div ref={provided.innerRef} {...provided.draggableProps} className="border dark:border-[#2a2a2e] rounded-lg overflow-hidden bg-white dark:bg-[#1A1A1A]">
 
-                                                        <div className="bg-blue-100/50 p-4 flex justify-between items-center group">
+                                                        <div className="bg-blue-100/50 dark:bg-blue-500/10 p-4 flex justify-between items-center group">
                                                             <div className="flex items-center gap-2 flex-1">
-                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 hover:text-blue-600">
+                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400">
                                                                     <GripVertical size={18} />
                                                                 </div>
 
                                                                 <div
-                                                                    className="flex items-center gap-2 font-medium text-sm cursor-pointer select-none flex-1"
+                                                                    className="flex items-center gap-2 font-medium text-sm cursor-pointer select-none flex-1 dark:text-[#E0E0E0]"
                                                                     onClick={() => toggleSection(section.id)}
                                                                 >
                                                                     <ChevronDown size={18} className={`transition-transform duration-300 ${section.isExpanded ? "rotate-180" : "rotate-0"}`} />
@@ -743,11 +740,11 @@ export default function CreateCourse() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-3">
-                                                                <span className="text-xs text-gray-500 mr-2">{section.items.length} items</span>
-                                                                <button onClick={() => openModal('section', 'edit', section.id, undefined, section.title)} className="text-gray-400 hover:text-blue-600 transition-colors">
+                                                                <span className="text-xs text-gray-500 dark:text-[#d0d0E0] mr-2">{section.items.length} items</span>
+                                                                <button onClick={() => openModal('section', 'edit', section.id, undefined, section.title)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                                     <Pencil size={16} />
                                                                 </button>
-                                                                <button onClick={() => deleteSection(section.id)} className="text-gray-400 hover:text-red-600 transition-colors">
+                                                                <button onClick={() => deleteSection(section.id)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors">
                                                                     <Trash2 size={16} />
                                                                 </button>
                                                             </div>
@@ -764,10 +761,10 @@ export default function CreateCourse() {
                                                                                         <div
                                                                                             ref={provided.innerRef}
                                                                                             {...provided.draggableProps}
-                                                                                            className="flex justify-between items-center p-3 border rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
+                                                                                            className="flex justify-between items-center p-3 border dark:border-[#2a2a2e] rounded-md bg-gray-50 dark:bg-[#0e0e10] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] transition-colors"
                                                                                         >
-                                                                                            <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
-                                                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 hover:text-blue-600">
+                                                                                            <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-[#d0d0E0]">
+                                                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400">
                                                                                                     <GripVertical size={16} />
                                                                                                 </div>
                                                                                                 {item.type === 'lesson' && <PlaySquare size={16} className="text-blue-500" />}
@@ -775,10 +772,11 @@ export default function CreateCourse() {
                                                                                                 {item.type === 'quiz' && <FileText size={16} className="text-yellow-500" />}
                                                                                                 <div className="flex flex-col">
                                                                                                     <span>{item.title}</span>
-                                                                                                    {item.fileName && <span className="text-xs text-gray-400 font-normal">{item.fileName}</span>}
+                                                                                                    {item.fileName && <span className="text-xs text-gray-400 dark:text-[#d0d0E0]/60 font-normal">{item.fileName}</span>}
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">
+
                                                                                                 {(item.type === 'resource' || item.type === 'quiz') && (
                                                                                                     <button
                                                                                                         onClick={() => {
@@ -788,12 +786,12 @@ export default function CreateCourse() {
                                                                                                                 setQuizEditorConfig({ isOpen: true, lessonId: Number(item.id), title: item.title });
                                                                                                             }
                                                                                                         }}
-                                                                                                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                                                                        className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                                                                                     >
                                                                                                         <Pencil size={16} />
                                                                                                     </button>
                                                                                                 )}
-                                                                                                <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 hover:text-red-600 transition-colors">
+                                                                                                <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors">
                                                                                                     <Trash2 size={16} />
                                                                                                 </button>
                                                                                             </div>
@@ -808,16 +806,16 @@ export default function CreateCourse() {
 
                                                                 <div className="relative w-1/2 self-center flex flex-col items-center">
                                                                     {openMenuSectionId !== section.id ? (
-                                                                        <button type="button" onClick={() => setOpenMenuSectionId(section.id)} className="w-full border border-blue-300 border-dashed text-blue-600 rounded p-2 flex justify-center items-center gap-2 hover:bg-blue-50 text-sm">
+                                                                        <button type="button" onClick={() => setOpenMenuSectionId(section.id)} className="w-full border border-blue-300 dark:border-blue-500/50 border-dashed text-blue-600 dark:text-blue-400 rounded p-2 flex justify-center items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-sm">
                                                                             Add item <Plus size={16} />
                                                                         </button>
                                                                     ) : (
-                                                                        <div className="bg-blue-100 rounded p-2 w-48 text-sm flex flex-col gap-2 shadow-md z-10">
+                                                                        <div className="bg-blue-100 dark:bg-blue-500/20 rounded p-2 w-48 text-sm flex flex-col gap-2 shadow-md z-10">
                                                                             <div onClick={() => openModal('lesson', 'add', section.id)} className="bg-blue-400 text-white rounded p-1.5 flex justify-between items-center cursor-pointer hover:bg-blue-500 transition-colors">
                                                                                 Lesson <ChevronDown size={14} />
                                                                             </div>
-                                                                            <div onClick={() => openModal('resource', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 rounded font-medium text-gray-700 transition-colors">Resource</div>
-                                                                            <div onClick={() => openModal('quiz', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 rounded font-medium text-gray-700 transition-colors">Quiz</div>
+                                                                            <div onClick={() => openModal('resource', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded font-medium text-gray-700 dark:text-[#d0d0E0] transition-colors">Resource</div>
+                                                                            <div onClick={() => openModal('quiz', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded font-medium text-gray-700 dark:text-[#d0d0E0] transition-colors">Quiz</div>
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -850,12 +848,12 @@ export default function CreateCourse() {
             {/* ====== Unified Modal ====== */}
             {modalConfig.isOpen && (
                 <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-gray-200 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl animate-in zoom-in-95">
-                        <div className="bg-gray-300 px-4 py-3 flex justify-between items-center shrink-0">
-                            <h3 className="font-bold text-gray-800 capitalize">
+                    <div className="bg-gray-200 dark:bg-[#1A1A1A] rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl animate-in zoom-in-95">
+                        <div className="bg-gray-300 dark:bg-[#2a2a2e] px-4 py-3 flex justify-between items-center shrink-0">
+                            <h3 className="font-bold text-gray-800 dark:text-[#E0E0E0] capitalize">
                                 {modalConfig.action} {modalConfig.type}
                             </h3>
-                            <button onClick={closeModal} className="text-gray-500 hover:text-black bg-white rounded-full p-0.5"><X size={16} /></button>
+                            <button onClick={closeModal} className="text-gray-500 dark:text-[#d0d0E0] hover:text-black dark:hover:text-white bg-white dark:bg-[#1A1A1A] rounded-full p-0.5"><X size={16} /></button>
                         </div>
                         <div className="p-6 space-y-6 overflow-y-auto">
                             <input
@@ -863,7 +861,7 @@ export default function CreateCourse() {
                                 value={modalInputValue}
                                 onChange={(e) => setModalInputValue(e.target.value)}
                                 placeholder={`Title of the ${modalConfig.type}`}
-                                className="w-full border-none rounded bg-blue-100 p-3 focus:outline-blue-500"
+                                className="w-full border-none rounded bg-blue-100 dark:bg-[#2a2a2e] dark:text-[#E0E0E0] dark:placeholder:text-[#d0d0E0]/50 p-3 focus:outline-blue-500"
                                 autoFocus
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && modalConfig.type !== 'resource') {
@@ -874,7 +872,7 @@ export default function CreateCourse() {
 
                             {modalConfig.type === 'lesson' && (
                                 <div
-                                    className="border-2 border-dashed border-gray-400 bg-white rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
+                                    className="border-2 border-dashed border-gray-400 dark:border-[#3a3a3e] bg-white dark:bg-[#0e0e10] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2a2e] transition"
                                     onClick={() => fileInputRef.current?.click()}
                                 >
                                     <UploadCloud size={24} className="text-blue-500 mb-2" />
@@ -893,7 +891,7 @@ export default function CreateCourse() {
 
                             {modalConfig.type === 'resource' && (
                                 <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Resource Content</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-1">Resource Content</label>
                                     <RichTextEditor
                                         content={modalHtmlContent}
                                         onChange={(html) => setModalHtmlContent(html)}
@@ -902,12 +900,12 @@ export default function CreateCourse() {
                             )}
 
                             {isUploading && modalConfig.type === 'lesson' && (
-                                <div className="mt-2 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                                <div className="mt-2 mb-4 bg-gray-50 dark:bg-[#0e0e10] p-4 rounded-lg border border-gray-200 dark:border-[#2a2a2e]">
+                                    <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-2">
                                         <span>{uploadStatusText}</span>
                                         <span className="text-blue-600">{uploadProgress}%</span>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div className="w-full bg-gray-200 dark:bg-[#2a2a2e] rounded-full h-2 overflow-hidden">
                                         <div
                                             className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
                                             style={{ width: `${uploadProgress}%` }}
@@ -939,11 +937,11 @@ export default function CreateCourse() {
             {/* ====== Confirm Dialog ====== */}
             {confirmDialog?.isOpen && (
                 <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl animate-in zoom-in-95">
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">{confirmDialog.title}</h3>
-                        <p className="text-gray-600 mb-6 text-sm">{confirmDialog.message}</p>
+                    <div className="bg-white dark:bg-[#1A1A1A] rounded-lg p-6 max-w-sm w-full shadow-xl animate-in zoom-in-95">
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-[#E0E0E0] mb-2">{confirmDialog.title}</h3>
+                        <p className="text-gray-600 dark:text-[#d0d0E0] mb-6 text-sm">{confirmDialog.message}</p>
                         <div className="flex justify-end gap-3">
-                            <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] rounded-lg transition-colors">
                                 Cancel
                             </button>
                             <button onClick={confirmDialog.onConfirm} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
