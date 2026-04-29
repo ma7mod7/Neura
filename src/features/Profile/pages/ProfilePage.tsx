@@ -119,7 +119,6 @@ const ProfilePage = () => {
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     {data?.items.map((course) => (
-                                        // تأكد إن كومبوننت الـ CourseCard بيستقبل البروبس بنفس أسماء الـ API الجديد
                                         <CourseCard  course={{
                                         keyId: course.keyId,
                                         imageUrl: course.imageUrl,
@@ -134,8 +133,6 @@ const ProfilePage = () => {
                                         isEnrolled: course.isEnrolled,
                                         isBookmarked: course.isBookmarked,
                                         isEnrollmentOpen: course.isEnrollmentOpen,
-
-
                                     }} />
                                     ))}
                                 </div>

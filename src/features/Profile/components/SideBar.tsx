@@ -1,7 +1,5 @@
 import {
     BookOpen,
-    ListChecks,
-    Settings,
     LogOut,
     Pencil,
     LayoutDashboard,
@@ -76,8 +74,6 @@ const SideBar = () => {
                 <nav className="space-y-2 flex-1">
                     {/* استخدمنا checkIsActive ومررنا الـ link لكل واحدة عشان ترجع true أو false */}
                     <MenuItem icon={BookOpen} label="My Learning" link='/profile' isActive={checkIsActive('/profile')} />
-                    <MenuItem icon={ListChecks} label="Problem List" link='/problems' isActive={checkIsActive('/problems')} />
-                    <MenuItem icon={Settings} label="Settings" link='/settings' isActive={checkIsActive('/settings')} />
                     <MenuItem icon={LayoutDashboard} label="Admin Dashboard" link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
                 </nav>
 

@@ -10,8 +10,8 @@ export const fetchProfileCourses = async (
     switch (tab) {
         case 'In Progress': filterStatus = 'in-progress'; break;
         case 'Completed': filterStatus = 'completed'; break;
-        case 'Bookmarked': filterStatus = 'bookmarked'; break;
-        default: filterStatus = 'all'; break; // My Courses
+        case 'Bookmarked': filterStatus = 'isBookmarked'; break;
+        default: filterStatus = 'all'; break; 
     }
 
     const response = await axiosInstance.get<PaginatedCourseResponse>('/api/Courses', {

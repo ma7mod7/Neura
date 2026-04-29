@@ -23,9 +23,7 @@ const NavBar = () => {
     const navLinks = [
         { name: 'Home', path: '/', active: false, action: () => navigate('/announcements') },
         { name: 'Courses', path: '/courses', active: false, action: () => navigate('/courses') },
-        { name: 'Problems', path: '#', active: false },
-        { name: 'Community', path: '#', active: false },
-        { name: 'Resources', path: '#', active: false },
+        { name: 'Community', path: '/community', active: false, action: () => navigate('/community/students') },
     ];
 
 

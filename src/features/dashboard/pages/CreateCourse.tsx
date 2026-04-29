@@ -20,7 +20,8 @@ import {
     saveCourseStep1,
     updateCourseSection,
     type CreateCourseSectionPayload,
-    updateLessonArticle
+    updateLessonArticle,
+    publishCourse
 } from '../api/courseApi';
 
 // --- Video Imports ---
@@ -207,6 +208,18 @@ export default function CreateCourse() {
         queryFn: () => fetchCourseMetadata(courseId!),
         enabled: !!courseId,
         staleTime: Infinity,
+    });
+    const {mutate} = useMutation({
+        mutationFn: ({courseId}: { courseId: string }) => publishCourse({courseId}),
+        onSuccess: () => {
+            localStorage.removeItem('courseDraftId');
+            toast.success("Course Published Successfully!");
+            navigate('/admin/course-list');
+        },
+        onError: (error) => {
+            console.error("Error publishing course:", error);
+            toast.error("Failed to publish course. Please try again.");
+        }
     });
 
     useEffect(() => {
@@ -649,8 +662,7 @@ export default function CreateCourse() {
 
         try {
             setSyncStatus('Saving...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            localStorage.removeItem('courseDraftId');
+            await mutate({ courseId: courseId! });
             toast.success("Course Published Successfully!");
             navigate('/admin/course-list');
         } catch (error) {

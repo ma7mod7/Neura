@@ -9,7 +9,7 @@ import type {
   PaginationParams,
 } from "./types";
 
-const BASE_URL = "http://neura.runasp.net/";
+const BASE_URL = "https://neura-lms.runasp.net/";
 
 // ── API calls ────────────────────────────────────────────────
 

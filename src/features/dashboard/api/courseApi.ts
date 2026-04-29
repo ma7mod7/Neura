@@ -87,6 +87,12 @@ export const deleteCourseSection = async (sectionId: number) => {
     return response.data; 
 };
 
+export const publishCourse = async ({courseId}: { courseId: string }) => {
+    const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
+    console.log("from publish course api", response.data)
+    return response.data; 
+};
+
 
 
 export const getCourseListDashboard = async ({PageNumber,PageSize}: { PageNumber: number; PageSize: number }) => {

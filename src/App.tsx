@@ -18,42 +18,48 @@ import CourseListDashboard from './features/dashboard/pages/CourseList';
 import StudentList from './features/dashboard/pages/StudentList';
 import ProfileEditPage from './features/Profile/pages/ProfileEdit';
 import { ThemeProvider } from "./shared/context/ThemeContext";
+import CommunityApp from './features/community/pages/CommunityApp';
+import CommunityAdminDashboard from './features/community/pages/CommunityAdminDashboard';
 
 
 
 function App() {
   return (
     <ThemeProvider>
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/auth/login" element={<LoginPage />} />
-      <Route path="/auth/signup" element={<SignupPage />} />
-      <Route path="/auth/confirm-email" element={<ConfirmEmail />} />
-      <Route path="/auth/verify-email" element={<VerifyEmail />} />
-      <Route path="/auth/forget-password" element={<ForgotPasswordPage />} />
-      <Route path="auth/reset-password" element={<ResetPasswordPage />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/signup" element={<SignupPage />} />
+        <Route path="/auth/confirm-email" element={<ConfirmEmail />} />
+        <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/forget-password" element={<ForgotPasswordPage />} />
+        <Route path="auth/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/announcements" element={<AnnouncmentPage />} />
-        <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/courses/:courseId" element={<CourseDetailsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/edit" element={<ProfileEditPage />} />
-        <Route path="/search-results" element={<SearchResultsPage />} />
-        { /* Admin Routes */}
-        <Route path="/admin/course-list" element={<CourseListDashboard />} />
-        <Route path="/admin/create-course" element={<CreateCourse />} />
-        <Route path="/admin/students" element={<StudentList />} />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/announcements" element={<AnnouncmentPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/courses/:courseId" element={<CourseDetailsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<ProfileEditPage />} />
+          <Route path="/search-results" element={<SearchResultsPage />} />
+          { /* Admin Routes */}
+          <Route path="/admin/course-list" element={<CourseListDashboard />} />
+          <Route path="/admin/create-course" element={<CreateCourse />} />
+          <Route path="/admin/students" element={<StudentList />} />
+          <Route path="/community/students" element={<CommunityApp />} />
+                    <Route path="/community/admin" element={<CommunityAdminDashboard />} />
 
-      </Route>
 
-      {/* Fallback route - Redirect any unknown path to home */}
-      <Route path="*" element={<ComingSoonPage />} />
-      {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-    </Routes>
-     </ThemeProvider>
+
+        </Route>
+
+        {/* Fallback route - Redirect any unknown path to home */}
+        <Route path="*" element={<ComingSoonPage />} />
+        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+      </Routes>
+    </ThemeProvider>
   );
 }
 

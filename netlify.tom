@@ -1,10 +1,10 @@
 [[redirects]]
   from = "/api/*"
-  to = "http://neura.runasp.net/:splat"
+  to = "https://neura-lms.runasp.net/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/*"
-  to = "http://neura.runasp.net/:splat"
+  to = "https://neura-lms.runasp.net/:splat"
   status = 200
