@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import type { ApiCourseItem } from '../types';
+import Mind from '../../../assets/Mind.jpg'
 
 interface CourseTableProps {
     courses: ApiCourseItem[];
@@ -7,7 +8,7 @@ interface CourseTableProps {
     onEditOrContinue: (id: string) => void;
 }
 
-export default function CourseTable({ courses, onDelete, onEditOrContinue }: CourseTableProps) {
+export default function CourseTable({ courses, onDelete,onEditOrContinue }: CourseTableProps) {
     if (courses.length === 0) {
         return <div className="text-center text-gray-500 dark:text-slate-400 py-10">No courses found.</div>;
     }
@@ -25,7 +26,6 @@ export default function CourseTable({ courses, onDelete, onEditOrContinue }: Cou
                 </thead>
                 <tbody>
                     {courses.map((course, index) => {
-                        // معالجة مشكلة الـ backslash في مسار الصورة الجاي من الباك إند
                         const safeImageUrl = course.imageUrl?.replace(/\\/g, '/');
 
                         return (
@@ -40,8 +40,7 @@ export default function CourseTable({ courses, onDelete, onEditOrContinue }: Cou
                                             alt={course.title}
                                             className="w-12 h-12 rounded bg-gray-300 dark:bg-[#2a2a2e] object-cover"
                                             onError={(e) => {
-                                                // صورة افتراضية لو الصورة الحقيقية فيها مشكلة
-                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50';
+                                                (e.target as HTMLImageElement).src = Mind;
                                             }}
                                         />
                                         <div>
@@ -80,7 +79,6 @@ export default function CourseTable({ courses, onDelete, onEditOrContinue }: Cou
                                             </button>
                                         )}
 
-                                        {/* نستخدم availableActions للتحكم في الأزرار */}
                                         {course.availableActions?.canEdit && (
                                             <button
                                                 onClick={() => onEditOrContinue(course.keyId)}

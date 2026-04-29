@@ -16,7 +16,7 @@ export const fetchProfileCourses = async (
 
     const response = await axiosInstance.get<PaginatedCourseResponse>('/api/Courses', {
         params: {
-            filter: filterStatus,
+            filters: filterStatus,
             pageNumber: pageNumber,
             SearchValue: searchTerm || undefined, 
             pageSize:6 ,

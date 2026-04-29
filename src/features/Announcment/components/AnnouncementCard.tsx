@@ -152,7 +152,7 @@ const CommentItem = ({
                 comment={reply} 
                 postId={postId} 
                 onReplySuccess={onReplySuccess} 
-                isReply={true} // ⭐ تفعيل شكل الرد
+                isReply={true}               
               />
             ))}
           </div>

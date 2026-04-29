@@ -72,7 +72,7 @@ export default function Sidebar() {
                 </div>
 
                 {/* Students Menu */}
-                <div
+                {/* <div
                     onClick={() => navigate('/admin/students')}
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors font-medium ${currentPath.includes('/admin/students')
                             ? 'bg-blue-600 text-white' // Active Style
@@ -81,7 +81,7 @@ export default function Sidebar() {
                 >
                     <Users size={20} />
                     <span>Students</span>
-                </div>
+                </div> */}
             </nav>
 
             {/* ================= Bottom Action ================= */}

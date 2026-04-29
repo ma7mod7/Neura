@@ -46,10 +46,10 @@ function App() {
           <Route path="/search-results" element={<SearchResultsPage />} />
           { /* Admin Routes */}
           <Route path="/admin/course-list" element={<CourseListDashboard />} />
-          <Route path="/admin/create-course" element={<CreateCourse />} />
+          <Route path={`/admin/create-course/:id?`} element={<CreateCourse />} />
           <Route path="/admin/students" element={<StudentList />} />
           <Route path="/community/students" element={<CommunityApp />} />
-                    <Route path="/community/admin" element={<CommunityAdminDashboard />} />
+          <Route path="/community/admin" element={<CommunityAdminDashboard />} />
 
 
 

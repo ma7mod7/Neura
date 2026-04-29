@@ -28,23 +28,12 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             isActive: false
         },
         {
-            label: 'Problem List',
-            icon: ListChecks,
-            path: '/profile',
-            isActive: false
-        },
-        {
             label: 'Admin Dashboard',
             icon: LayoutDashboard,
             path: '/admin/course-list',
             isActive: false
         },
-        {
-            label: 'Settings',
-            icon: Settings,
-            path: '/profile',
-            isActive: false
-        },
+  
     ];
 
     useEffect(() => {

@@ -95,12 +95,17 @@ export const publishCourse = async ({courseId}: { courseId: string }) => {
 
 
 
-export const getCourseListDashboard = async ({PageNumber,PageSize}: { PageNumber: number; PageSize: number }) => {
-    const response = await axiosInstance.get(`/api/Courses/my/editable?page=${PageNumber}&pageSize=${PageSize}`);
+export const getCourseListDashboard = async ({PageNumber, PageSize}: { PageNumber: number; PageSize: number }) => {
+    const response = await axiosInstance.get(`/api/Courses/my/editable?pageNumber=${PageNumber}&pageSize=${PageSize}`);
     console.log("from get course list api", response.data)
     return response.data; 
 };
 
+export const deleteCourse = async (courseId:string ) => {
+    const response = await axiosInstance.delete(`/api/Courses/${courseId}`);
+    console.log("from get course list api", response.data)
+    return response.data; 
+};
 
 // ============================================================================
 // ========================= Video Upload APIs ================================

@@ -158,14 +158,14 @@ const CoursesPage = () => {
                 {/* --- PART 4 & 5: Course Grids --- */}
                 <div className=" flex flex-col lg:gap-10 gap-24">
                     {/* Recently Searched */}
-                    <section>
+                    {/* <section>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8 ">Recently Searched</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {allCourses.slice(0, 3).map((course) => (
                                 <CourseCard key={course.id} course={course} />
                             ))}
                         </div>
-                    </section>
+                    </section> */}
 
 
                     {/* All Courses / Recommended */}
