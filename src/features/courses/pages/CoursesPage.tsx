@@ -17,14 +17,14 @@ export interface Tag {
     name: string;
 }
 
-interface EnrolledCourse {
-    id: string;
-    title: string;
-    lessonName: string;
-    currentLecture: number;
-    image: string;
-    time: Date | string;
-}
+// interface EnrolledCourse {
+//     id: string;
+//     title: string;
+//     lessonName: string;
+//     currentLecture: number;
+//     image: string;
+//     time: Date | string;
+// }
 
 const CoursesPage = () => {
     const { user } = useAuth()
@@ -36,12 +36,12 @@ const CoursesPage = () => {
         // isLoading, // إذا كانت متاحة يمكنك استخدامها
     } = useGetCourses(page);
 
-    const enrolledCourses: EnrolledCourse[] = [
-        { id: '1', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '2', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '3', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-    ];
+    // const enrolledCourses: EnrolledCourse[] = [
+    //     { id: '1', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '2', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '3', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    // ];
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]  dark:bg-[#0e0e10] font-inter">

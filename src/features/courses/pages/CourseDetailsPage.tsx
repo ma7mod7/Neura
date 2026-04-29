@@ -29,17 +29,17 @@ import { useGetCoursesContent } from '../api/useGetAllCourses';
 const supportData = [
     {
         id: '1',
-        name: "Rabab Emad",
+        name: "Youssef Salah",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
     {
         id: '2',
-        name: "Ziad Emad",
+        name: "Ziad Nouh ",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
       {
         id: '3',
-        name: "Ahmed Nouh",
+        name: "Emad saleh",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     }
 ];
@@ -52,15 +52,17 @@ const isUserLoggedIn = (): boolean => {
     }
 };
 
-// ⭐ دالة لتحويل الثواني إلى دقائق فقط
+// ⭐ دالة ذكية لتحويل الثواني إلى دقائق وثواني (MM:SS)
 const formatDuration = (secondsParam: string | number | null | undefined) => {
     if (secondsParam == null) return null;
     const totalSeconds = Number(secondsParam);
     if (isNaN(totalSeconds) || totalSeconds <= 0) return null;
     
-    // تحويل الثواني إلى دقائق مع التقريب للأعلى (مثال: 90 ثانية = 2 دقيقة)
-    const minutes = Math.ceil(totalSeconds / 60);
-    return minutes;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    
+    // إرجاع التنسيق بالشكل MM:SS
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 const CourseDetailsPage = () => {
@@ -256,17 +258,17 @@ const CourseDetailsPage = () => {
                                                                 {item.isLocked ? (
                                                                     <Lock size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
                                                                 ) : item.type === 3 || item.exam ? (
-                                                                    <FileText size={16} className="text-yellow-500" title="Quiz" />
+                                                                    <FileText size={16} className="text-yellow-500"  />
                                                                 ) : item.type === 2 ? (
-                                                                    <FileText size={16} className="text-blue-500" title="Resource/Article" />
+                                                                    <FileText size={16} className="text-blue-500"  />
                                                                 ) : (
-                                                                    <PlayCircle size={16} className="text-[#0061EF]" title="Video Lesson" />
+                                                                    <PlayCircle size={16} className="text-[#0061EF]"  />
                                                                 )}
                                                                 <span>{item.title || `Lesson ${item.orderIndex || itemIdx + 1}`}</span>
                                                             </div>
                                                             
-                                                            {/* ⭐ عرض الوقت فقط إذا كان فيديو ويوجد وقت فعلي */}
-                                                            {!item.exam && item.type !== 2 && item.type !== 3 && formatDuration(item.duration) && (
+                                                            {/* ⭐ عرض الوقت فقط إذا كان فيديو (أو غير محدد بأنه Resource/Quiz) ويوجد وقت فعلي */}
+                                                            {(!item.type || item.type === 1) && !item.exam && formatDuration(item.duration) && (
                                                                 <span className="text-slate-400 dark:text-[#d0d0E0] font-medium">
                                                                     {formatDuration(item.duration)} min
                                                                 </span>

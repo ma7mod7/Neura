@@ -1,4 +1,4 @@
-import { Bell, Menu, X } from 'lucide-react';
+import {  Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
 import Course from '../../assets/course.png';

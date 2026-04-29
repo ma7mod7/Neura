@@ -1,7 +1,6 @@
 import {
     BookOpen,
-    ListChecks,
-    Settings,
+
     LogOut,
     LayoutDashboard,
 } from 'lucide-react';
