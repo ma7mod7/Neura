@@ -19,7 +19,7 @@ export const fetchProfileCourses = async (
             filters: filterStatus,
             pageNumber: pageNumber,
             SearchValue: searchTerm || undefined, 
-            pageSize:6 ,
+            PageSize:6 ,
         },
     });
 

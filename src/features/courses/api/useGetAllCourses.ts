@@ -22,3 +22,20 @@ export const useGetCourses = (page: number) => {
         queryFn: () => getCourses(page),
     });
 };
+
+
+const getCoursesContent = async (courseId: string) => {
+
+    const response = await axiosInstance.get(`api/Courses/${courseId}/content`, {
+    });
+    return response.data;
+};
+
+export const useGetCoursesContent = (courseId: string) => {
+    return useQuery({
+        queryKey: ['course-content', courseId], 
+        queryFn: () => getCoursesContent(courseId),
+        enabled: !!courseId
+    });
+};
+

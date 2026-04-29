@@ -2,7 +2,7 @@ import { User, Lock, Save, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import NavBar from '../../../shared/components/NavBar';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
 import { useUpdateName, useUpdatePassword } from '../hooks/useProfileUpdate';
 import { updateNameSchema, updatePasswordSchema, type UpdateNameInputs, type UpdatePasswordInputs } from '../schema/profile.schema';

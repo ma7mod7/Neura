@@ -13,38 +13,37 @@ import {
     ArrowLeft,
     Bookmark,
     X,
-    Edit3
+    Edit3,
+    FileText,
+    Lock
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../../../shared/components/Footer';
 import { CommentsSection } from '../../../shared/components/CommentsSection';
-import { useGetCourseById, useGetCourseMetaDataById } from '../api/useGetCourseById';
+import {  useGetCourseMetaDataById } from '../api/useGetCourseById'; 
 import { useBookMark } from '../api/useBookMark';
 import { useGetInstById } from '../../../shared/api/useGetInsApi';
 import { useGetCourseReviews, useAddCourseReview } from '../api/useCourseReviews';
+import { useGetCoursesContent } from '../api/useGetAllCourses';
 
 const supportData = [
     {
         id: '1',
-        name: "Mahmoud Emad",
+        name: "Rabab Emad",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
     {
         id: '2',
-        name: "Mahmoud Emad",
+        name: "Ziad Emad",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
-    {
+      {
         id: '3',
-        name: "Mahmoud Emad",
-        feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
-    },
-    {
-        id: '4',
-        name: "Mahmoud Emad",
+        name: "Ahmed Nouh",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     }
 ];
+
 const isUserLoggedIn = (): boolean => {
     try {
         return !!localStorage.getItem("user") || !!localStorage.getItem("token");
@@ -53,13 +52,25 @@ const isUserLoggedIn = (): boolean => {
     }
 };
 
+// ⭐ دالة لتحويل الثواني إلى دقائق فقط
+const formatDuration = (secondsParam: string | number | null | undefined) => {
+    if (secondsParam == null) return null;
+    const totalSeconds = Number(secondsParam);
+    if (isNaN(totalSeconds) || totalSeconds <= 0) return null;
+    
+    // تحويل الثواني إلى دقائق مع التقريب للأعلى (مثال: 90 ثانية = 2 دقيقة)
+    const minutes = Math.ceil(totalSeconds / 60);
+    return minutes;
+};
+
 const CourseDetailsPage = () => {
     const navigate = useNavigate();
     const [openSection, setOpenSection] = useState<number | null>(0);
     const { courseId } = useParams();
     const isLoggedIn = isUserLoggedIn();
+    
     // --- Data Fetching ---
-    const { data: CourseContent } = useGetCourseById(courseId!);
+    const { data: CourseContent } = useGetCoursesContent(courseId!);
     const { data: courseMetaData } = useGetCourseMetaDataById(courseId!);
     const { mutate: Bookmarked, isPending: bookMarkPending } = useBookMark();
     const { data: InstructorData } = useGetInstById(courseId!);
@@ -97,7 +108,6 @@ const CourseDetailsPage = () => {
         );
     };
 
-    // ⭐ حل مشكلة הـ Crash: استخراج المصفوفة بأمان من أي شكل استجابة للباك إند
     const getReviewsArray = (data: any) => {
         if (!data) return [];
         if (Array.isArray(data)) return data;
@@ -174,7 +184,7 @@ const CourseDetailsPage = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock size={18} />
-                                    <span className="dark:text-[#d0d0E0]">{CourseContent?.hours || 0}h Total</span>
+                                    <span className="dark:text-[#d0d0E0]">{CourseContent?.totalHours || 0}h Total</span>
                                 </div>
                             </div>
                         </div>
@@ -212,12 +222,12 @@ const CourseDetailsPage = () => {
                         <section>
                             <h2 className="text-2xl font-bold text-slate-800 mb-2 dark:text-[#E0E0E0]">Course Content</h2>
                             <p className="text-slate-500 text-sm mb-6 dark:text-[#E0E0E0]">
-                                {CourseContent?.sections?.length || 0} sections • {CourseContent?.sections?.reduce((total: number, section: any) => total + section.lessons.length, 0) || 0} lessons
+                                {CourseContent?.sections?.length || 0} sections • {CourseContent?.totalLessons || 0} lessons
                             </p>
 
                             <div className="border border-slate-200 dark:border-[#2a2a2e] rounded-[1rem] overflow-hidden bg-white dark:bg-[#1A1A1A]">
-                                {CourseContent?.sections?.map((section: any) => (
-                                    <div key={section.id} className="border-b border-slate-100 dark:border-[#2a2a2e] last:border-0">
+                                {CourseContent?.sections?.map((section: any, idx: number) => (
+                                    <div key={section.id || idx} className="border-b border-slate-100 dark:border-[#2a2a2e] last:border-0">
                                         <button
                                             onClick={() => toggleSection(section.id)}
                                             className="w-full flex items-center justify-between p-4 bg-[#F8FAFC] dark:bg-[#1A1A1A] hover:bg-slate-100 dark:hover:bg-[#2a2a2e] transition-colors text-left"
@@ -227,23 +237,40 @@ const CourseDetailsPage = () => {
                                                     ? <ChevronUp size={20} className="text-slate-600 dark:text-[#d0d0E0]" />
                                                     : <ChevronDown size={20} className="text-slate-600 dark:text-[#d0d0E0]" />
                                                 }
-                                                <span className="font-bold text-slate-800 dark:text-[#E0E0E0]">{section.title}</span>
+                                                <span className="font-bold text-slate-800 dark:text-[#E0E0E0]">
+                                                    {section.title || `Section ${section.position || idx + 1}`}
+                                                </span>
                                             </div>
                                             <span className="text-xs text-slate-500 dark:text-[#d0d0E0] hidden sm:block">
-                                                {section.lessons.length} lessons • {section.totalMinutes} minutes
+                                                {section.lessonsCount || section.lessons?.length || 0} lessons • {section.totalMinutes || 0} minutes
                                             </span>
                                         </button>
 
                                         {openSection === section.id && (
                                             <div className="p-4 bg-white dark:bg-[#1A1A1A]">
                                                 <ul className="flex flex-col gap-3">
-                                                    {section.lessons.map((item: any, idx: number) => (
-                                                        <li key={idx} className="flex items-center justify-between text-sm text-slate-600 dark:text-[#d0d0E0] ml-8">
+                                                    {section.lessons?.map((item: any, itemIdx: number) => (
+                                                        <li key={item.id || itemIdx} className="flex items-center justify-between text-sm text-slate-600 dark:text-[#d0d0E0] ml-8">
                                                             <div className="flex items-center gap-3">
-                                                                <PlayCircle size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                                                <span>{item.title}</span>
+                                                                {/* ⭐ تفريق الأيقونات بناءً على النوع */}
+                                                                {item.isLocked ? (
+                                                                    <Lock size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
+                                                                ) : item.type === 3 || item.exam ? (
+                                                                    <FileText size={16} className="text-yellow-500" title="Quiz" />
+                                                                ) : item.type === 2 ? (
+                                                                    <FileText size={16} className="text-blue-500" title="Resource/Article" />
+                                                                ) : (
+                                                                    <PlayCircle size={16} className="text-[#0061EF]" title="Video Lesson" />
+                                                                )}
+                                                                <span>{item.title || `Lesson ${item.orderIndex || itemIdx + 1}`}</span>
                                                             </div>
-                                                            <span className="text-slate-400 dark:text-[#d0d0E0]">{item.duration}</span>
+                                                            
+                                                            {/* ⭐ عرض الوقت فقط إذا كان فيديو ويوجد وقت فعلي */}
+                                                            {!item.exam && item.type !== 2 && item.type !== 3 && formatDuration(item.duration) && (
+                                                                <span className="text-slate-400 dark:text-[#d0d0E0] font-medium">
+                                                                    {formatDuration(item.duration)} min
+                                                                </span>
+                                                            )}
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -282,7 +309,6 @@ const CourseDetailsPage = () => {
                             <div className="bg-white border border-slate-200 rounded-[1rem] p-6 shadow-sm dark:bg-[#1A1A1A] dark:border-[#2a2a2e]">
                                 <h3 className="font-bold text-slate-800 mb-4 dark:text-[#E0E0E0]">Instructor</h3>
                                 <div className="flex items-center gap-4 mb-4">
-                                    {/* ⭐ حل مشكلة الصورة الافتراضية اللي بتعمل Timeout */}
                                     <img src={InstructorData?.imageUrl || `https://ui-avatars.com/api/?name=${InstructorData?.name || 'Instructor'}&background=0061EF&color=fff`} alt="Instructor" className="w-16 h-16 rounded-full object-cover border-2 border-[#0061EF] p-0.5" />
                                     <div>
                                         <h4 className="font-bold text-[#0061EF] text-lg">{InstructorData?.name || "Instructor Name"}</h4>
@@ -341,7 +367,7 @@ const CourseDetailsPage = () => {
                                             <Clock size={20} className="text-slate-400 dark:text-[#d0d0E0]" />
                                             <span>Duration</span>
                                         </div>
-                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{CourseContent?.hours || 0} hours</span>
+                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{CourseContent?.totalHours || 0} hours</span>
                                     </div>
                                 </div>
 
@@ -389,12 +415,7 @@ const CourseDetailsPage = () => {
                             >
                                 <Edit3 size={18} /> Write a Review
                             </button>
-                        ) :
-                            <div>
-                                
-                            </div>
-
-                        }
+                        ) : null}
 
                     </div>
                 </div>
@@ -405,7 +426,11 @@ const CourseDetailsPage = () => {
                     <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent text-xl md:text-4xl lg:text-[48px] font-bold text-center leading-tight py-3">
                         Student Opinion
                     </h1>
-                    <CommentsSection comments={supportData} />
+                    {formattedReviews.length > 0 ? (
+                        <CommentsSection comments={formattedReviews} />
+                    ) : (
+                        <CommentsSection comments={supportData} />
+                    )}
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import {
   Search, Calendar, PlayCircle, Code2, Crown, Plus, X, Image as ImageIcon, Trash2
 } from 'lucide-react';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 import Course from '../../../assets/course.png';
 import AnnouncementCard from '../components/AnnouncementCard';
 import NavBar from '../../../shared/components/NavBar';

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import CourseCard from '../../../shared/components/CourseCard';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 
 export interface Tag {
     id: number;

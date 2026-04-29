@@ -5,13 +5,12 @@ import {
     Loader2,
     Clock,
     Search,
-    ChevronLeft,
-    ChevronRight,
 } from 'lucide-react';
 import NavBar from '../../../shared/components/NavBar';
 import CourseCard from '../../../shared/components/CourseCard';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
+import Pagination from '../../dashboard/components/Pagination';
 import { useProfileCourses } from '../hooks/useProfileCourses';
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) => {
@@ -42,8 +41,9 @@ const ProfilePage = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     // React Query Hook
+    // Fix: removed duplicate activeTab argument
     const { data, isLoading, isError } = useProfileCourses(activeTab, pageNumber, searchTerm);
-    console.log(data)
+    console.log(data);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -54,7 +54,7 @@ const ProfilePage = () => {
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0e0e10] font-inter">
             <NavBar />
 
-            <main className="mx-auto p-6 md:p-8">
+            <main className="mx-auto p-2 md:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                     <SideBar />
@@ -94,7 +94,7 @@ const ProfilePage = () => {
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value);
-                                        setPageNumber(1); // إعادة الصفحة لـ 1 عند البحث
+                                        setPageNumber(1);
                                     }}
                                     placeholder="Search Your Course"
                                     className="w-full bg-blue-50/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 border border-blue-100 dark:border-[#2a2a2e] rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400"
@@ -117,56 +117,39 @@ const ProfilePage = () => {
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                    {data?.items.map((course) => (
-                                        <CourseCard  course={{
-                                        keyId: course.keyId,
-                                        imageUrl: course.imageUrl,
-                                        tags: course.tags || [],
-                                        title: course.title,
-                                        instructorName: course.instructorName,
-                                        rating: course.rating,
-                                        hours: 10,
-                                        totalReviews: course.totalReviews,
-                                        numberOfLessons: course.numberOfLessons,
-                                        price: course.price,
-                                        isEnrolled: course.isEnrolled,
-                                        isBookmarked: course.isBookmarked,
-                                        isEnrollmentOpen: course.isEnrollmentOpen,
-                                    }} />
+                                {/* Fix: changed xl:grid-cols-3 to lg:grid-cols-2 xl:grid-cols-3 to avoid squishing on laptop screens */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {data?.items.map((course: any) => (
+                                        <CourseCard key={course.keyId} course={{
+                                            keyId: course.keyId,
+                                            imageUrl: course.imageUrl,
+                                            tags: course.tags || [],
+                                            title: course.title,
+                                            instructorName: course.instructorName,
+                                            rating: course.rating,
+                                            hours: 10,
+                                            totalReviews: course.totalReviews,
+                                            numberOfLessons: course.numberOfLessons,
+                                            price: course.price,
+                                            isEnrolled: course.isEnrolled,
+                                            isBookmarked: course.isBookmarked,
+                                            isEnrollmentOpen: course.isEnrollmentOpen,
+                                        }} />
                                     ))}
                                 </div>
 
-                                {/* Pagination */}
                                 {data && data.totalPages > 1 && (
-                                    <div className="flex justify-end items-center gap-2 mt-4">
-                                        <button
-                                            onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
-                                            disabled={!data.hasPreviousPage}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
-                                                data.hasPreviousPage
-                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700'
-                                                : 'bg-slate-200 dark:bg-[#2a2a2e] text-slate-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            <ChevronLeft size={18} />
-                                        </button>
-
-                                        <span className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-[#2a2a2e] text-slate-600 dark:text-slate-300 font-bold text-sm">
-                                            {data.pageNumber}
-                                        </span>
-
-                                        <button
-                                            onClick={() => setPageNumber(prev => prev + 1)}
-                                            disabled={!data.hasNextPage}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
-                                                data.hasNextPage
-                                                ? 'bg-[#0061EF] text-white hover:bg-blue-700'
-                                                : 'bg-slate-200 dark:bg-[#2a2a2e] text-slate-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            <ChevronRight size={18} />
-                                        </button>
+                                    <div className="flex justify-center items-center gap-4 mt-8">
+                                        <Pagination
+                                            currentPage={data.pageNumber || 1}
+                                            totalPages={data.totalPages || 1}
+                                            hasNextPage={data.hasNextPage || false}
+                                            hasPreviousPage={data.hasPreviousPage || false}
+                                            onPageChange={(newPage) => {
+                                                setPageNumber(newPage);
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }}
+                                        />
                                     </div>
                                 )}
                             </>
