@@ -65,7 +65,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
     });
 
     const addQuestionMutation = useMutation({
-        mutationFn: (payload: CreateQuestionPayload) => addExamQuestion(examId!, payload),
+        mutationFn: (payload: CreateQuestionPayload) => addExamQuestion(lessonId!, payload),
         onSuccess: (data, payload) => {
             setQuestions([...questions, { ...payload, id: data.id || Date.now() }]);
             setCurrentQuestion({
@@ -83,7 +83,7 @@ export const QuizEditorModal: React.FC<QuizEditorModalProps> = ({ isOpen, onClos
     });
 
     const deleteQuestionMutation = useMutation({
-        mutationFn: (questionId: number) => deleteExamQuestion(examId!, questionId),
+        mutationFn: (questionId: number) => deleteExamQuestion(lessonId!, questionId),
         onSuccess: (_, questionId) => {
             setQuestions(questions.filter(q => q.id !== questionId));
             toast.success("Question deleted!");
