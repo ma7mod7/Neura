@@ -1,12 +1,15 @@
 import {
-  Search, Calendar, PlayCircle, Code2, Crown, Plus, X, Image as ImageIcon, Trash2
+  Search, Calendar, PlayCircle, Code2, Crown, Plus, X, Image as ImageIcon, Trash2, Loader2
 } from 'lucide-react';
-import Footer from '../../../shared/components/footerauth';
+import Footer from '../../../shared/components/Footer';
 import Course from '../../../assets/course.png';
 import AnnouncementCard from '../components/AnnouncementCard';
 import NavBar from '../../../shared/components/NavBar';
 import { useRef, useState } from 'react';
+// ⭐ استيراد مكتبة التمرير اللانهائي
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { useGetAllPosts, useCreatePost } from "../api";
+import type { AnnouncementPost } from "../api/types";
 
 const AnnouncementsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,9 +19,27 @@ const AnnouncementsPage = () => {
   const [selectedMedia, setSelectedMedia] = useState<{ file: File; url: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: posts = [], isLoading, isError }      = useGetAllPosts();
+  // ── Hooks ──────────────────────────────────────────────────
+  // ⭐ استخدام الـ Infinite Query الجديد
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    fetchNextPage, 
+    hasNextPage 
+  } = useGetAllPosts();
+  
   const { mutate: createPost, isPending: isCreating } = useCreatePost();
 
+  // ⭐ استخراج وتسطيح (Flattening) كل البوستات من جميع الصفحات
+  const allPosts: AnnouncementPost[] = data?.pages.flatMap((page: any) => {
+    if (Array.isArray(page)) return page;
+    if (Array.isArray(page?.items)) return page.items;
+    if (Array.isArray(page?.data)) return page.data;
+    return [];
+  }) || [];
+
+  // ── Handlers ───────────────────────────────────────────────
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -69,14 +90,39 @@ const AnnouncementsPage = () => {
             </button>
           </div>
 
-          {isLoading && <p className="text-slate-500 dark:text-slate-400 text-sm">Loading...</p>}
-          {isError   && <p className="text-red-500 text-sm">Failed to load announcements.</p>}
+          {isLoading && (
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-blue-600" size={40} />
+            </div>
+          )}
           
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <AnnouncementCard key={post.id} post={post} />
-            ))}
-          </div>
+          {isError && (
+            <p className="text-red-500 text-sm text-center py-10">Failed to load announcements.</p>
+          )}
+          
+          {/* ⭐ استخدام InfiniteScroll לעرض البوستات */}
+          {!isLoading && !isError && (
+            <InfiniteScroll
+              dataLength={allPosts.length}
+              next={fetchNextPage}
+              hasMore={!!hasNextPage}
+              loader={
+                <div className="flex justify-center py-6 overflow-hidden">
+                  <Loader2 className="animate-spin text-blue-600" size={30} />
+                </div>
+              }
+              endMessage={
+                <p className="text-center py-6 text-slate-500 dark:text-slate-400 font-medium">
+                  <b>You are all caught up! 🎉</b>
+                </p>
+              }
+              className="space-y-6"
+            >
+              {allPosts.map((post) => (
+                <AnnouncementCard key={post.id} post={post} />
+              ))}
+            </InfiniteScroll>
+          )}
         </div>
 
         {/* --- RIGHT SECTION: SIDEBAR --- */}

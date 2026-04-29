@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../../../shared/api/axiosInstance";
 import { announcementKeys } from "./queryKeys";
 import toast from "react-hot-toast"; 
@@ -6,19 +6,22 @@ import type {
   AnnouncementPost,
   CreatePostDto,
   UpdatePostDto,
-  PaginationParams,
 } from "./types";
 
-const BASE_URL = "https://neura-lms.runasp.net/";
+const BASE_URL = "http://neura.runasp.net/";
 
 // ── API calls ────────────────────────────────────────────────
 
-const getAllPostsApi = async (params?: PaginationParams): Promise<AnnouncementPost[]> => {
-  const { data } = await axiosInstance.get("/api/announcements/posts", { params });
-  if (Array.isArray(data))        return data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.data))  return data.data;
-  return [];
+// ⭐ تم تعديل الدالة لتقبل pageParam وتمرره كـ Query Parameter للباك إند
+const getAllPostsApi = async (pageParam: number) => {
+  const { data } = await axiosInstance.get("/api/announcements/posts", { 
+    params: { 
+      PageNumber: pageParam,
+      PageSize: 10 // يمكنك تعديل العدد كما يناسبك
+    } 
+  });
+  console.log(data)
+  return data;
 };
 
 const getPostByIdApi = async (postId: string): Promise<AnnouncementPost> => {
@@ -30,8 +33,6 @@ const createPostApi = async (dto: CreatePostDto): Promise<AnnouncementPost> => {
   const formData = new FormData();
   if (dto.Title) formData.append("Title", dto.Title);
   formData.append("Content", dto.Content);
-  
-  // ⭐ إجبار الباك إند يقبله كبوست عام علشان ميضربش إيرور
   formData.append("IsPublic", "true");
   
   if (dto.Image) {
@@ -49,7 +50,6 @@ const createPostApi = async (dto: CreatePostDto): Promise<AnnouncementPost> => {
 const updatePostApi = async (postId: string, dto: UpdatePostDto): Promise<AnnouncementPost> => {
   const body: Record<string, string> = { content: dto.content };
   if (dto.title) body.title = dto.title;
-  // ملاحظة: لو الباك إند بيدعم رفع صورة جديدة في الـ PUT، يرجى تحويل الـ body لـ FormData
  
   const { data: updatedPost } = await axiosInstance.put(
     `/api/announcements/posts/${postId}`,
@@ -67,8 +67,6 @@ const likePostApi = async (postId: string): Promise<void> => {
   await axiosInstance.post(`/api/announcements/posts/${postId}/likes`);
 };
 
-// ── Helpers ───────────────────────────────────────────────────
-
 export const resolveImageUrl = (imageUrl?: string): string | null => {
   if (!imageUrl) return null;
   if (imageUrl.startsWith("http")) return imageUrl;
@@ -77,10 +75,23 @@ export const resolveImageUrl = (imageUrl?: string): string | null => {
 
 // ── Hooks ─────────────────────────────────────────────────────
 
-export const useGetAllPosts = (params?: PaginationParams) => {
-  return useQuery({
+// ⭐ تم تحويل الهوك ليستخدم useInfiniteQuery
+export const useGetAllPosts = () => {
+  return useInfiniteQuery({
     queryKey: announcementKeys.posts(),
-    queryFn: () => getAllPostsApi(params),
+    initialPageParam: 1, // الصفحة الأولى
+    queryFn: ({ pageParam }) => getAllPostsApi(pageParam),
+    getNextPageParam: (lastPage, allPages) => {
+      // إذا كان الباك إند يعيد hasNextPage بشكل صريح
+      if (lastPage?.hasNextPage) {
+        return lastPage.pageNumber + 1;
+      }
+      
+      // كبديل: استخراج البيانات والتحقق من العدد
+      const items = Array.isArray(lastPage) ? lastPage : (lastPage?.items || lastPage?.data || []);
+      // إذا رجع 10 بوستات (حجم الصفحة)، معناها إن فيه احتمالية لصفحة تانية
+      return items.length === 10 ? allPages.length + 1 : undefined;
+    },
   });
 };
 
@@ -111,12 +122,9 @@ export const useUpdatePost = (postId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: UpdatePostDto) => updatePostApi(postId, dto),
-    onSuccess: (updatedPost) => {
-      queryClient.setQueryData<AnnouncementPost[]>(
-        announcementKeys.posts(),
-        (old = []) =>
-          old.map((p) => (String(p.id) === postId ? updatedPost : p))
-      );
+    onSuccess: () => {
+      // في الـ Infinite Query يفضل عمل Invalidate بالكامل لضمان ترتيب الداتا
+      queryClient.invalidateQueries({ queryKey: announcementKeys.posts() });
       toast.success("Post updated successfully!");
     },
     onError: () => {
@@ -143,27 +151,6 @@ export const useLikePost = (postId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => likePostApi(postId),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: announcementKeys.posts() });
-      const previous = queryClient.getQueryData<AnnouncementPost[]>(announcementKeys.posts());
-      queryClient.setQueryData<AnnouncementPost[]>(announcementKeys.posts(), (old = []) =>
-        old.map((p) =>
-          String(p.id) === postId
-            ? {
-                ...p,
-                isLikedByCurrentUser: !p.isLikedByCurrentUser,
-                likesCount: (p.likesCount ?? 0) + (p.isLikedByCurrentUser ? -1 : 1),
-              }
-            : p
-        )
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(announcementKeys.posts(), context.previous);
-      }
-    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: announcementKeys.posts() });
     },
