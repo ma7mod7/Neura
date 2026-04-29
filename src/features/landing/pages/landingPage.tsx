@@ -494,9 +494,9 @@ const LandingPage = () => {
                                             ))}
                                         </ul>
                                     </div>
-                                    <button className="w-full sm:w-auto bg-[#0066FF] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all active:scale-95">
+                                    {/* <button className="w-full sm:w-auto bg-[#0066FF] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all active:scale-95">
                                         {course.buttonText}
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         ))}
