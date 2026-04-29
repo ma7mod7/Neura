@@ -355,7 +355,7 @@ export default function CreateCourse() {
                         position: newPosition
                     });
 
-                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId || newLessonResponse?.id || newLessonResponse?.Id;
+                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId 
                     const realLessonId = String(extractedId);
 
                     if (!extractedId || realLessonId === 'undefined') {
@@ -435,7 +435,7 @@ export default function CreateCourse() {
                             position: newPosition
                         });
 
-                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId || newItemResponse?.id || newItemResponse?.Id;
+                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
                         const realItemId = Number(extractedId);
 
                         if (!realItemId) throw new Error("Failed to get Quiz ID");
@@ -485,7 +485,7 @@ export default function CreateCourse() {
                         position: newPosition
                     });
 
-                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId || newItemResponse?.id || newItemResponse?.Id;
+                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId 
                     const realItemId = String(extractedId);
 
                     if (!extractedId || realItemId === 'undefined') {

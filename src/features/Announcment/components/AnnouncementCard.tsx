@@ -61,8 +61,8 @@ const CommentItem = ({
   const { mutate: deleteComment } = useDeleteComment(postId);
   const { mutate: addReply, isPending: isSubmittingReply } = useCreateComment(postId);
 
-  const currentUserId = getCurrentUserId();
-  const isCommentOwner = !!currentUserId && comment.authorId === currentUserId; 
+  //const currentUserId = getCurrentUserId();
+  //const isCommentOwner = !!currentUserId && comment.authorId === currentUserId; 
 
   const handleUpdate = () => {
     if (!text.trim()) return;
