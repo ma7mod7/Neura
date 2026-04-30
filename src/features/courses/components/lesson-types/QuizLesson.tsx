@@ -31,7 +31,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         });
     const { mutate: startExam, isPending: isStarting } = useMutation({
              
-            mutationFn: () => startExamAttempt(lessonId),
+            mutationFn: () => startExamAttempt(realLessonId),
             onSuccess: (data) => {
                 setAttemptId(String(data.attemptId));
                 setQuestions(data.questions ?? []);

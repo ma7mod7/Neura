@@ -40,8 +40,9 @@ import { deleteExam } from '../api/quizApi';
 // --- Custom Components ---
 import { RichTextEditor } from '../components/RichTextEditor';
 import { QuizEditorModal } from '../components/quiz/QuizEditorModal';
-import axiosInstance from '../../../shared/api/axiosInstance';
+// import axiosInstance from '../../../shared/api/axiosInstance';
 import { useGetCourseContent } from '../../courses/api/useCoursePlayer';
+// import { number, string } from 'zod';
 
 type ItemType = 'lesson' | 'resource' | 'quiz';
 
@@ -94,9 +95,9 @@ export default function CreateCourse() {
     const [openMenuSectionId, setOpenMenuSectionId] = useState<string | null>(null);
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-  const [activeLessonType, setActiveLessonType] = useState<string | null>(null);
-  const [activeLessonTitle, setActiveLessonTitle] = useState<string>("");
+//     const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+//   const [activeLessonType, setActiveLessonType] = useState<string | null>(null);
+//   const [activeLessonTitle, setActiveLessonTitle] = useState<string>("");
 
     // Confirm Dialog State
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
@@ -245,6 +246,7 @@ useEffect(() => {
             isExpanded: true,
             items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
                 id: String(item.id),
+                lessonId: item.lessonId ? Number(item.lessonId) : undefined,
                 type: item.type?.toLowerCase() === 'quiz' ? 'quiz'
                     : item.type?.toLowerCase() === 'article' ? 'resource'
                     : 'lesson',
@@ -280,6 +282,7 @@ useEffect(() => {
                     isExpanded: true,
                     items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
                         id: String(item.id),
+                        lessonId: item.lessonId ? Number(item.lessonId) : undefined,
                         type: item.type?.toLowerCase() === 'quiz' ? 'quiz' 
                             : item.type?.toLowerCase() === 'article' ? 'resource' 
                             : 'lesson',
@@ -863,22 +866,8 @@ useEffect(() => {
                                                                                                                 if (item.type === 'resource') {
                                                                                                                 openModal('resource', 'edit', section.id, item.id, item.title);
                                                                                                                 } else if (item.type === 'quiz') {
-                                                                                                                // item.id is 30 (Exam ID)
-                                                                                                                axiosInstance.get(`/api/Exams/${item.id}`)
-                                                                                                                    .then(res => {
-                                                                                                                    // res.data.lessonId is 73
-                                                                                                                    const realLessonId = res.data.lessonId;
-                                                                                                                    setActiveLessonId(String(realLessonId));
-                                                                                                                    setActiveLessonType('quiz');
-                                                                                                                    setActiveLessonTitle(item.title);
-                                                                                                                    openModal('quiz', 'edit', section.id, realLessonId, item.title);
-                                                                                                                    })
-                                                                                                                    .catch((err) => {
-                                                                                                                    console.error("Failed to fetch exam details", err);
-                                                                                                                    // Fallback
-                                                                                                                    setActiveLessonId(item.id);
-                                                                                                                    setActiveLessonType('quiz');
-                                                                                                                    });
+                                                                                                                    const realLessonId = item.lessonId ?? Number(item.id);
+                                                                                                                    setQuizEditorConfig({ isOpen: true, lessonId: realLessonId, title: item.title });
                                                                                                                 }
                                                                                                             }}
                                                                                                             className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -1024,7 +1013,7 @@ useEffect(() => {
             {/* ====== Quiz Full-Screen Editor ====== */}
             <QuizEditorModal
                 isOpen={quizEditorConfig.isOpen}
-                onClose={() => setQuizEditorConfig({ isOpen: false, lessonId: 0, title: '' })}
+                onClose={() => setQuizEditorConfig({ isOpen: false, lessonId:0 , title: '' })}
                 lessonId={quizEditorConfig.lessonId}
                 quizTitle={quizEditorConfig.title}
             />

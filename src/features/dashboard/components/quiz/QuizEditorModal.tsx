@@ -75,7 +75,7 @@ useEffect(() => {
     mutationFn: () => {
         if (examIdRef.current) {
             // exam already exists — update settings
-            return axiosInstance.put(`/api/Exams/${lessonId}/settings`, {
+            return axiosInstance.put(`/api/Exams/${examIdRef.current}/settings`, {
                 title: quizTitle, 
                 durationInMinutes: settings.durationInMinutes,
                 maxAttempts: settings.maxAttempts,

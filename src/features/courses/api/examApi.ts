@@ -63,10 +63,8 @@ export const getScoreDistribution = async (lessonId: string) => {
 
 // ================= Exam by lesson =================
 export const getExamByLesson = async (lessonId: string) => {
-    console.log('Exam info fetched by lessonId:', lessonId);
     try {
-        const res = await axiosInstance.get(`/api/Exams/by-lesson/${lessonId}`);
-        console.log('Exam info fetched by lessonId:', res.data);
+        const res = await axiosInstance.get(`/api/Exams/by-lesson/${74}`);
         return res.data;
     } catch {
         try {
