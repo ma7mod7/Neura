@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import signupSchema, { type SignUpFormValues } from '../schema/SignUpSchema';
 import { useSignup } from '../api/useSignUp';
 
+
+const BACKEND_BASE_URL = "https://neura-lms.runasp.net"; 
+
 const SignupPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -27,14 +30,16 @@ const SignupPage = () => {
         mutate(data, {
             onSuccess: () => {
                 reset();
-                navigate('/auth/confirm-email',{replace: true});
+                navigate('/auth/confirm-email', { replace: true });
             },
             onError: (error) => {
                 setError("root", { message: error.response?.data?.errors?.[1] || 'Signup failed' });
             }
         });
     };
-
+    const handleSocialLogin = (provider: string) => {
+        window.location.href = `${BACKEND_BASE_URL}/Auth/external-login/${provider}`;
+    };
     const inputClasses = (errorField: any) => `
         w-full bg-white rounded-full py-4 px-6 text-slate-900 outline-none border-2 transition-all
         ${errorField ? 'border-red-500' : 'border-transparent focus:border-[#0066FF]'}
@@ -136,6 +141,7 @@ const SignupPage = () => {
                 {/* Social Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     <button
+                    onClick={() => handleSocialLogin('Google')}
                         type="button"
                         className="flex-1 flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold py-4 md:rounded-l-full rounded-full transition-all">
                         <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" />

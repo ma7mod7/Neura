@@ -20,6 +20,7 @@ import ProfileEditPage from './features/Profile/pages/ProfileEdit';
 import { ThemeProvider } from "./shared/context/ThemeContext";
 import CommunityApp from './features/community/pages/CommunityApp';
 import CommunityAdminDashboard from './features/community/pages/CommunityAdminDashboard';
+import AuthCallback from './features/auth/components/AuthCallback';
 
 
 
@@ -50,7 +51,7 @@ function App() {
           <Route path="/admin/students" element={<StudentList />} />
           <Route path="/community/students" element={<CommunityApp />} />
           <Route path="/community/admin" element={<CommunityAdminDashboard />} />
-
+          <Route path="/callback" element={<AuthCallback />} />
 
 
         </Route>

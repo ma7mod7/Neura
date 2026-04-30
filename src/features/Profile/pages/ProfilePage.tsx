@@ -41,7 +41,6 @@ const ProfilePage = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     // React Query Hook
-    // Fix: removed duplicate activeTab argument
     const { data, isLoading, isError } = useProfileCourses(activeTab, pageNumber, searchTerm);
     console.log(data);
 
@@ -109,7 +108,7 @@ const ProfilePage = () => {
                             </div>
                         ) : isError ? (
                             <div className="text-center py-12 text-red-500 font-medium">
-                                something went wrong while fetching your courses. Please try again later.
+                                Something went wrong while fetching your courses. Please try again later.
                             </div>
                         ) : data?.items?.length === 0 ? (
                             <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium">
@@ -117,8 +116,8 @@ const ProfilePage = () => {
                             </div>
                         ) : (
                             <>
-                                {/* Fix: changed xl:grid-cols-3 to lg:grid-cols-2 xl:grid-cols-3 to avoid squishing on laptop screens */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {/* ⭐ تم تعديل الـ Grid هنا ليكون متناسق مع مقاسات الشاشات المختلفة ⭐ */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
                                     {data?.items.map((course: any) => (
                                         <CourseCard key={course.keyId} course={{
                                             keyId: course.keyId,

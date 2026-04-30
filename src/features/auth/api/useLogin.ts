@@ -31,3 +31,11 @@ export const useLogin = () => {
         }
     });
 };
+
+export const socialLoginApi = async (token: string, providerName: string) => {
+    const response = await axiosInstance.post('/Auth/external-login', {
+        token: token,
+        provider: providerName 
+    });
+    return response.data;
+};

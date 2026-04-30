@@ -29,7 +29,7 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
 
 
     return (
-        <div  className="bg-[#F6FAFF] dark:bg-[#1A1A1A] xl:w-[440px] rounded-[1rem] overflow-hidden shadow-md border border-[#0061EF] dark:border-[#0061EF]/40 flex flex-col h-full hover:shadow-xl transition-shadow ">
+        <div  className="bg-[#F6FAFF] dark:bg-[#1A1A1A] w-full rounded-[1rem] overflow-hidden shadow-md border border-[#0061EF] dark:border-[#0061EF]/40 flex flex-col h-full hover:shadow-xl transition-shadow">
             <div className="relative aspect-video ">
                 <img src={course.imageUrl} alt={course.title} className="w-full h-full object-cover p-3 rounded-[1.5rem]  " />
                 <button

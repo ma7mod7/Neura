@@ -158,22 +158,22 @@ const coursesData = [
 const supportData = [
     {
         id: '1',
-        name: "Mahmoud Emad",
+        name: "Zaid Emad",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
     {
         id: '2',
-        name: "Mahmoud Emad",
+        name: "Aya Mohammed ",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
     {
         id: '3',
-        name: "Mahmoud Emad",
+        name: "Mahmoud Nouh",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
     {
         id: '4',
-        name: "Mahmoud Emad",
+        name: "Ibrahim Ahemd",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     }
 ];
