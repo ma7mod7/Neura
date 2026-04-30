@@ -21,7 +21,9 @@ import {
     updateCourseSection,
     type CreateCourseSectionPayload,
     updateLessonArticle,
-    publishCourse
+    publishCourse,
+    publishLesson,
+    getSectionLessons
 } from '../api/courseApi';
 
 // --- Video Imports ---
@@ -38,6 +40,8 @@ import { deleteExam } from '../api/quizApi';
 // --- Custom Components ---
 import { RichTextEditor } from '../components/RichTextEditor';
 import { QuizEditorModal } from '../components/quiz/QuizEditorModal';
+import axiosInstance from '../../../shared/api/axiosInstance';
+import { useGetCourseContent } from '../../courses/api/useCoursePlayer';
 
 type ItemType = 'lesson' | 'resource' | 'quiz';
 
@@ -48,6 +52,7 @@ interface ContentItem {
     fileName?: string;
     fileUrl?: string;
     position?: number;
+    lessonId?: number;
 }
 
 interface Section {
@@ -89,6 +94,9 @@ export default function CreateCourse() {
     const [openMenuSectionId, setOpenMenuSectionId] = useState<string | null>(null);
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [activeLessonType, setActiveLessonType] = useState<string | null>(null);
+  const [activeLessonTitle, setActiveLessonTitle] = useState<string>("");
 
     // Confirm Dialog State
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
@@ -226,6 +234,27 @@ export default function CreateCourse() {
         }
     });
 
+const { data: courseContentData } = useGetCourseContent(courseId ?? '');
+
+useEffect(() => {
+    if (courseContentData?.sections?.length && sections.length === 0) {
+        console.log('raw courseContentData:', JSON.stringify(courseContentData?.sections?.[0]?.lessons || courseContentData?.sections?.[0]?.items || courseContentData?.sections?.[0]?.sectionItems));
+        setSections(courseContentData.sections.map((sec: any) => ({
+            id: String(sec.id),
+            title: sec.title,
+            isExpanded: true,
+            items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
+                id: String(item.id),
+                type: item.type?.toLowerCase() === 'quiz' ? 'quiz'
+                    : item.type?.toLowerCase() === 'article' ? 'resource'
+                    : 'lesson',
+                title: item.title,
+                position: item.position || item.order || 0,
+            }))
+        })));
+    }
+}, [courseContentData, sections.length]);
+
     useEffect(() => {
         if (draftData) {
             const mappedData: Partial<CourseSchemaTypes> = {
@@ -242,6 +271,23 @@ export default function CreateCourse() {
                 Tags: draftData.tags || [],
             };
             setCourseBasicData(mappedData);
+
+            //  populate sections from existing data
+            if (draftData.sections?.length) {
+                setSections(draftData.sections.map((sec: any) => ({
+                    id: String(sec.id),
+                    title: sec.title,
+                    isExpanded: true,
+                    items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
+                        id: String(item.id),
+                        type: item.type?.toLowerCase() === 'quiz' ? 'quiz' 
+                            : item.type?.toLowerCase() === 'article' ? 'resource' 
+                            : 'lesson',
+                        title: item.title,
+                    }))
+                })));
+            }
+
             setSyncStatus('Saved');
         }
     }, [draftData]);
@@ -355,11 +401,16 @@ export default function CreateCourse() {
         // ---------------- 2. ITEMS FLOW ----------------
         else if (modalConfig.type && modalConfig.sectionId) {
 
-            const currentSection = sections.find(s => s.id === modalConfig.sectionId);
-            const currentItems = currentSection?.items || [];
-            const maxPosition = currentItems.reduce((max, item) => Math.max(max, item.position || 0), 0);
-            const newPosition = maxPosition + 1;
-
+           let newPosition = 1;
+            try {
+                const existingLessons = await getSectionLessons(modalConfig.sectionId!);
+                const lessons = Array.isArray(existingLessons) 
+                    ? existingLessons 
+                    : existingLessons.lessons || [];
+                newPosition = lessons.length + 1;
+            } catch {
+            newPosition = (sections.find(s => s.id === modalConfig.sectionId)?.items?.length || 0) + 1;
+}
             // A. Video Lesson Upload Flow
             if (modalConfig.type === 'lesson' && modalConfig.action === 'add') {
                 if (!modalFile) {
@@ -414,6 +465,9 @@ export default function CreateCourse() {
                         format: uploadResult.data.format
                     });
 
+                        setUploadStatusText('Publishing lesson...');
+                        await publishLesson(realLessonId);
+
                     const newItem: ContentItem = {
                         id: realLessonId,
                         type: 'lesson',
@@ -467,6 +521,7 @@ export default function CreateCourse() {
 
                         const newItem: ContentItem = {
                             id: String(realItemId),
+                            lessonId: realItemId ,
                             type: 'quiz',
                             title: modalInputValue,
                             position: newPosition
@@ -477,6 +532,7 @@ export default function CreateCourse() {
                         ));
 
                         createdItemId = null;
+                        await publishLesson(String(realItemId));
                         closeModal();
                         setQuizEditorConfig({ isOpen: true, lessonId: realItemId, title: modalInputValue });
                     }
@@ -523,6 +579,7 @@ export default function CreateCourse() {
                             itemId: realItemId,
                             payload: { htmlContent: modalHtmlContent }
                         });
+                        await publishLesson(realItemId);
                     }
 
                     const newItem: ContentItem = {
@@ -802,17 +859,32 @@ export default function CreateCourse() {
 
                                                                                                 {(item.type === 'resource' || item.type === 'quiz') && (
                                                                                                     <button
-                                                                                                        onClick={() => {
-                                                                                                            if (item.type === 'resource') {
+                                                                                                            onClick={() => {
+                                                                                                                if (item.type === 'resource') {
                                                                                                                 openModal('resource', 'edit', section.id, item.id, item.title);
-                                                                                                            } else if (item.type === 'quiz') {
-                                                                                                                setQuizEditorConfig({ isOpen: true, lessonId: Number(item.id), title: item.title });
-                                                                                                            }
-                                                                                                        }}
-                                                                                                        className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                                                                                    >
-                                                                                                        <Pencil size={16} />
-                                                                                                    </button>
+                                                                                                                } else if (item.type === 'quiz') {
+                                                                                                                // item.id is 30 (Exam ID)
+                                                                                                                axiosInstance.get(`/api/Exams/${item.id}`)
+                                                                                                                    .then(res => {
+                                                                                                                    // res.data.lessonId is 73
+                                                                                                                    const realLessonId = res.data.lessonId;
+                                                                                                                    setActiveLessonId(String(realLessonId));
+                                                                                                                    setActiveLessonType('quiz');
+                                                                                                                    setActiveLessonTitle(item.title);
+                                                                                                                    openModal('quiz', 'edit', section.id, realLessonId, item.title);
+                                                                                                                    })
+                                                                                                                    .catch((err) => {
+                                                                                                                    console.error("Failed to fetch exam details", err);
+                                                                                                                    // Fallback
+                                                                                                                    setActiveLessonId(item.id);
+                                                                                                                    setActiveLessonType('quiz');
+                                                                                                                    });
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                                                                            >
+                                                                                                            <Pencil size={16} />
+                                                                                                            </button>
                                                                                                 )}
                                                                                                 <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors">
                                                                                                     <Trash2 size={16} />

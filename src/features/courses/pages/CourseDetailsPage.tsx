@@ -405,7 +405,7 @@ const CourseDetailsPage = () => {
                     <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent text-xl md:text-4xl lg:text-[48px] font-bold text-center leading-tight py-3">
                         Student Opinion
                     </h1>
-                    <CommentsSection comments={supportData} />
+                    <CommentsSection comments={formattedReviews.length > 0 ? formattedReviews : supportData} />
                 </div>
             </div>
 

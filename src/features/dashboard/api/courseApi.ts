@@ -45,6 +45,7 @@ export const saveCourseStep1 = async (formData: CourseApiPayload, courseId: stri
 
 
 export interface CourseMetadataResponse {
+    sections: any;
     keyId: string | null;
     title: string | null;
     description: string | null;
@@ -88,9 +89,27 @@ export const deleteCourseSection = async (sectionId: number) => {
 };
 
 export const publishCourse = async ({courseId}: { courseId: string }) => {
-    const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
-    console.log("from publish course api", response.data)
-    return response.data; 
+    try {
+        const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
+        console.log("from publish course api", response.data);
+        return response.data;
+    } catch (error: any) {
+        console.log("422 details:", error.response?.data);
+        throw error;
+    }
+};
+
+export const publishLesson = async (lessonId: string) => {
+    const response = await axiosInstance.put(`/api/Lessons/${lessonId}/privacy`, {
+        isVideoPrivate: false,
+        isPreview: false,
+        isPubliclyVisible: true
+    });
+    return response.data;
+};
+export const getSectionLessons = async (sectionId: string) => {
+    const response = await axiosInstance.get(`/api/Lessons/section/${sectionId}`);
+    return response.data;
 };
 
 

@@ -20,7 +20,8 @@ import ProfileEditPage from './features/Profile/pages/ProfileEdit';
 import { ThemeProvider } from "./shared/context/ThemeContext";
 import CommunityApp from './features/community/pages/CommunityApp';
 import CommunityAdminDashboard from './features/community/pages/CommunityAdminDashboard';
-
+import CoursePlayerPage from './features/courses/pages/CoursePlayerPage';
+import ExamResultsPage from './features/courses/pages/ExamResultsPage';
 
 
 function App() {
@@ -41,9 +42,11 @@ function App() {
           <Route path="/announcements" element={<AnnouncmentPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailsPage />} />
+          <Route path="/courses/:courseId/learn" element={<CoursePlayerPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/edit" element={<ProfileEditPage />} />
           <Route path="/search-results" element={<SearchResultsPage />} />
+          <Route path="/exam/:examId/results/:attemptId" element={<ExamResultsPage />} />
           { /* Admin Routes */}
           <Route path="/admin/course-list" element={<CourseListDashboard />} />
           <Route path={`/admin/create-course/:id?`} element={<CreateCourse />} />

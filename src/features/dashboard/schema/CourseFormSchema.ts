@@ -13,7 +13,7 @@ export const courseSchema = z.object({
     LearningOutcomes: z.array(z.object({ value: z.string().min(1, "Required") })).min(1, "Add at least one outcome"),
     Prerequisites: z.array(z.object({ value: z.string().min(1, "Required") })).min(1, "Add at least one prerequisite"),
     // غير السطر ده
-    Tags: z.array(z.number()).min(1, "Please select at least one tag"),
+    Tags: z.array(z.coerce.number()).min(1, "Please select at least one tag"),
     // ======== الحقل الجديد للصورة ========
     Image: z.any()
         .refine((file) => file instanceof File, "Course Photo is required")
