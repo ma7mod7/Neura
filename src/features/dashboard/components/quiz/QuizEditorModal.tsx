@@ -123,10 +123,7 @@ useEffect(() => {
 });
 
     const addQuestionMutation = useMutation({
-      mutationFn: (payload: CreateQuestionPayload) => {
-        console.log('lessonId type:', typeof lessonId, lessonId);
-        return addExamQuestion(lessonId, payload);
-    }, 
+        mutationFn: (payload: CreateQuestionPayload) => addExamQuestion(lessonId!, payload),
         onSuccess: (data, payload) => {
             setQuestions(prev => [...prev, { ...payload, id: data.id || Date.now() }]);
             setCurrentQuestion({
@@ -144,7 +141,7 @@ useEffect(() => {
     });
 
     const deleteQuestionMutation = useMutation({
-        mutationFn: (questionId: number) => deleteExamQuestion(examId!, questionId),
+        mutationFn: (questionId: number) => deleteExamQuestion(lessonId!, questionId),
         onSuccess: (_, questionId) => {
             setQuestions(prev => prev.filter(q => q.id !== questionId));
             toast.success('Question deleted!');

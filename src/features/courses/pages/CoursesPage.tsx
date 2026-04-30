@@ -1,23 +1,15 @@
-import {
-    ChevronLeft,
-    ChevronRight,
-    
-} from 'lucide-react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
 import AchievementsImg from '../../../assets/Achievements.png';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import CourseCard from '../../../shared/components/CourseCard';
-import LearningCard from '../components/LearningCard';
 import Footer from '../../../shared/components/Footer';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
 import { useGetCourses } from '../api/useGetAllCourses';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
+import Pagination from '../../dashboard/components/Pagination';
 
 // --- Types for API consistency ---
 export interface Tag {
@@ -25,67 +17,31 @@ export interface Tag {
     name: string;
 }
 
-
-interface EnrolledCourse {
-    id: string;
-    title: string;
-    lessonName: string;
-    currentLecture: number;
-    image: string;
-    time: Date | string;
-}
-
-
+// interface EnrolledCourse {
+//     id: string;
+//     title: string;
+//     lessonName: string;
+//     currentLecture: number;
+//     image: string;
+//     time: Date | string;
+// }
 
 const CoursesPage = () => {
     const { user } = useAuth()
     const [page, setPage] = useState(1);
-    const navigate = useNavigate();
+    
+    // يفضل لو الـ hook بيرجع isLoading نستخدمها لعرض حالة تحميل (Loading State)
     const {
         data: coursesData,
+        // isLoading, // إذا كانت متاحة يمكنك استخدامها
     } = useGetCourses(page);
 
-    const handleNextPage = () => {
-        if (coursesData?.hasNextPage) {
-            setPage(old => old + 1);
-        }
-    };
-    const handlePrevPage = () => {
-        setPage(old => Math.max(old - 1, 1));
-    };
-
-    const enrolledCourses: EnrolledCourse[] = [
-        { id: '1', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '2', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '3', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-        { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
-    ];
-
-    const allCourses = Array(12).fill({
-        keyId: 'c1',
-        imageUrl: 'https://placehold.co/600x400/2563eb/fff?text=Python+Bootcamp',
-        category: [{
-            id:1,
-            name:"ai"
-        }],
-        title: 'Complete Machine Learning & Data Science Bootcamp',
-        instructorName: 'Angela Yu',
-        rating: 4.8,
-
-        enrolled: true,
-        bookMarked: false,
-        tags: [{ id: 1, name: "ai" }],
-        totalReviews: 1200,
-        hours: 45,
-        numberOfLessons: 138,
-        price: 350,
-        isEnrolled: true,
-        isBookmarked: false,
-        isEnrollmentOpen: true,
-
-        
-    });
-
+    // const enrolledCourses: EnrolledCourse[] = [
+    //     { id: '1', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '2', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '3', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    //     { id: '4', title: 'Fundamentals of UI Design', lessonName: '1. Introduction', time: '1m', currentLecture: 1, image: 'https://placehold.co/400x300/000/fff' },
+    // ];
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]  dark:bg-[#0e0e10] font-inter">
@@ -108,72 +64,24 @@ const CoursesPage = () => {
                                 sharing your way with others in one community.
                             </p>
                         </div>
+
                         <div className="flex justify-center w-full lg:w-auto p-2">
                             <img src={AchievementsImg} alt="Achievements" className="w-[300px] lg:max-w-xs" />
                         </div>
                     </div>
                 </div>
 
-                {/* --- PART 3: My Learning Swiper Section --- */}
-                <div className="mb-16 relative">
-                    <div className="flex items-center justify-between mb-6 mt-6">
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white">My Learning</h2>
-                        <button onClick={() => navigate('/my-learning')} className="text-[#0061EF] font-bold text-sm hover:underline">
-                            View All
-                        </button>
-                    </div>
-
-                    <div className="px-10">
-                        <Swiper
-                            modules={[Navigation]}
-                            spaceBetween={20}
-                            slidesPerView={1}
-                            navigation={{
-                                prevEl: '.swiper-prev-learning',
-                                nextEl: '.swiper-next-learning',
-                            }}
-                            breakpoints={{
-                                640: { slidesPerView: 2 },
-                                1024: { slidesPerView: 3 },
-                            }}
-                            className="relative"
-                        >
-                            {enrolledCourses.map((course) => (
-                                <SwiperSlide key={course.id}>
-                                    <LearningCard course={course} />
-                                </SwiperSlide>
-                            ))}
-                        </Swiper>
-
-                        {/* Custom Navigation Arrows */}
-                        <button className="swiper-prev-learning absolute left-0 top-1/2 mt-7 -translate-y-1/2 w-8 h-8 rounded-full bg-[#0061EF] hover:bg-blue-500 text-white border-slate-100 flex items-center justify-center  z-10   transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button className="swiper-next-learning absolute right-0 top-1/2 mt-7 -translate-y-1/2 w-8 h-8 rounded-full bg-[#0061EF] hover:bg-blue-500 text-white border-slate-100 flex items-center justify-center  z-10  transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
-                </div>
-
                 {/* --- PART 4 & 5: Course Grids --- */}
-                <div className=" flex flex-col lg:gap-10 gap-24">
-                    {/* Recently Searched */}
-                    {/* <section>
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8 ">Recently Searched</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {allCourses.slice(0, 3).map((course) => (
-                                <CourseCard key={course.id} course={course} />
-                            ))}
-                        </div>
-                    </section> */}
-
+                <div className=" flex flex-col lg:gap-10 gap-24 mt-6">
 
                     {/* All Courses / Recommended */}
                     <section>
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8">All Courses</h2>
+                        
+                        {/* يمكنك إضافة حالة تحميل هنا إذا أردت: {isLoading && <p>Loading...</p>} */}
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {coursesData?.items?.map((course) => (
-
+                            {coursesData?.items?.map((course: any) => (
                                 <CourseCard
                                     key={course.keyId ?? ''}
                                     course={{
@@ -183,41 +91,32 @@ const CoursesPage = () => {
                                         title: course.title,
                                         instructorName: course.instructorName,
                                         totalReviews: course.totalReviews,
-                                        hours:course.hours,
+                                        hours: course.hours,
                                         price: course.price,
                                         isEnrolled: course.isEnrolled,
                                         isBookmarked: course.isBookmarked,
                                         isEnrollmentOpen: course.isEnrollmentOpen,
-                                        numberOfLessons:course.numberOfLessons,
+                                        numberOfLessons: course.numberOfLessons,
                                         rating: course.rating
                                     }}
                                 />
                             ))}
                         </div>
                     </section>
+
                     {/* --- Pagination Controls --- */}
-                    <div className="flex justify-center items-center gap-4 mt-8">
-                        <button
-                            onClick={handlePrevPage}
-                            disabled={!coursesData?.hasPreviousPage}
-                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-[#2a2a2e] disabled:cursor-not-allowed transition-all"
-                        >
-                            <ChevronLeft size={28} strokeWidth={2.5} />
-                        </button>
-
-                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#A0A0A0] dark:bg-[#2a2a2e] text-white font-bold text-xl">
-                            {page}
+                    {/* ⭐ التأكد من أن coursesData موجود فعلياً قبل محاولة رسم الـ Pagination */}
+                    {coursesData && (
+                        <div className="flex justify-center items-center gap-4 mt-8">
+                            <Pagination
+                                currentPage={coursesData.pageNumber || 1}
+                                totalPages={coursesData.totalPages || 1}
+                                hasNextPage={coursesData.hasNextPage || false}
+                                hasPreviousPage={coursesData.hasPreviousPage || false}
+                                onPageChange={setPage}
+                            />
                         </div>
-
-                        <button
-                            onClick={handleNextPage}
-                            disabled={!coursesData?.hasNextPage}
-                            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#0061EF] text-white hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-[#2a2a2e] disabled:cursor-not-allowed transition-all"
-                        >
-                            <ChevronRight size={28} strokeWidth={2.5} />
-                        </button>
-
-                    </div>
+                    )}
                 </div>
             </main>
             {/* --- PART 6: Footer --- */}

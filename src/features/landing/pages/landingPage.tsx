@@ -124,7 +124,7 @@ const coursesData = [
             "Basic Mathematics", "Greedy Algorithms Introduction",
             "Time & Space Complexity", "Problem Decomposition"
         ],
-        buttonText: "Explore Foundation Courses",
+        
         image: Study
     },
     {
@@ -137,7 +137,7 @@ const coursesData = [
             "Dynamic Programming Basics", "Recursion & Backtracking",
             "Hash Tables & Maps", "Advanced Sorting Techniques"
         ],
-        buttonText: "Explore Intermediate Courses",
+        
         image: Study
     },
     {
@@ -150,7 +150,7 @@ const coursesData = [
             "Computational Geometry", "Number Theory & Modular Arithmetic",
             "Contest Strategies & Optimization",
         ],
-        buttonText: "Explore Advanced Courses",
+        
         image: Study
     }
 ];
@@ -207,7 +207,7 @@ const LandingPage = () => {
             <header className="sticky top-0 py-1 z-[100] w-full px-4 bg-white/10 backdrop-blur-md">
                 <div className="mx-auto flex h-16 max-w-[1450px] items-center justify-between">
                     <div className="flex items-center gap-2">
-                                              <img src={Logo} alt="" className="h-12 rounded-full w-auto object-contain" />
+                        <img src={Logo} alt="" className="h-12 rounded-full w-auto object-contain" />
 
                         <span className="text-xl font-bold tracking-tight text-blue-600">NEURA</span>
                     </div>
@@ -494,9 +494,9 @@ const LandingPage = () => {
                                             ))}
                                         </ul>
                                     </div>
-                                    <button className="w-full sm:w-auto bg-[#0066FF] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all active:scale-95">
+                                    {/* <button className="w-full sm:w-auto bg-[#0066FF] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all active:scale-95">
                                         {course.buttonText}
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         ))}

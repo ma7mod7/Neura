@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Users, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
+import { BookOpen, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Sidebar() {
