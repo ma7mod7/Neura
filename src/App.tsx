@@ -54,7 +54,7 @@ function App() {
           <Route path="/admin/students" element={<StudentList />} />
           <Route path="/community/students" element={<CommunityApp />} />
           <Route path="/community/admin" element={<CommunityAdminDashboard />} />
-          <Route path="/callback" element={<AuthCallback />} />
+          <Route path="/announcements/callback" element={<AuthCallback />} />
 
 
         </Route>

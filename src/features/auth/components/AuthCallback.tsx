@@ -10,7 +10,6 @@ const AuthCallback = () => {
     const { login } = useAuth(); 
 
     useEffect(() => {
-        // استخراج البيانات من الـ URL Hash
         const hash = location.hash.substring(1);
         const params = new URLSearchParams(hash); 
 
