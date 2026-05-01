@@ -1,4 +1,4 @@
-import { ArrowLeft, Trophy, ChevronDown } from 'lucide-react';
+import { ArrowLeft, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PlayerHeaderProps {
@@ -11,11 +11,9 @@ interface PlayerHeaderProps {
 
 export default function PlayerHeader({
     courseTitle,
-    completedCount,
-    totalCount,
+    
 }: PlayerHeaderProps) {
     const navigate = useNavigate();
-    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
     return (
         <header className="h-14 flex items-center justify-between px-4 bg-[#1c1d1f] dark:bg-[#0e0e10] border-b border-[#3e4143] dark:border-[#2a2a2e] shrink-0 z-30">
@@ -41,7 +39,7 @@ export default function PlayerHeader({
             <div className="flex items-center gap-3 shrink-0">
 
                 {/* Progress Ring + Label */}
-                <div className="hidden sm:flex items-center gap-2">
+                {/* <div className="hidden sm:flex items-center gap-2">
                     <div className="relative w-7 h-7">
                         <svg className="w-7 h-7 -rotate-90" viewBox="0 0 28 28">
                             <circle cx="14" cy="14" r="11" fill="none" stroke="#3e4143" strokeWidth="2.5" />
@@ -62,14 +60,14 @@ export default function PlayerHeader({
                         Your progress
                         <ChevronDown size={13} />
                     </button>
-                </div>
+                </div> */}
 
                 {/* Get Certificate */}
-                <button className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-white border border-white px-3 py-1.5 rounded hover:bg-white hover:text-black transition-colors">
+                {/* <button className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-white border border-white px-3 py-1.5 rounded hover:bg-white hover:text-black transition-colors">
                     <Trophy size={14} />
                     Get course certificate
                     <ChevronDown size={13} />
-                </button>
+                </button> */}
             </div>
         </header>
     );

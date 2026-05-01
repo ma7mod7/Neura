@@ -5,7 +5,6 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 
 export const getExamInfo = async (lessonId: string) => {
     const res = await axiosInstance.get(`/api/ExamAttempts/exam/${lessonId}/info`);
-    console.log("exam info", res.data);
     return res.data;
 };
 
@@ -20,19 +19,26 @@ export const resumeAttempt = async (attemptId: string) => {
 };
 
 export const saveAnswer = async (attemptId: string, questionId: string, selectedOptionId: string) => {
-    const res = await axiosInstance.put(`/api/ExamAttempts/${attemptId}/answers/${questionId}`, {
-        selectedOptionId
-    });
-    return res.data;
+
+    const payload = {
+        selectedOptionIds: [Number(selectedOptionId)]
+    };
+
+    const res = await axiosInstance.put(`/api/ExamAttempts/${attemptId}/answers/${questionId}`, payload);
+    
+    return res;
 };
 
 export const submitAttempt = async (attemptId: string) => {
     const res = await axiosInstance.post(`/api/ExamAttempts/${attemptId}/submit`);
+    console.log("submit",res.data)
     return res.data;
 };
 
 export const getAttemptResults = async (attemptId: string) => {
+    console.log("resultsId",attemptId)
     const res = await axiosInstance.get(`/api/ExamAttempts/${attemptId}/results`);
+    console.log("exam result",res)
     return res.data;
 };
 

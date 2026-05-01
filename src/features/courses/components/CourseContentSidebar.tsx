@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
     ChevronDown, ChevronUp,
-    PlaySquare, FileText, HelpCircle,
+    PlaySquare, 
     X, CheckSquare, Square,
 } from 'lucide-react';
 
@@ -30,32 +30,32 @@ interface CourseContentSidebarProps {
 }
 
 // ================= Lesson type icon =================
-function LessonIcon({ type }: { type: string | number | undefined }) {
-    const t = String(type ?? '').toLowerCase();
-    if (t === 'quiz' || t === '3') {
-        return <HelpCircle size={13} className="text-yellow-500 shrink-0" />;
-    }
-    if (t === 'article' || t === '2') {
-        return <FileText size={13} className="text-green-500 shrink-0" />;
-    }
-    return <PlaySquare size={13} className="text-blue-500 shrink-0" />;
-}
+// function LessonIcon({ type }: { type: string | number | undefined }) {
+//     const t = String(type ?? '').toLowerCase();
+//     if (t === 'quiz' || t === '3') {
+//         return <HelpCircle size={13} className="text-yellow-500 shrink-0" />;
+//     }
+//     if (t === 'article' || t === '2') {
+//         return <FileText size={13} className="text-green-500 shrink-0" />;
+//     }
+//     return <PlaySquare size={13} className="text-blue-500 shrink-0" />;
+// }
 
 // ================= Duration formatter =================
-function formatDuration(raw?: string): string {
-    if (!raw) return '';
-    if (raw.includes('min') || raw.includes('hr') || raw.includes('sec')) return raw;
-    const parts = raw.split(':');
-    if (parts.length === 3) {
-        const hours = parseInt(parts[0], 10);
-        const minutes = parseInt(parts[1], 10);
-        const seconds = Math.floor(parseFloat(parts[2]));
-        if (hours > 0) return `${hours}hr ${minutes}min`;
-        if (minutes > 0) return `${minutes}min`;
-        if (seconds > 0) return `${seconds}s`;
-    }
-    return raw;
-}
+// function formatDuration(raw?: string): string {
+//     if (!raw) return '';
+//     if (raw.includes('min') || raw.includes('hr') || raw.includes('sec')) return raw;
+//     const parts = raw.split(':');
+//     if (parts.length === 3) {
+//         const hours = parseInt(parts[0], 10);
+//         const minutes = parseInt(parts[1], 10);
+//         const seconds = Math.floor(parseFloat(parts[2]));
+//         if (hours > 0) return `${hours}hr ${minutes}min`;
+//         if (minutes > 0) return `${minutes}min`;
+//         if (seconds > 0) return `${seconds}s`;
+//     }
+//     return raw;
+// }
 
 function formatTotalMinutes(minutes?: number): string {
     if (!minutes) return '';
@@ -168,12 +168,12 @@ export default function CourseContentSidebar({
                                                         {lesson.title}
                                                     </p>
                                                     <div className="flex items-center gap-1.5 mt-1">
-                                                        <LessonIcon type={lesson.type} />
+                                                        {/* <LessonIcon type={lesson.type} />
                                                         {lesson.duration && (
                                                             <span className="text-xs text-gray-400 dark:text-[#d0d0E0]">
-                                                                {formatDuration(lesson.duration)}
+                                                                
                                                             </span>
-                                                        )}
+                                                        )} */}
                                                     </div>
                                                 </div>
                                             </button>

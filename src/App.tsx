@@ -23,11 +23,13 @@ import CommunityAdminDashboard from './features/community/pages/CommunityAdminDa
 import CoursePlayerPage from './features/courses/pages/CoursePlayerPage';
 import ExamResultsPage from './features/courses/pages/ExamResultsPage';
 import  AuthCallback from './features/auth/components/AuthCallback';
+import ScrollToTop from './shared/components/ScrollToTop';
 
 
 function App() {
   return (
     <ThemeProvider>
+        <ScrollToTop />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
