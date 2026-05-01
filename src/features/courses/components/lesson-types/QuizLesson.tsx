@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, CheckCircle2, XCircle, Loader2, BarChart2 } from 'lucide-react';
+import { HelpCircle, Loader2,  } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import {
     startExamAttempt,
     saveAnswer,
@@ -18,12 +17,11 @@ interface QuizLessonProps {
 }
 
 export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
-    const navigate = useNavigate();
     const [attemptId, setAttemptId] = useState<string | null>(null);
     const [questions, setQuestions] = useState<any[]>([]);
     const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-    const [submitted, setSubmitted] = useState(false);
-    const [results, setResults] = useState<any | null>(null);
+    const [, setSubmitted] = useState(false);
+    const [, setResults] = useState<any | null>(null);
     const [started, setStarted] = useState(false);
     
     useEffect(() => {
