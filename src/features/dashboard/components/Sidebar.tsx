@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '../../../assets/logo.png'
 
 export default function Sidebar() {
     const [isCoursesOpen, setIsCoursesOpen] = useState(true);
@@ -14,8 +15,9 @@ export default function Sidebar() {
         <aside className="w-64 bg-white dark:bg-[#1c1c1f] flex flex-col fixed h-full shadow-md z-10">
             {/* ================= Header ================= */}
             <div className="p-6 flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    N
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    <img src={Logo} alt="" className="h-12 rounded-full w-auto object-contain" />
+
                 </div>
                 <span className="text-xl font-bold text-blue-600">Neura</span>
             </div>
@@ -49,8 +51,8 @@ export default function Sidebar() {
                         <button
                             onClick={() => navigate('/admin/create-course')}
                             className={`flex items-center gap-3 py-2 transition-colors text-sm mt-1 ${currentPath === '/admin/create-course'
-                                    ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
-                                    : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
+                                ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
+                                : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
                                 }`}
                         >
                             <Plus size={16} />
@@ -61,8 +63,8 @@ export default function Sidebar() {
                         <button
                             onClick={() => navigate('/admin/course-list')}
                             className={`flex items-center gap-3 py-2 transition-colors text-sm mt-1 ${currentPath === '/admin/course-list'
-                                    ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
-                                    : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
+                                ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
+                                : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
                                 }`}
                         >
                             <List size={16} />

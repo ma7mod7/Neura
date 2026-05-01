@@ -5,6 +5,7 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 
 export const getExamInfo = async (lessonId: string) => {
     const res = await axiosInstance.get(`/api/ExamAttempts/exam/${lessonId}/info`);
+    console.log("exam info", res.data);
     return res.data;
 };
 
@@ -59,20 +60,4 @@ export const getAttemptAnalytics = async (lessonId: string, attemptId: string) =
 export const getScoreDistribution = async (lessonId: string) => {
     const res = await axiosInstance.get(`/api/exams/${lessonId}/analytics/score-distribution`);
     return res.data;
-};
-
-// ================= Exam by lesson =================
-export const getExamByLesson = async (lessonId: string) => {
-    try {
-        // ⭐ تم إزالة الهارد كود 74 واستخدام lessonId الحقيقي
-        const res = await axiosInstance.get(`/api/Exams/by-lesson/${lessonId}`);
-        return res.data;
-    } catch {
-        try {
-            const res = await axiosInstance.get(`/api/Exams/${lessonId}`);
-            return res.data;
-        } catch {
-            return null;
-        }
-    }
 };

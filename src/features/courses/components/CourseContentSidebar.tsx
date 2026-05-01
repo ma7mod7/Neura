@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     ChevronDown, ChevronUp,
     PlaySquare, FileText, HelpCircle,
@@ -71,6 +72,15 @@ export default function CourseContentSidebar({
 }: CourseContentSidebarProps) {
     const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
     
+    // ⭐ إضافة الـ Query Client للتحكم في الكاش
+    const queryClient = useQueryClient();
+
+    // ⭐ إجبار الكومبوننت الأب إنه يعمل ريفريش للداتا من الباك إند أول ما السايد بار يفتح
+    useEffect(() => {
+        // بيفضي الكاش بتاع محتوى الكورس عشان يجيب التعديلات الجديدة فوراً
+        queryClient.invalidateQueries({ queryKey: ['course-content'] });
+    }, [queryClient]);
+
     const toggleSection = (index: number) => {
         setOpenSections(prev => {
             const next = new Set(prev);
@@ -131,14 +141,12 @@ export default function CourseContentSidebar({
                             {isOpen && (
                                 <div className="bg-white dark:bg-[#1A1A1A]">
                                     {section.lessons.map((lesson) => {
-                                        console.log("Rendering lesson in sidebar:", lesson);
                                         const isActive = lesson.id === activeLessonId;
-                                        // console.log("Rendering lesson id in sidebar:", lesson.id);
                                         return (
                                             <button
                                                 key={lesson.id}
                                                 onClick={() => onLessonSelect(lesson)}
-                                          className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors border-b border-gray-100 dark:border-[#2a2a2e] last:border-0
+                                                className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors border-b border-gray-100 dark:border-[#2a2a2e] last:border-0
                                                     ${isActive
                                                         ? 'bg-purple-50 dark:bg-purple-500/10 border-l-2 border-l-[#a435f0]'
                                                         : 'hover:bg-gray-50 dark:hover:bg-[#2a2a2e]'

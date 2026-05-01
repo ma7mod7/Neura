@@ -13,6 +13,7 @@ export const getLessonArticle = async (lessonId: string) => {
 // ================= Courses =================
 export const getCourseContent = async (courseId: string) => {
     const res = await axiosInstance.get(`/api/Courses/${courseId}/content`);
+    console.log("course content",res.data)
     return res.data;
 };
 

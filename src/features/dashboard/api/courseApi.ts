@@ -49,6 +49,7 @@ export interface CourseMetadataResponse {
     learningOutcomes: string[];
     prerequisites: string[];
     isActive:boolean
+    status: number;
 
 }
 
@@ -193,14 +194,12 @@ export const updateLessonArticle = async (lessonId: number, payload: UpdateArtic
 
 
 // ================= Course Activation APIs =================
-export const activateCourse = async ({courseId}: { courseId: string }) => {
+export const activateCourse = async (courseId: string) => {
     const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
     return response.data;
 };
 
-
-
-export const deactivateCourse = async ({courseId}: { courseId: string }) => {
-    const response = await axiosInstance.post(`/api/Courses/${courseId}/deactivate`);
+export const deactivateCourse = async (courseId: string) => {
+    const response = await axiosInstance.post(`/api/Courses/${courseId}/unpublish`);
     return response.data;
 };

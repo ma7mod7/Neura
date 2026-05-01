@@ -77,7 +77,10 @@ export default function CreateCourse() {
     const [courseBasicData, setCourseBasicData] = useState<Partial<CourseSchemaTypes> | null>(null);
     const [syncStatus, setSyncStatus] = useState<'Loading' | 'Saved' | 'Saving...' | 'Error'>('Loading');
     
-    const [isCourseActive, setIsCourseActive] = useState<boolean>(false);
+    // ⭐ الاعتماد على الـ status بدلاً من isActive
+    const [courseStatus, setCourseStatus] = useState<number>(1);
+    // ⭐ الحالة رقم 2 تعني Active (تعديل الرقم لو الباك إند بيستخدم رقم مختلف)
+    const isCourseActive = courseStatus === 2;
 
     const [modalConfig, setModalConfig] = useState<ModalConfig>({ isOpen: false, type: null, action: 'add' });
     const [modalInputValue, setModalInputValue] = useState('');
@@ -103,6 +106,7 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
             setCurrentStep(2);
             queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
             toast.success("Course details saved successfully!");
         },
         onError: (error) => {
@@ -112,21 +116,28 @@ export default function CreateCourse() {
         }
     });
 
-    // ⭐ تم تعديل المنطق ليعمل بالتبادل بين التفعيل والتعطيل فقط
+    // ⭐ تم تعديل المنطق ليمرر courseId مباشرة ويقرأ رسالة الخطأ من السيرفر
     const toggleCourseMutation = useMutation({
         mutationFn: async ({ courseId, action }: { courseId: string; action: 'activate' | 'deactivate' }) => {
-            if (action === 'activate') return activateCourse({ courseId });
-            return deactivateCourse({ courseId });
+            if (action === 'activate') return activateCourse(courseId);
+            return deactivateCourse(courseId);
         },
         onSuccess: (_, variables) => {
-            setIsCourseActive(variables.action === 'activate');
             toast.success(`Course ${variables.action === 'activate' ? 'activated' : 'deactivated'} successfully!`);
             setSyncStatus('Saved');
-            // تحديث البيانات في الخلفية
+            // تحديث البيانات في الخلفية لجلب الحالة الجديدة
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
             queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
         },
-        onError: () => {
-            toast.error("Failed to update course status.");
+        onError: (error: any) => {
+            // قراءة رسالة الخطأ القادمة من الباك إند
+            const backendErrors = error.response?.data?.errors;
+            
+            if (Array.isArray(backendErrors) && backendErrors.length > 0) {
+                toast.error(backendErrors.join(" - ")); 
+            } else {
+                toast.error("Failed to update course status.");
+            }
             setSyncStatus('Error');
         }
     });
@@ -169,6 +180,7 @@ export default function CreateCourse() {
             queryClient.invalidateQueries({ queryKey: ['course-content'] });
             queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
             closeModal();
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
             toast.success("Section created successfully!");
         }
     });
@@ -184,6 +196,7 @@ export default function CreateCourse() {
             );
             setSyncStatus('Saved');
             closeModal();
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
             toast.success("Section updated successfully!");
         }
     });
@@ -195,6 +208,7 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
             queryClient.invalidateQueries({ queryKey: ['course-content'] });
             queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+            location.reload()
             toast.success("Section deleted!");
         }
     });
@@ -243,8 +257,9 @@ export default function CreateCourse() {
             };
             setCourseBasicData(mappedData);
             
-            if (draftData.isActive !== undefined) {
-                setIsCourseActive(draftData.isActive);
+            // ⭐ تحديث حالة الكورس كـ رقم بدلاً من boolean
+            if (draftData.status !== undefined) {
+                setCourseStatus(draftData.status);
             }
 
             if (draftData.sections?.length) {
@@ -483,6 +498,7 @@ export default function CreateCourse() {
                 setConfirmDialog(null);
                 setSyncStatus('Saving...');
                 deleteSectionMutation.mutate(id);
+                
             }
         });
     };
@@ -559,7 +575,6 @@ export default function CreateCourse() {
         }
     };
 
-    // ⭐ تم إصلاح المنطق ليعتمد على حال الكورس الحالية ويرسل الطلب المناسب
     const handleToggleStatus = () => {
         if (sections.length === 0) return toast.error("Please add at least one section and lesson before activating.");
         setSyncStatus('Saving...');
@@ -714,7 +729,9 @@ export default function CreateCourse() {
                                         Course Status
                                     </span>
                                     <span className={`text-xs mt-1 font-medium ${isCourseActive ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-[#d0d0E0]'}`}>
-                                        {isCourseActive ? 'Visible to students' : 'Hidden from students'}
+                                        {courseStatus === 1 && "Pending"}
+                                        {courseStatus === 2 && "Active (Visible to students)"}
+                                        {courseStatus === 3 && "Deactivated (Hidden)"}
                                     </span>
                                 </div>
                                 <button

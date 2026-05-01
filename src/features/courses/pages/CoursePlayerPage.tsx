@@ -168,7 +168,11 @@ export default function CoursePlayerPage() {
                         {activeLessonType === 'quiz' && activeLessonId && (
                             <>
                                 {console.log('Quiz lessonId passed:', activeLessonId)}
-                                <QuizLesson lessonId={activeLessonId} lessonTitle={activeLessonTitle} />
+                                <QuizLesson 
+                                    key={activeLessonId} // ⭐ التعديل هنا لحل مشكلة الكود الـ Static
+                                    lessonId={activeLessonId} 
+                                    lessonTitle={activeLessonTitle} 
+                                />
                             </>
                         )}
 
