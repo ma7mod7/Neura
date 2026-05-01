@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+// تأكد من استيراد الـ Type الصحيح من ملف التعريف الخاص بك
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ const AuthCallback = () => {
     const { login } = useAuth(); 
 
     useEffect(() => {
+        // استخراج البيانات من الـ URL Hash
         const hash = location.hash.substring(1);
         const params = new URLSearchParams(hash); 
 
@@ -19,11 +21,9 @@ const AuthCallback = () => {
             const authData = {
                 token: token,
                 refreshToken: refreshToken,
-                
-                
-            };
+            }
 
-            login({authData});
+            login(authData as any);
 
             navigate('/announcements', { replace: true }); 
         } else {

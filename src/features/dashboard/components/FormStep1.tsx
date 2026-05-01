@@ -30,6 +30,16 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
         formState: { errors }
     } = useForm<CourseSchemaTypes>({
         resolver: zodResolver(courseSchema),
+        defaultValues: {
+            Title: "",
+            description: "",
+            price: "",
+            instructorName: "",
+            LearningOutcomes: [{ value: "" }],
+            Prerequisites: [{ value: "" }],
+            Tags: [],
+        }
+
     });
 
     const selectedTags = watch('Tags') || [];
