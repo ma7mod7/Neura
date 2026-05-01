@@ -9,6 +9,7 @@ interface User {
     firstName: string;
     lastName: string;
     discordHandle: string;
+    imageUrl:string
 }
 
 interface AuthResponse extends User {

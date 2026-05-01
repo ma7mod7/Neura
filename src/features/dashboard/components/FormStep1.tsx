@@ -40,14 +40,21 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
         queryFn: fetchCourseTags,
         staleTime: 1000 * 60 * 5,
     });
+    //  console.log('first tag:', availableTags?.[0]);
     useEffect(() => {
-        if (initialData) {
-            reset(initialData);
-        }
-        if (initialImageUrl) {
-            setImagePreview(initialImageUrl);
-        }
-    }, [initialData, initialImageUrl, reset]);
+    if (initialData) {
+        const fixedData = {
+            ...initialData,
+            Tags: (initialData.Tags || []).map((t: any) => 
+                typeof t === 'object' ? Number(t.id) : Number(t)
+            ).filter((id: number) => !isNaN(id))
+        };
+        reset(fixedData);
+    }
+    if (initialImageUrl) {
+        setImagePreview(initialImageUrl);
+    }
+}, [initialData, initialImageUrl, reset]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -59,6 +66,7 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
     };
 
     const handleToggleTag = (tagId: number) => {
+        console.log('tagId received:', tagId, typeof tagId);
         if (selectedTags.includes(tagId)) {
             setValue('Tags', selectedTags.filter(id => id !== tagId), { shouldValidate: true });
         } else {
@@ -86,7 +94,8 @@ export default function FormStep1({ currentStep, onSubmitData, isSaving, initial
 
     // دالة هتطبع الأخطاء في الكونسول علشان لو الفورم معملش Submit تعرف السبب فوراً
     const onFormError = (errors: any) => {
-        console.log("Validation Errors prevented submission:", errors);
+    console.log('Tags value:', watch('Tags'));
+    console.log("Validation Errors:", errors);
     };
 
     return (

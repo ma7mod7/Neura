@@ -14,10 +14,12 @@ export interface LoginResponse {
     expiresin: number;
     refreshToken: string;  
     refreshTokenExpiration: string;
+    imageUrl:string
 }
 
 const loginRequest = async (credentials: LoginFormValues): Promise<LoginResponse> => {
     const response = await axiosInstance.post('/Auth/login', credentials);
+    console.log("userdat",response.data)
     return response.data;
 };
 

@@ -23,7 +23,7 @@ const AuthCallback = () => {
                 
             };
 
-            login(authData);
+            login({authData});
 
             navigate('/announcements', { replace: true }); 
         } else {

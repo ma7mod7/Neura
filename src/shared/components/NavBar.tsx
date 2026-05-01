@@ -1,12 +1,14 @@
-import {  Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
-import Course from '../../assets/course.png';
 import { useState } from 'react';
 import Logo from '../../assets/logo.png'
-import ThemeToggle from "./ThemeToggle";  
+import ThemeToggle from "./ThemeToggle";
+import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const NavBar = () => {
+
+
     const [isOpenProfileMenu, setIsOpenProfileMenu] = useState<boolean>(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
@@ -25,6 +27,7 @@ const NavBar = () => {
         { name: 'Courses', path: '/courses', active: false, action: () => navigate('/courses') },
         { name: 'Community', path: '/community', active: false, action: () => navigate('/community/students') },
     ];
+    const dataLogin = useAuth()
 
 
     return (
@@ -61,7 +64,7 @@ const NavBar = () => {
                     {/* Profile Picture */}
                     <div className="relative">
                         <button onClick={handleOpenProfileMenu}>
-                            <img src={Course} className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5 " alt="profile" />
+                            <img src={dataLogin.user?.imageUrl} className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5 " alt="profile" />
                         </button>
                         {isOpenProfileMenu && (
                             <ProfileMenu setIsOpen={setIsOpenProfileMenu} />

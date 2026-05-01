@@ -1,13 +1,10 @@
 import type { CourseApiPayload } from "../schema/CourseFormSchema";
 import axiosInstance from "../../../shared/api/axiosInstance";
 
-
-
 // 1. Fetch Tags API
 // This function fetches the available tags for the multi-select dropdown
 export const fetchCourseTags = async () => {
     try {
-        // TODO: Replace with your actual backend endpoint
         const response = await axiosInstance.get('/api/Tags/active');
         return response.data;
 
@@ -27,15 +24,12 @@ export const saveCourseStep1 = async (formData: CourseApiPayload, courseId: stri
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             return response.data; 
-
-
         } else {
             // Update existing draft course
             const response = await axiosInstance.put(`/api/Courses/${courseId}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             return response.data;
-
         }
     } catch (error) {
         console.error("Error saving course details:", error);
@@ -43,8 +37,8 @@ export const saveCourseStep1 = async (formData: CourseApiPayload, courseId: stri
     }
 };
 
-
 export interface CourseMetadataResponse {
+    sections: any;
     keyId: string | null;
     title: string | null;
     description: string | null;
@@ -54,15 +48,14 @@ export interface CourseMetadataResponse {
     tags: number[]; 
     learningOutcomes: string[];
     prerequisites: string[];
-    
-}
+    isActive:boolean
 
+}
 
 export const fetchCourseMetadata = async (courseId: string): Promise<CourseMetadataResponse> => {
     const response = await axiosInstance.get(`/api/Courses/${courseId}/metadata`);
     return response.data; 
 };
-
 
 // 3. Create Course Section API
 export interface CreateCourseSectionPayload {
@@ -88,12 +81,29 @@ export const deleteCourseSection = async (sectionId: number) => {
 };
 
 export const publishCourse = async ({courseId}: { courseId: string }) => {
-    const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
-    console.log("from publish course api", response.data)
-    return response.data; 
+    try {
+        const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
+        console.log("from publish course api", response.data);
+        return response.data;
+    } catch (error: any) {
+        console.log("422 details:", error.response?.data);
+        throw error;
+    }
 };
 
+export const publishLesson = async (lessonId: string) => {
+    const response = await axiosInstance.put(`/api/Lessons/${lessonId}/privacy`, {
+        isVideoPrivate: false,
+        isPreview: false,
+        isPubliclyVisible: true
+    });
+    return response.data;
+};
 
+export const getSectionLessons = async (sectionId: string) => {
+    const response = await axiosInstance.get(`/api/Lessons/section/${sectionId}`);
+    return response.data;
+};
 
 export const getCourseListDashboard = async ({PageNumber, PageSize}: { PageNumber: number; PageSize: number }) => {
     const response = await axiosInstance.get(`/api/Courses/my/editable?pageNumber=${PageNumber}&pageSize=${PageSize}`);
@@ -111,14 +121,12 @@ export const deleteCourse = async (courseId:string ) => {
 // ========================= Video Upload APIs ================================
 // ============================================================================
 
-// 1. واجهة طلب الـ Signature من الباك إند
 export interface VideoSignatureRequest {
     fileName: string;
     fileSize: number;
     mimeType: string;
 }
 
-// 2. واجهة الرد اللي راجع من الباك إند بالـ Signature
 export interface SignedVideoUploadResponse {
     allowedFormats:string
     apiKey: string;
@@ -131,14 +139,11 @@ export interface SignedVideoUploadResponse {
     uploadUrl?: string;
 }
 
-// 3. دالة طلب الـ Signature
 export const getVideoUploadSignature = async (lessonId: string, payload: VideoSignatureRequest): Promise<SignedVideoUploadResponse> => {
-    // لاحظ إننا بنبعت لـ lessonId المخصص
     const response = await axiosInstance.post(`/api/Lessons/${lessonId}/video/signed-upload`, payload);
     return response.data;
 };
 
-// 4. واجهة حفظ بيانات الفيديو بعد رفعه لـ Cloudinary
 export interface SaveVideoMetadataPayload {
     publicId: string;
     videoUrl: string;        
@@ -146,7 +151,7 @@ export interface SaveVideoMetadataPayload {
     fileSize: number;
     format: string;
 }
-// 5. دالة إخبار الباك إند بنجاح الرفع
+
 export const saveLessonVideoMetadata = async (lessonId: string, payload: SaveVideoMetadataPayload) => {
     const response = await axiosInstance.post(`/api/Lessons/${lessonId}/video/finalize`, payload);
     console.log("Saved lesson video metadata", response);
@@ -157,25 +162,23 @@ export const saveLessonVideoMetadata = async (lessonId: string, payload: SaveVid
 // ========================= Items / Lessons API ==============================
 // ============================================================================
 
-// 6. دالة إنشاء الدرس نفسه (علشان نجيب الـ ID بتاعه قبل الرفع)
 export interface CreateLessonPayload {
     title: string;
     type: number;
     position: number;
 }
 
+// ⭐ FIX: Modified to return response.data to avoid undefined issues later
 export const createSectionItem = async (sectionId: number, payload: CreateLessonPayload) => {
     const response = await axiosInstance.post(`/api/Lessons/${sectionId}/init`, payload); 
     console.log("createSectionItem response", response.data);
-    return response; 
+    return response.data; 
 };
-
 
 export const deleteLesson = async (lessonId: number) => {
     const response = await axiosInstance.delete(`/api/Lessons/${lessonId}`); 
     return response.data; 
 };
-
 
 // ================= Update Article Content API =================
 export interface UpdateArticlePayload {
@@ -183,8 +186,21 @@ export interface UpdateArticlePayload {
 }
 
 export const updateLessonArticle = async (lessonId: number, payload: UpdateArticlePayload) => {
-    // بناءً على الصورة، المسار هو /api/Lessons/{id}/article
     const response = await axiosInstance.put(`/api/Lessons/${lessonId}/article`, payload);
     console.log("updateLessonArticle response", response.data);
+    return response.data;
+};
+
+
+// ================= Course Activation APIs =================
+export const activateCourse = async ({courseId}: { courseId: string }) => {
+    const response = await axiosInstance.post(`/api/Courses/${courseId}/activate`);
+    return response.data;
+};
+
+
+
+export const deactivateCourse = async ({courseId}: { courseId: string }) => {
+    const response = await axiosInstance.post(`/api/Courses/${courseId}/deactivate`);
     return response.data;
 };

@@ -20,6 +20,9 @@ export interface AnnouncementPost {
   updatedAt?: string;
   updatedOn?: string;
   comments?: AnnouncementComment[];
+  createdByFullName:string,
+  createdByImageUrl:string
+
 }
 
 export interface CreatePostDto {
@@ -41,8 +44,8 @@ export interface UpdatePostVisibilityDto {
 // ── Comment ─────────────────────────────────────────────────
 
 export interface AnnouncementComment {
-  id?: string | number; // ⭐ تم إضافة id كبديل محتمل
-  commentId?: string;   // جعلناها اختيارية
+  id?: string | number; 
+  commentId?: string; 
   postId: string;
   content: string;
   imageUrl?: string;
@@ -53,6 +56,9 @@ export interface AnnouncementComment {
   updatedAt?: string;
   parentCommentId?: string | null; 
   replies?: AnnouncementComment[]; 
+  createdByFullName:string
+    createdByImageUrl:string
+
 }
 
 export interface CreateCommentDto {

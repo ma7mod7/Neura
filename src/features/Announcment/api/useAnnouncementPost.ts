@@ -17,11 +17,11 @@ const getAllPostsApi = async (pageParam: number) => {
   const { data } = await axiosInstance.get("/api/announcements/posts", { 
     params: { 
       PageNumber: pageParam,
-      PageSize: 10 // يمكنك تعديل العدد كما يناسبك
+      PageSize: 10
     } 
   });
   console.log(data)
-  return data;
+  return data.items;
 };
 
 const getPostByIdApi = async (postId: string): Promise<AnnouncementPost> => {

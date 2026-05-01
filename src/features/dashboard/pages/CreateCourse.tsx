@@ -7,11 +7,10 @@ import Sidebar from '../components/Sidebar';
 import FormStep1 from '../components/FormStep1';
 import { type CourseApiPayload, type CourseSchemaTypes } from '../schema/CourseFormSchema';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
-// --- General API Imports ---
 import {
     createCourseSection,
     deleteCourseSection,
@@ -21,23 +20,20 @@ import {
     updateCourseSection,
     type CreateCourseSectionPayload,
     updateLessonArticle,
-    publishCourse
-} from '../api/courseApi';
-
-// --- Video Imports ---
-import {
+    publishLesson,
+    getSectionLessons,
     createSectionItem,
     getVideoUploadSignature,
-    saveLessonVideoMetadata
+    saveLessonVideoMetadata,
+    activateCourse,
+    deactivateCourse
 } from '../api/courseApi';
+
 import { uploadToCloudinary } from '../../../utils/cloudinaryUpload';
-
-// --- Quiz Imports ---
 import { deleteExam } from '../api/quizApi';
-
-// --- Custom Components ---
 import { RichTextEditor } from '../components/RichTextEditor';
 import { QuizEditorModal } from '../components/quiz/QuizEditorModal';
+import { useGetCourseContent } from '../../courses/api/useCoursePlayer';
 
 type ItemType = 'lesson' | 'resource' | 'quiz';
 
@@ -48,6 +44,7 @@ interface ContentItem {
     fileName?: string;
     fileUrl?: string;
     position?: number;
+    lessonId?: number;
 }
 
 interface Section {
@@ -68,11 +65,9 @@ interface ModalConfig {
 }
 
 export default function CreateCourse() {
-    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { id } = useParams<{ id: string }>();
 
-    // ================= State Declarations =================
     const [currentStep, setCurrentStep] = useState<number>(1);
     const [courseId, setCourseId] = useState<string | null>(() => {
         if (id) return id;
@@ -81,8 +76,9 @@ export default function CreateCourse() {
     const [sections, setSections] = useState<Section[]>([]);
     const [courseBasicData, setCourseBasicData] = useState<Partial<CourseSchemaTypes> | null>(null);
     const [syncStatus, setSyncStatus] = useState<'Loading' | 'Saved' | 'Saving...' | 'Error'>('Loading');
+    
+    const [isCourseActive, setIsCourseActive] = useState<boolean>(false);
 
-    // --- Modals & Uploads State ---
     const [modalConfig, setModalConfig] = useState<ModalConfig>({ isOpen: false, type: null, action: 'add' });
     const [modalInputValue, setModalInputValue] = useState('');
     const [modalFileName, setModalFileName] = useState('');
@@ -90,23 +86,15 @@ export default function CreateCourse() {
     const [modalFile, setModalFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    // Confirm Dialog State
     const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null);
-
-    // HTML Content for Resources
     const [modalHtmlContent, setModalHtmlContent] = useState('');
-
-    // Video Upload State
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadStatusText, setUploadStatusText] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Quiz Editor State
-    const [quizEditorConfig, setQuizEditorConfig] = useState<{ isOpen: boolean, lessonId: number, title: string }>({
-        isOpen: false, lessonId: 0, title: ''
+    const [quizEditorConfig, setQuizEditorConfig] = useState<{ isOpen: boolean, lessonId: number, title: string, action: 'add' | 'edit' }>({
+        isOpen: false, lessonId: 0, title: '', action: 'add'
     });
-
-    // ================= Mutations =================
 
     const saveCourseMutation = useMutation({
         mutationFn: (formData: CourseApiPayload) => saveCourseStep1(formData, courseId),
@@ -114,7 +102,7 @@ export default function CreateCourse() {
             if (!courseId) setCourseId(data);
             setSyncStatus('Saved');
             setCurrentStep(2);
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
             toast.success("Course details saved successfully!");
         },
         onError: (error) => {
@@ -124,17 +112,38 @@ export default function CreateCourse() {
         }
     });
 
+    // ⭐ تم تعديل المنطق ليعمل بالتبادل بين التفعيل والتعطيل فقط
+    const toggleCourseMutation = useMutation({
+        mutationFn: async ({ courseId, action }: { courseId: string; action: 'activate' | 'deactivate' }) => {
+            if (action === 'activate') return activateCourse({ courseId });
+            return deactivateCourse({ courseId });
+        },
+        onSuccess: (_, variables) => {
+            setIsCourseActive(variables.action === 'activate');
+            toast.success(`Course ${variables.action === 'activate' ? 'activated' : 'deactivated'} successfully!`);
+            setSyncStatus('Saved');
+            // تحديث البيانات في الخلفية
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+        },
+        onError: () => {
+            toast.error("Failed to update course status.");
+            setSyncStatus('Error');
+        }
+    });
+
     const deleteItemMutation = useMutation({
         mutationFn: (itemId: string) => deleteLesson(Number(itemId)),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
         }
     });
 
     const deleteQuizMutation = useMutation({
-        mutationFn: (itemId: string) => deleteExam(Number(itemId)),
+        mutationFn: (lessonId: string) => deleteExam(Number(lessonId)),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
         }
     });
 
@@ -142,11 +151,8 @@ export default function CreateCourse() {
         mutationFn: (variables: { itemId: string; payload: { htmlContent: string } }) =>
             updateLessonArticle(Number(variables.itemId), variables.payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
-        },
-        onError: (error) => {
-            console.error("Mutation Error:", error);
-            toast.error("Failed to save the article content.");
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
         }
     });
 
@@ -160,14 +166,10 @@ export default function CreateCourse() {
                 { id: realSectionId, title: modalInputValue, isExpanded: true, items: [] }
             ]);
             setSyncStatus('Saved');
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
             closeModal();
             toast.success("Section created successfully!");
-        },
-        onError: (error) => {
-            console.error("Mutation Error:", error);
-            setSyncStatus('Error');
-            toast.error("Failed to create section. Please try again.");
         }
     });
 
@@ -183,11 +185,6 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
             closeModal();
             toast.success("Section updated successfully!");
-        },
-        onError: (error) => {
-            console.error("Mutation Error:", error);
-            setSyncStatus('Error');
-            toast.error("Failed to update section. Please try again.");
         }
     });
 
@@ -196,35 +193,38 @@ export default function CreateCourse() {
         onSuccess: (sectionId) => {
             setSections(prevSections => prevSections.filter(sec => sec.id !== sectionId));
             setSyncStatus('Saved');
-            queryClient.invalidateQueries({ queryKey: ['coursesById', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['course-content'] });
+            queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
             toast.success("Section deleted!");
-        },
-        onError: (error) => {
-            console.error("Mutation Error:", error);
-            setSyncStatus('Error');
-            toast.error("Failed to delete section. Please try again.");
         }
     });
 
-    // ================= Fetch Course Draft =================
     const { data: draftData } = useQuery({
         queryKey: ['courseDraft', courseId],
         queryFn: () => fetchCourseMetadata(courseId!),
         enabled: !!courseId,
-        staleTime: Infinity,
     });
-    const { mutate } = useMutation({
-        mutationFn: ({ courseId }: { courseId: string }) => publishCourse({ courseId }),
-        onSuccess: () => {
-            localStorage.removeItem('courseDraftId');
-            toast.success("Course Published Successfully!");
-            navigate('/admin/course-list');
-        },
-        onError: (error) => {
-            console.error("Error publishing course:", error);
-            toast.error("Failed to publish course. Please try again.");
+    
+    const { data: courseContentData } = useGetCourseContent(courseId ?? '');
+
+    useEffect(() => {
+        if (courseContentData?.sections?.length && sections.length === 0) {
+            setSections(courseContentData.sections.map((sec: any) => ({
+                id: String(sec.id),
+                title: sec.title,
+                isExpanded: true,
+                items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
+                    id: String(item.id),
+                    lessonId: item.lessonId ? Number(item.lessonId) : undefined,
+                    type: item.type?.toLowerCase() === 'quiz' ? 'quiz'
+                        : item.type?.toLowerCase() === 'article' ? 'resource'
+                        : 'lesson',
+                    title: item.title,
+                    position: item.position || item.order || 0,
+                }))
+            })));
         }
-    });
+    }, [courseContentData, sections.length]);
 
     useEffect(() => {
         if (draftData) {
@@ -242,6 +242,26 @@ export default function CreateCourse() {
                 Tags: draftData.tags || [],
             };
             setCourseBasicData(mappedData);
+            
+            if (draftData.isActive !== undefined) {
+                setIsCourseActive(draftData.isActive);
+            }
+
+            if (draftData.sections?.length) {
+                setSections(draftData.sections.map((sec: any) => ({
+                    id: String(sec.id),
+                    title: sec.title,
+                    isExpanded: true,
+                    items: (sec.lessons || sec.items || sec.sectionItems || []).map((item: any) => ({
+                        id: String(item.id),
+                        lessonId: item.lessonId ? Number(item.lessonId) : undefined,
+                        type: item.type?.toLowerCase() === 'quiz' ? 'quiz' 
+                            : item.type?.toLowerCase() === 'article' ? 'resource' 
+                            : 'lesson',
+                        title: item.title,
+                    }))
+                })));
+            }
             setSyncStatus('Saved');
         }
     }, [draftData]);
@@ -253,7 +273,7 @@ export default function CreateCourse() {
             setCourseId(localStorage.getItem('courseDraftId'));
         }
     }, [id]);
-    // ================= Handlers =================
+
     const handleStep1Submit = async (data: CourseSchemaTypes) => {
         setSyncStatus('Saving...');
         const formattedData = {
@@ -279,16 +299,6 @@ export default function CreateCourse() {
             message: "Are you sure you want to delete this draft completely? This cannot be undone.",
             onConfirm: async () => {
                 setConfirmDialog(null);
-                if (courseId) {
-                    setSyncStatus('Saving...');
-                    try {
-                        await new Promise(res => setTimeout(res, 500));
-                    } catch (error) {
-                        toast.error("Failed to delete draft from server.");
-                        setSyncStatus('Error');
-                        return;
-                    }
-                }
                 setCourseId(null);
                 setSections([]);
                 setCurrentStep(1);
@@ -322,24 +332,15 @@ export default function CreateCourse() {
         }
     };
 
-    // ================= Main Modal Submit Logic =================
     const handleModalSubmit = async () => {
         if (!modalInputValue.trim()) return;
 
-        // ---------------- 1. SECTION FLOW ----------------
         if (modalConfig.type === 'section') {
             if (modalConfig.action === 'add') {
-                if (!courseId) {
-                    toast.error("Please save course details before adding a section.");
-                    setSyncStatus('Error');
-                    closeModal();
-                    return;
-                }
                 createSectionMutation.mutate({
-                    courseId,
+                    courseId: courseId!,
                     sectionData: { title: modalInputValue, position: sections.length + 1 }
                 });
-                return;
             } else {
                 updateSectionMutation.mutate({
                     sectionId: modalConfig.sectionId!,
@@ -348,51 +349,36 @@ export default function CreateCourse() {
                         position: sections.findIndex(sec => sec.id === modalConfig.sectionId) + 1
                     }
                 });
-                return;
             }
+            return;
         }
 
-        // ---------------- 2. ITEMS FLOW ----------------
         else if (modalConfig.type && modalConfig.sectionId) {
+           let newPosition = 1;
+            try {
+                const existingLessons = await getSectionLessons(modalConfig.sectionId!);
+                const lessons = Array.isArray(existingLessons) 
+                    ? existingLessons 
+                    : existingLessons.lessons || [];
+                newPosition = lessons.length + 1;
+            } catch {
+                newPosition = (sections.find(s => s.id === modalConfig.sectionId)?.items?.length || 0) + 1;
+            }
 
-            const currentSection = sections.find(s => s.id === modalConfig.sectionId);
-            const currentItems = currentSection?.items || [];
-            const maxPosition = currentItems.reduce((max, item) => Math.max(max, item.position || 0), 0);
-            const newPosition = maxPosition + 1;
-
-            // A. Video Lesson Upload Flow
             if (modalConfig.type === 'lesson' && modalConfig.action === 'add') {
-                if (!modalFile) {
-                    toast.error("Please select a video file first.");
-                    return;
-                }
-
+                if (!modalFile) return toast.error("Please select a video file first.");
                 setIsUploading(true);
                 setSyncStatus('Saving...');
-                let createdItemId: string | null = null;
-
                 try {
                     setUploadStatusText('Creating lesson...');
                     const newLessonResponse = await createSectionItem(Number(modalConfig.sectionId), {
-                        title: modalInputValue,
-                        type: 1, // ⭐ 1 = Video
-                        position: newPosition
+                        title: modalInputValue, type: 1, position: newPosition
                     });
-
-                    const extractedId = newLessonResponse?.data?.id || newLessonResponse?.data?.lessonId
-                    const realLessonId = String(extractedId);
-
-                    if (!extractedId || realLessonId === 'undefined') {
-                        throw new Error("Could not extract Lesson ID from backend response.");
-                    }
-
-                    createdItemId = realLessonId;
-
+                    const realLessonId = String(newLessonResponse?.id || newLessonResponse?.lessonId);
+                    
                     setUploadStatusText('Getting upload permissions...');
                     const signatureData = await getVideoUploadSignature(realLessonId, {
-                        fileName: modalFile.name,
-                        fileSize: modalFile.size,
-                        mimeType: modalFile.type
+                        fileName: modalFile.name, fileSize: modalFile.size, mimeType: modalFile.type
                     });
 
                     setUploadStatusText('Uploading video...');
@@ -401,175 +387,87 @@ export default function CreateCourse() {
                         setUploadStatusText(`Uploading video... ${progress}%`);
                     });
 
-                    if (!uploadResult.success || !uploadResult.data) {
-                        throw new Error(uploadResult.error || "Upload to Cloudinary failed.");
-                    }
-
-                    setUploadStatusText('Saving video details...');
                     await saveLessonVideoMetadata(realLessonId, {
-                        publicId: uploadResult.data.public_id,
-                        videoUrl: uploadResult.data.secure_url,
-                        durationSeconds: uploadResult.data.duration,
-                        fileSize: uploadResult.data.bytes,
-                        format: uploadResult.data.format
+                        publicId: uploadResult.data!.public_id,
+                        videoUrl: uploadResult.data!.secure_url,
+                        durationSeconds: uploadResult.data!.duration,
+                        fileSize: uploadResult.data!.bytes,
+                        format: uploadResult.data!.format
                     });
 
-                    const newItem: ContentItem = {
-                        id: realLessonId,
-                        type: 'lesson',
-                        title: modalInputValue,
-                        fileName: modalFile.name,
-                        fileUrl: uploadResult.data.secure_url,
-                        position: newPosition
-                    };
-
-                    setSections(prevSections => prevSections.map(sec =>
-                        sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
-                    ));
-
-                    createdItemId = null;
+                    await publishLesson(realLessonId);
+                    const newItem: ContentItem = { id: realLessonId, type: 'lesson', title: modalInputValue, fileName: modalFile.name, fileUrl: uploadResult.data!.secure_url, position: newPosition };
+                    setSections(prev => prev.map(sec => sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec));
                     setSyncStatus('Saved');
-                    toast.success("Video lesson uploaded successfully!");
+                    toast.success("Video lesson uploaded!");
+                    
+                    queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+                    queryClient.invalidateQueries({ queryKey: ['course-content'] });
                 } catch (error) {
-                    console.error("Video Upload Error:", error);
                     setSyncStatus('Error');
-                    toast.error("An error occurred during video upload. Please try again.");
-
-                    if (createdItemId) {
-                        await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
-                    }
+                    toast.error("Video upload failed.");
                 } finally {
-                    setIsUploading(false);
-                    setUploadProgress(0);
-                    setUploadStatusText('');
-                    closeModal();
+                    setIsUploading(false); setUploadProgress(0); setUploadStatusText(''); closeModal();
                 }
                 return;
             }
 
-            // B. Quiz Flow
             if (modalConfig.type === 'quiz') {
                 setSyncStatus('Saving...');
-                let createdItemId: string | null = null;
                 try {
                     if (modalConfig.action === 'add') {
                         const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
-                            title: modalInputValue,
-                            type: 3, // ⭐ 3 = Quiz
-                            position: newPosition
+                            title: modalInputValue, type: 3, position: newPosition
                         });
-
-                        const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId
-                        const realItemId = Number(extractedId);
-
-                        if (!realItemId) throw new Error("Failed to get Quiz ID");
-                        createdItemId = String(realItemId);
+                        const realItemId = Number(newItemResponse?.id || newItemResponse?.lessonId);
 
                         const newItem: ContentItem = {
-                            id: String(realItemId),
-                            type: 'quiz',
-                            title: modalInputValue,
-                            position: newPosition
+                            id: String(realItemId), lessonId: realItemId, type: 'quiz', title: modalInputValue, position: newPosition
                         };
-
-                        setSections(prevSections => prevSections.map(sec =>
-                            sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
-                        ));
-
-                        createdItemId = null;
+                        setSections(prev => prev.map(sec => sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec));
+                        
                         closeModal();
-                        setQuizEditorConfig({ isOpen: true, lessonId: realItemId, title: modalInputValue });
+                        
+                        setQuizEditorConfig({ isOpen: true, lessonId: realItemId, title: modalInputValue, action: 'add' });
+                        
+                        queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+                        queryClient.invalidateQueries({ queryKey: ['course-content'] });
                     }
                     setSyncStatus('Saved');
                 } catch (error) {
-                    console.error(error);
-                    setSyncStatus('Error');
-                    toast.error("Failed to initialize quiz.");
-                    if (createdItemId) {
-                        await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
-                    }
+                    setSyncStatus('Error'); toast.error("Failed to initialize quiz.");
                 }
                 return;
             }
 
-            // C. Resource Flow
             setSyncStatus('Saving...');
-            let createdItemId: string | null = null;
             try {
                 if (modalConfig.action === 'add') {
-                    if (modalConfig.type === 'resource' && (!modalHtmlContent || modalHtmlContent === '<p></p>')) {
-                        toast.error("Please enter some content for the resource.");
-                        setSyncStatus('Error');
-                        return;
-                    }
-
+                    if (!modalHtmlContent || modalHtmlContent === '<p></p>') return toast.error("Please enter some content.");
                     const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
-                        title: modalInputValue,
-                        type: 2, // ⭐ 2 = Article (Resource)
-                        position: newPosition
+                        title: modalInputValue, type: 2, position: newPosition
                     });
+                    const realItemId = String(newItemResponse?.id || newItemResponse?.lessonId);
 
-                    const extractedId = newItemResponse?.data?.id || newItemResponse?.data?.lessonId
-                    const realItemId = String(extractedId);
+                    await updateArticleMutation.mutateAsync({ itemId: realItemId, payload: { htmlContent: modalHtmlContent } });
+                    await publishLesson(realItemId);
 
-                    if (!extractedId || realItemId === 'undefined') {
-                        throw new Error("Could not extract Item ID from backend response.");
-                    }
-
-                    createdItemId = realItemId;
-
-                    if (modalConfig.type === 'resource') {
-                        await updateArticleMutation.mutateAsync({
-                            itemId: realItemId,
-                            payload: { htmlContent: modalHtmlContent }
-                        });
-                    }
-
-                    const newItem: ContentItem = {
-                        id: realItemId,
-                        type: modalConfig.type as ItemType,
-                        title: modalInputValue,
-                        position: newPosition,
-                        fileUrl: modalConfig.type === 'resource' ? modalHtmlContent : undefined
-                    };
-
-                    setSections(prevSections => prevSections.map(sec =>
-                        sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec
-                    ));
-
-                    createdItemId = null;
+                    const newItem: ContentItem = { id: realItemId, type: 'resource', title: modalInputValue, position: newPosition, fileUrl: modalHtmlContent };
+                    setSections(prev => prev.map(sec => sec.id === modalConfig.sectionId ? { ...sec, items: [...sec.items, newItem] } : sec));
                     toast.success("Resource added successfully!");
-
                 } else {
-                    // Edit Mode for Resource
-                    if (modalConfig.type === 'resource') {
-                        await updateArticleMutation.mutateAsync({
-                            itemId: modalConfig.itemId!,
-                            payload: { htmlContent: modalHtmlContent }
-                        });
-                    }
-
-                    setSections(prevSections => prevSections.map(sec =>
-                        sec.id === modalConfig.sectionId ? {
-                            ...sec,
-                            items: sec.items.map(item => item.id === modalConfig.itemId ? {
-                                ...item,
-                                title: modalInputValue,
-                                fileUrl: modalConfig.type === 'resource' ? modalHtmlContent : item.fileUrl
-                            } : item)
-                        } : sec
-                    ));
-                    toast.success("Resource updated successfully!");
+                    await updateArticleMutation.mutateAsync({ itemId: modalConfig.itemId!, payload: { htmlContent: modalHtmlContent } });
+                    setSections(prev => prev.map(sec => sec.id === modalConfig.sectionId ? {
+                        ...sec, items: sec.items.map(item => item.id === modalConfig.itemId ? { ...item, title: modalInputValue, fileUrl: modalHtmlContent } : item)
+                    } : sec));
+                    toast.success("Resource updated!");
                 }
+                
+                queryClient.invalidateQueries({ queryKey: ['courseDraft', courseId] });
+                queryClient.invalidateQueries({ queryKey: ['course-content'] });
                 setSyncStatus('Saved');
             } catch (error) {
-                console.error(error);
-                setSyncStatus('Error');
-                toast.error("Failed to save resource.");
-
-                if (createdItemId) {
-                    await deleteLesson(Number(createdItemId)).catch(e => console.error("Rollback failed", e));
-                }
+                setSyncStatus('Error'); toast.error("Failed to save resource.");
             } finally {
                 closeModal();
             }
@@ -612,9 +510,8 @@ export default function CreateCourse() {
                     setSyncStatus('Saved');
                     toast.success(`${itemType} deleted successfully!`);
                 } catch (error) {
-                    console.error(error);
                     setSyncStatus('Error');
-                    toast.error(`Failed to delete ${itemType}. Please try again.`);
+                    toast.error(`Failed to delete ${itemType}.`);
                 }
             }
         });
@@ -624,7 +521,6 @@ export default function CreateCourse() {
         setSections(sections.map(sec => sec.id === id ? { ...sec, isExpanded: !sec.isExpanded } : sec));
     };
 
-    // ================= Drag and Drop Logic =================
     const onDragEnd = async (result: any) => {
         const { destination, source, type } = result;
 
@@ -651,7 +547,6 @@ export default function CreateCourse() {
             if (source.droppableId !== destination.droppableId) {
                 newSections[destSectionIndex] = { ...newSections[destSectionIndex], items: destItems };
             }
-
             setSections(newSections);
         }
 
@@ -661,27 +556,20 @@ export default function CreateCourse() {
             setSyncStatus('Saved');
         } catch (error) {
             setSyncStatus('Error');
-            console.error(error);
         }
     };
 
-    const handlePublishCourse = async () => {
-        if (sections.length === 0) {
-            toast.error("Please add at least one section and lesson before publishing.");
-            return;
+    // ⭐ تم إصلاح المنطق ليعتمد على حال الكورس الحالية ويرسل الطلب المناسب
+    const handleToggleStatus = () => {
+        if (sections.length === 0) return toast.error("Please add at least one section and lesson before activating.");
+        setSyncStatus('Saving...');
+        
+        if (isCourseActive) {
+            toggleCourseMutation.mutate({ courseId: courseId!, action: 'deactivate' });
+        } else {
+            toggleCourseMutation.mutate({ courseId: courseId!, action: 'activate' });
         }
-
-        try {
-            setSyncStatus('Saving...');
-            await mutate({ courseId: courseId! });
-            toast.success("Course Published Successfully!");
-            navigate('/admin/course-list');
-        } catch (error) {
-            console.error("Error publishing course:", error);
-            setSyncStatus('Error');
-            toast.error("Failed to publish course. Please try again.");
-        }
-    }
+    };
 
     return (
         <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
@@ -697,18 +585,12 @@ export default function CreateCourse() {
                             {syncStatus === 'Saved' && <span className="text-green-600 flex items-center gap-1"><Check size={16} /> Saved</span>}
                             {syncStatus === 'Error' && <span className="text-red-500 flex items-center gap-1"><X size={16} /> Error</span>}
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={handleClearDraft}
-                            className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition"
-                        >
+                        <button type="button" onClick={handleClearDraft} className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition">
                             Clear Draft
                         </button>
                     </div>
                 </div>
 
-                {/* ====== Stepper ====== */}
                 <div className="flex justify-center mb-10 relative">
                     <div className="flex items-center gap-4 relative z-10">
                         <div className="flex flex-col items-center cursor-pointer" onClick={() => handleStepClick(1)}>
@@ -723,18 +605,10 @@ export default function CreateCourse() {
                     </div>
                 </div>
 
-                {/* ====== Form (Step 1) ====== */}
-                <FormStep1
-                    currentStep={currentStep}
-                    onSubmitData={handleStep1Submit}
-                    isSaving={syncStatus === 'Saving...'}
-                    initialData={courseBasicData}
-                />
+                <FormStep1 currentStep={currentStep} onSubmitData={handleStep1Submit} isSaving={syncStatus === 'Saving...'} initialData={courseBasicData} />
 
-                {/* ====== Step 2: Course Content ====== */}
                 {currentStep === 2 && (
                     <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-8 shadow-sm flex flex-col gap-4 max-w-4xl mx-auto min-h-[500px]">
-
                         <button type="button" onClick={() => openModal('section', 'add')} className="w-full border border-blue-300 dark:border-blue-500/50 border-dashed text-blue-600 dark:text-blue-400 rounded-lg p-3 flex justify-center items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition mb-4">
                             Add Section <Plus size={16} />
                         </button>
@@ -747,29 +621,20 @@ export default function CreateCourse() {
                                             <Draggable key={section.id} draggableId={section.id} index={index}>
                                                 {(provided) => (
                                                     <div ref={provided.innerRef} {...provided.draggableProps} className="border dark:border-[#2a2a2e] rounded-lg overflow-hidden bg-white dark:bg-[#1A1A1A]">
-
                                                         <div className="bg-blue-100/50 dark:bg-blue-500/10 p-4 flex justify-between items-center group">
                                                             <div className="flex items-center gap-2 flex-1">
                                                                 <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400">
                                                                     <GripVertical size={18} />
                                                                 </div>
-
-                                                                <div
-                                                                    className="flex items-center gap-2 font-medium text-sm cursor-pointer select-none flex-1 dark:text-[#E0E0E0]"
-                                                                    onClick={() => toggleSection(section.id)}
-                                                                >
+                                                                <div className="flex items-center gap-2 font-medium text-sm cursor-pointer select-none flex-1 dark:text-[#E0E0E0]" onClick={() => toggleSection(section.id)}>
                                                                     <ChevronDown size={18} className={`transition-transform duration-300 ${section.isExpanded ? "rotate-180" : "rotate-0"}`} />
                                                                     {section.title}
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-3">
                                                                 <span className="text-xs text-gray-500 dark:text-[#d0d0E0] mr-2">{section.items.length} items</span>
-                                                                <button onClick={() => openModal('section', 'edit', section.id, undefined, section.title)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                                                    <Pencil size={16} />
-                                                                </button>
-                                                                <button onClick={() => deleteSection(section.id)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors">
-                                                                    <Trash2 size={16} />
-                                                                </button>
+                                                                <button onClick={() => openModal('section', 'edit', section.id, undefined, section.title)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400 transition-colors"><Pencil size={16} /></button>
+                                                                <button onClick={() => deleteSection(section.id)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
                                                             </div>
                                                         </div>
 
@@ -781,15 +646,9 @@ export default function CreateCourse() {
                                                                             {section.items.map((item, itemIndex) => (
                                                                                 <Draggable key={item.id} draggableId={item.id} index={itemIndex}>
                                                                                     {(provided) => (
-                                                                                        <div
-                                                                                            ref={provided.innerRef}
-                                                                                            {...provided.draggableProps}
-                                                                                            className="flex justify-between items-center p-3 border dark:border-[#2a2a2e] rounded-md bg-gray-50 dark:bg-[#0e0e10] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] transition-colors"
-                                                                                        >
+                                                                                        <div ref={provided.innerRef} {...provided.draggableProps} className="flex justify-between items-center p-3 border dark:border-[#2a2a2e] rounded-md bg-gray-50 dark:bg-[#0e0e10] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] transition-colors">
                                                                                             <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-[#d0d0E0]">
-                                                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400">
-                                                                                                    <GripVertical size={16} />
-                                                                                                </div>
+                                                                                                <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 dark:text-[#d0d0E0] hover:text-blue-600 dark:hover:text-blue-400"><GripVertical size={16} /></div>
                                                                                                 {item.type === 'lesson' && <PlaySquare size={16} className="text-blue-500" />}
                                                                                                 {item.type === 'resource' && <FileText size={16} className="text-blue-500" />}
                                                                                                 {item.type === 'quiz' && <FileText size={16} className="text-yellow-500" />}
@@ -799,14 +658,14 @@ export default function CreateCourse() {
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">
-
                                                                                                 {(item.type === 'resource' || item.type === 'quiz') && (
                                                                                                     <button
                                                                                                         onClick={() => {
                                                                                                             if (item.type === 'resource') {
                                                                                                                 openModal('resource', 'edit', section.id, item.id, item.title);
                                                                                                             } else if (item.type === 'quiz') {
-                                                                                                                setQuizEditorConfig({ isOpen: true, lessonId: Number(item.id), title: item.title });
+                                                                                                                const realLessonId = item.lessonId ?? Number(item.id);
+                                                                                                                setQuizEditorConfig({ isOpen: true, lessonId: realLessonId, title: item.title, action: 'edit' });
                                                                                                             }
                                                                                                         }}
                                                                                                         className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
@@ -814,9 +673,7 @@ export default function CreateCourse() {
                                                                                                         <Pencil size={16} />
                                                                                                     </button>
                                                                                                 )}
-                                                                                                <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors">
-                                                                                                    <Trash2 size={16} />
-                                                                                                </button>
+                                                                                                <button onClick={() => deleteItem(section.id, item.id, item.type)} className="text-gray-400 dark:text-[#d0d0E0] hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
                                                                                             </div>
                                                                                         </div>
                                                                                     )}
@@ -829,14 +686,10 @@ export default function CreateCourse() {
 
                                                                 <div className="relative w-1/2 self-center flex flex-col items-center">
                                                                     {openMenuSectionId !== section.id ? (
-                                                                        <button type="button" onClick={() => setOpenMenuSectionId(section.id)} className="w-full border border-blue-300 dark:border-blue-500/50 border-dashed text-blue-600 dark:text-blue-400 rounded p-2 flex justify-center items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-sm">
-                                                                            Add item <Plus size={16} />
-                                                                        </button>
+                                                                        <button type="button" onClick={() => setOpenMenuSectionId(section.id)} className="w-full border border-blue-300 dark:border-blue-500/50 border-dashed text-blue-600 dark:text-blue-400 rounded p-2 flex justify-center items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-sm">Add item <Plus size={16} /></button>
                                                                     ) : (
                                                                         <div className="bg-blue-100 dark:bg-blue-500/20 rounded p-2 w-48 text-sm flex flex-col gap-2 shadow-md z-10">
-                                                                            <div onClick={() => openModal('lesson', 'add', section.id)} className="bg-blue-400 text-white rounded p-1.5 flex justify-between items-center cursor-pointer hover:bg-blue-500 transition-colors">
-                                                                                Lesson <ChevronDown size={14} />
-                                                                            </div>
+                                                                            <div onClick={() => openModal('lesson', 'add', section.id)} className="bg-blue-400 text-white rounded p-1.5 flex justify-between items-center cursor-pointer hover:bg-blue-500 transition-colors">Lesson <ChevronDown size={14} /></div>
                                                                             <div onClick={() => openModal('resource', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded font-medium text-gray-700 dark:text-[#d0d0E0] transition-colors">Resource</div>
                                                                             <div onClick={() => openModal('quiz', 'add', section.id)} className="p-1.5 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-500/30 rounded font-medium text-gray-700 dark:text-[#d0d0E0] transition-colors">Quiz</div>
                                                                         </div>
@@ -854,94 +707,61 @@ export default function CreateCourse() {
                             </Droppable>
                         </DragDropContext>
 
-                        <div className="flex justify-end mt-auto pt-8">
-                            <button
-                                type="button"
-                                onClick={handlePublishCourse}
-                                disabled={syncStatus === 'Saving...'}
-                                className={`px-6 py-2 rounded flex items-center gap-2 transition ${syncStatus === 'Saving...' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
-                            >
-                                Publish Course <span className="text-xl">→</span>
-                            </button>
+                        <div className="flex justify-end mt-auto pt-8 border-t border-gray-200 dark:border-[#2a2a2e]">
+                            <div className="flex items-center justify-between bg-gray-50 dark:bg-[#111111] border border-gray-200 dark:border-[#2a2a2e] px-6 py-4 rounded-xl shadow-sm w-full max-w-sm">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold text-gray-800 dark:text-[#E0E0E0]">
+                                        Course Status
+                                    </span>
+                                    <span className={`text-xs mt-1 font-medium ${isCourseActive ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-[#d0d0E0]'}`}>
+                                        {isCourseActive ? 'Visible to students' : 'Hidden from students'}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleToggleStatus}
+                                    disabled={toggleCourseMutation.isPending || syncStatus === 'Saving...'}
+                                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                                        isCourseActive ? 'bg-green-500' : 'bg-gray-300 dark:bg-[#3a3a3e]'
+                                    } ${(toggleCourseMutation.isPending || syncStatus === 'Saving...') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                                        isCourseActive ? 'translate-x-6' : 'translate-x-1'
+                                    }`} />
+                                </button>
+                            </div>
                         </div>
+
                     </div>
                 )}
             </main>
 
-            {/* ====== Unified Modal ====== */}
             {modalConfig.isOpen && (
                 <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-gray-200 dark:bg-[#1A1A1A] rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl animate-in zoom-in-95">
                         <div className="bg-gray-300 dark:bg-[#2a2a2e] px-4 py-3 flex justify-between items-center shrink-0">
-                            <h3 className="font-bold text-gray-800 dark:text-[#E0E0E0] capitalize">
-                                {modalConfig.action} {modalConfig.type}
-                            </h3>
+                            <h3 className="font-bold text-gray-800 dark:text-[#E0E0E0] capitalize">{modalConfig.action} {modalConfig.type}</h3>
                             <button onClick={closeModal} className="text-gray-500 dark:text-[#d0d0E0] hover:text-black dark:hover:text-white bg-white dark:bg-[#1A1A1A] rounded-full p-0.5"><X size={16} /></button>
                         </div>
                         <div className="p-6 space-y-6 overflow-y-auto">
-                            <input
-                                type="text"
-                                value={modalInputValue}
-                                onChange={(e) => setModalInputValue(e.target.value)}
-                                placeholder={`Title of the ${modalConfig.type}`}
-                                className="w-full border-none rounded bg-blue-100 dark:bg-[#2a2a2e] dark:text-[#E0E0E0] dark:placeholder:text-[#d0d0E0]/50 p-3 focus:outline-blue-500"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && modalConfig.type !== 'resource') {
-                                        handleModalSubmit();
-                                    }
-                                }}
-                            />
-
+                            <input type="text" value={modalInputValue} onChange={(e) => setModalInputValue(e.target.value)} placeholder={`Title of the ${modalConfig.type}`} className="w-full border-none rounded bg-blue-100 dark:bg-[#2a2a2e] dark:text-[#E0E0E0] dark:placeholder:text-[#d0d0E0]/50 p-3 focus:outline-blue-500" autoFocus onKeyDown={(e) => { if (e.key === 'Enter' && modalConfig.type !== 'resource') handleModalSubmit(); }} />
                             {modalConfig.type === 'lesson' && (
-                                <div
-                                    className="border-2 border-dashed border-gray-400 dark:border-[#3a3a3e] bg-white dark:bg-[#0e0e10] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2a2e] transition"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
+                                <div className="border-2 border-dashed border-gray-400 dark:border-[#3a3a3e] bg-white dark:bg-[#0e0e10] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2a2a2e] transition" onClick={() => fileInputRef.current?.click()}>
                                     <UploadCloud size={24} className="text-blue-500 mb-2" />
-                                    <span className="text-sm font-medium text-gray-700 dark:text-[#d0d0E0] text-center">
-                                        {modalFileName ? modalFileName : 'Click to upload Video'}
-                                    </span>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        className="hidden"
-                                        accept="video/*"
-                                        onChange={handleFileChange}
-                                    />
+                                    <span className="text-sm font-medium text-gray-700 dark:text-[#d0d0E0] text-center">{modalFileName ? modalFileName : 'Click to upload Video'}</span>
+                                    <input type="file" ref={fileInputRef} className="hidden" accept="video/*" onChange={handleFileChange} />
                                 </div>
                             )}
-
                             {modalConfig.type === 'resource' && (
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-1">Resource Content</label>
-                                    <RichTextEditor
-                                        content={modalHtmlContent}
-                                        onChange={(html) => setModalHtmlContent(html)}
-                                    />
-                                </div>
+                                <div className="mt-4"><label className="block text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-1">Resource Content</label><RichTextEditor content={modalHtmlContent} onChange={setModalHtmlContent} /></div>
                             )}
-
                             {isUploading && modalConfig.type === 'lesson' && (
                                 <div className="mt-2 mb-4 bg-gray-50 dark:bg-[#0e0e10] p-4 rounded-lg border border-gray-200 dark:border-[#2a2a2e]">
-                                    <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-2">
-                                        <span>{uploadStatusText}</span>
-                                        <span className="text-blue-600">{uploadProgress}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 dark:bg-[#2a2a2e] rounded-full h-2 overflow-hidden">
-                                        <div
-                                            className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
-                                            style={{ width: `${uploadProgress}%` }}
-                                        ></div>
-                                    </div>
+                                    <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-[#E0E0E0] mb-2"><span>{uploadStatusText}</span><span className="text-blue-600">{uploadProgress}%</span></div>
+                                    <div className="w-full bg-gray-200 dark:bg-[#2a2a2e] rounded-full h-2 overflow-hidden"><div className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out" style={{ width: `${uploadProgress}%` }}></div></div>
                                 </div>
                             )}
-
-                            <button
-                                onClick={handleModalSubmit}
-                                disabled={isUploading || syncStatus === 'Saving...'}
-                                className={`w-full text-white rounded py-3 font-medium capitalize transition-colors ${isUploading || syncStatus === 'Saving...' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-                            >
+                            <button onClick={handleModalSubmit} disabled={isUploading || syncStatus === 'Saving...'} className={`w-full text-white rounded py-3 font-medium capitalize transition-colors ${isUploading || syncStatus === 'Saving...' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
                                 {isUploading ? 'Uploading...' : (modalConfig.action === 'add' ? 'Add' : 'Save Changes')}
                             </button>
                         </div>
@@ -949,27 +769,22 @@ export default function CreateCourse() {
                 </div>
             )}
 
-            {/* ====== Quiz Full-Screen Editor ====== */}
             <QuizEditorModal
                 isOpen={quizEditorConfig.isOpen}
-                onClose={() => setQuizEditorConfig({ isOpen: false, lessonId: 0, title: '' })}
+                onClose={() => setQuizEditorConfig({ isOpen: false, lessonId:0, title: '', action: 'add' })}
                 lessonId={quizEditorConfig.lessonId}
                 quizTitle={quizEditorConfig.title}
+                action={quizEditorConfig.action} 
             />
 
-            {/* ====== Confirm Dialog ====== */}
             {confirmDialog?.isOpen && (
                 <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white dark:bg-[#1A1A1A] rounded-lg p-6 max-w-sm w-full shadow-xl animate-in zoom-in-95">
                         <h3 className="text-lg font-bold text-gray-800 dark:text-[#E0E0E0] mb-2">{confirmDialog.title}</h3>
                         <p className="text-gray-600 dark:text-[#d0d0E0] mb-6 text-sm">{confirmDialog.message}</p>
                         <div className="flex justify-end gap-3">
-                            <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] rounded-lg transition-colors">
-                                Cancel
-                            </button>
-                            <button onClick={confirmDialog.onConfirm} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                                Confirm
-                            </button>
+                            <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-[#E0E0E0] hover:bg-gray-100 dark:hover:bg-[#2a2a2e] rounded-lg transition-colors">Cancel</button>
+                            <button onClick={confirmDialog.onConfirm} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">Confirm</button>
                         </div>
                     </div>
                 </div>

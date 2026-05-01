@@ -53,7 +53,7 @@ const CoursesPage = () => {
 
                 {/* --- PART 2: Welcome & Hero Banner --- */}
                 <div className="flex items-center gap-3 mb-8">
-                    <img src="https://avatar.iran.liara.run/public/30" className="w-10 h-10 rounded-full border-2 border-[#0061EF]  object-cover p-0.5 " alt="Profile" />
+                    <img src={user?.imageUrl} className="w-10 h-10 rounded-full border-2 border-[#0061EF]  object-cover p-0.5 " alt="Profile" />
                     <h2 className="text-xl font-bold text-slate-800 dark:text-white">Welcome back, {user?.firstName} {user?.lastName}</h2>
                 </div>
                 <div className="mx-auto max-w-[1450px]">

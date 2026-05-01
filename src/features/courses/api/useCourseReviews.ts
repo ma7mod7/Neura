@@ -24,7 +24,7 @@ export const useAddCourseReview = (courseId: string) => {
         onSuccess: () => {
             // تحديث التقييمات وبيانات الكورس فوراً بعد الإضافة
             queryClient.invalidateQueries({ queryKey: ['course-reviews', courseId] });
-            queryClient.invalidateQueries({ queryKey: ['courseMetaData', courseId] });
+            queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById', courseId] });
         }
     });
 };

@@ -1,8 +1,7 @@
 import {
-  Search, Calendar, PlayCircle, Code2, Crown, Plus, X, Image as ImageIcon, Trash2, Loader2
+   Plus, X, Image as ImageIcon, Trash2, Loader2
 } from 'lucide-react';
 import Footer from '../../../shared/components/Footer';
-import Course from '../../../assets/course.png';
 import AnnouncementCard from '../components/AnnouncementCard';
 import NavBar from '../../../shared/components/NavBar';
 import { useRef, useState } from 'react';
@@ -78,7 +77,7 @@ const AnnouncementsPage = () => {
 
       <main className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 p-4 lg:p-8">
         {/* --- LEFT SECTION: FEED --- */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-12">
           <div className='flex justify-between items-center'>
             <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Announcements</h1>
             <button
@@ -119,14 +118,14 @@ const AnnouncementsPage = () => {
               className="space-y-6"
             >
               {allPosts.map((post) => (
-                <AnnouncementCard key={post.id} post={post} />
+                <AnnouncementCard key={post.id} post={post}  />
               ))}
             </InfiniteScroll>
           )}
         </div>
 
         {/* --- RIGHT SECTION: SIDEBAR --- */}
-        <div className="hidden lg:block lg:col-span-4 space-y-6">
+        {/* <div className="hidden lg:block lg:col-span-4 space-y-6">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600" size={20} />
             <input
@@ -136,7 +135,6 @@ const AnnouncementsPage = () => {
             />
           </div>
 
-          {/* Top Rated Widget */}
           <div className="bg-white dark:bg-[#1c1c1f] rounded-xl p-6 shadow-sm border border-slate-50 dark:border-[#2a2a2e]">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-slate-800 dark:text-white">Top Rated</h2>
@@ -164,7 +162,6 @@ const AnnouncementsPage = () => {
             </div>
           </div>
 
-          {/* Upcoming Deadlines Widget */}
           <div className="bg-white dark:bg-[#1c1c1f] rounded-xl p-6 shadow-sm border border-slate-50 dark:border-[#2a2a2e]">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-slate-800 dark:text-white">Upcoming Deadlines</h2>
@@ -186,7 +183,7 @@ const AnnouncementsPage = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
       </main>
 
       <Footer />

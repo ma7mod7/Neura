@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProfileMenu from '../../../shared/components/ProfileMenu';
 import Logo from '../../../assets/logo.png'
+import { useAuth } from '../../auth/hooks/useAuth';
 
 const mockSuggestions = [
     { id: '1', type: 'course', name: 'Machine Learning Bootcamp' },
@@ -72,7 +73,7 @@ export const SearchBar = () => {
             document.removeEventListener('click', handleClickOutside);
         };
     }, []);
-
+    const {user}=useAuth()
     return (
         <div>
             <nav className="sticky top-0 z-50 bg-white dark:bg-[#0e0e10]/70 dark:backdrop-blur-md border-b border-slate-100 dark:border-[#1c1c1f] px-4 py-3 shadow-md">
@@ -146,7 +147,7 @@ export const SearchBar = () => {
                         </button>
                         
                         <button onClick={handleOpenProfileMenu}>
-                            <img src="https://avatar.iran.liara.run/public/30" className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5 " alt="Profile" />
+                            <img src={user?.imageUrl} className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5 " alt="Profile" />
                         </button>
                         {isOpenProfileMenu && (
                             <ProfileMenu setIsOpen={setIsOpenProfileMenu} />

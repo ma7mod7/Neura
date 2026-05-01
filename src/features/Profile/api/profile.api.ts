@@ -14,7 +14,7 @@ export const fetchProfileCourses = async (
         default: filterStatus = 'all'; break; 
     }
 
-    const response = await axiosInstance.get<PaginatedCourseResponse>('/api/Courses', {
+    const response = await axiosInstance.get<PaginatedCourseResponse>('/api/courses/enrolled', {
         params: {
             filters: filterStatus,
             pageNumber: pageNumber,

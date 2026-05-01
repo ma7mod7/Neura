@@ -39,6 +39,7 @@ const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState('My Courses');
     const [pageNumber, setPageNumber] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    
 
     // React Query Hook
     const { data, isLoading, isError } = useProfileCourses(activeTab, pageNumber, searchTerm);

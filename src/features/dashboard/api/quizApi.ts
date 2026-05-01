@@ -1,5 +1,4 @@
-// src/api/quizApi.ts
-import axiosInstance from "../../../shared/api/axiosInstance"; // Adjust path if needed
+import axiosInstance from "../../../shared/api/axiosInstance"; 
 
 // ==========================================
 // 1. Exam Metadata
@@ -18,9 +17,19 @@ export interface CreateExamPayload {
     numberOfQuestionsToServe: number | null;
 }
 
+// ⭐ الجديد: إضافة دالة جلب بيانات الكويز والأسئلة من الباك إند
+export const getExamDetails = async (lessonId: number) => {
+    const response = await axiosInstance.get(`/api/Exams/${lessonId}`);
+    return response.data;
+};
+
 export const createExamMetadata = async (payload: CreateExamPayload) => {
     const response = await axiosInstance.post('/api/Exams', payload);
+    return response.data;
+};
 
+export const updateExamMetadata = async (lessonId: number, payload: CreateExamPayload) => {
+    const response = await axiosInstance.put(`/api/Exams/${lessonId}/settings`, payload);
     return response.data;
 };
 
@@ -35,30 +44,31 @@ export interface CreateAnswerOptionRequest {
 export interface CreateQuestionPayload {
     questionText: string | null;
     points: number;
-    questionType: number; // 0: Single Choice, 1: True/False, 2: Multiple Choice
+    questionType: number; 
     options: CreateAnswerOptionRequest[] | null;
 }
 
-export const addExamQuestion = async (examId: number, payload: CreateQuestionPayload) => {
-    const response = await axiosInstance.post(`/api/exams/${examId}/questions`, payload);
-    console.log('Add Question Response:', response.data); 
+export const addExamQuestion = async (lessonId: number, payload: CreateQuestionPayload) => {
+    const response = await axiosInstance.post(`/api/exams/${lessonId}/questions`, payload);
     return response.data;
 };
 
-export const updateExamQuestion = async (examId: number, questionId: number, payload: CreateQuestionPayload) => {
-    const response = await axiosInstance.put(`/api/exams/${examId}/questions/${questionId}`, payload);
+export const updateExamQuestion = async (lessonId: number, questionId: number, payload: CreateQuestionPayload) => {
+    const response = await axiosInstance.put(`/api/exams/${lessonId}/questions/${questionId}`, payload);
     return response.data;
 };
 
-export const deleteExamQuestion = async (examId: number, questionId: number) => {
-    const response = await axiosInstance.delete(`/api/exams/${examId}/questions/${questionId}`);
+export const publishExam = async (lessonId: number) => {
+    const response = await axiosInstance.put(`/api/Exams/${lessonId}/publish`);
     return response.data;
 };
 
-// Delete the entire Exam metadata if needed (optional based on your backend)
-export const deleteExam = async (examId: number) => {
-    console.log(`Deleting exam with ID: ${examId}`);
-    const response = await axiosInstance.delete(`/api/Lessons/${examId}`);
+export const deleteExamQuestion = async (lessonId: number, questionId: number) => {
+    const response = await axiosInstance.delete(`/api/exams/${lessonId}/questions/${questionId}`);
     return response.data;
 };
 
+export const deleteExam = async (lessonId: number) => {
+    const response = await axiosInstance.delete(`/api/Lessons/${lessonId}`);
+    return response.data;
+};

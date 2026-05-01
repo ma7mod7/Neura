@@ -25,6 +25,7 @@ import { useBookMark } from '../api/useBookMark';
 import { useGetInstById } from '../../../shared/api/useGetInsApi';
 import { useGetCourseReviews, useAddCourseReview } from '../api/useCourseReviews';
 import { useGetCoursesContent } from '../api/useGetAllCourses';
+import useEnroll from '../api/useEnrolle';
 
 const supportData = [
     {
@@ -37,7 +38,7 @@ const supportData = [
         name: "Ziad Nouh ",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
     },
-      {
+    {
         id: '3',
         name: "Emad saleh",
         feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
@@ -70,6 +71,8 @@ const CourseDetailsPage = () => {
     const [openSection, setOpenSection] = useState<number | null>(0);
     const { courseId } = useParams();
     const isLoggedIn = isUserLoggedIn();
+    const {mutate}=useEnroll(courseId!)
+    
     
     // --- Data Fetching ---
     const { data: CourseContent } = useGetCoursesContent(courseId!);
@@ -131,6 +134,11 @@ const CourseDetailsPage = () => {
     const course = {
         lastUpdated: "December 2024",
     };
+      const handleEnroll = (courseId:string) => {
+
+        mutate(courseId);
+    };
+
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0e0e10] font-inter">
@@ -392,7 +400,7 @@ const CourseDetailsPage = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <button onClick={() => navigate(`/courses/${courseId}/enroll`)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
+                                    <button onClick={()=>handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
                                         Enroll for {courseMetaData?.price === 0 ? 'Free' : `${courseMetaData?.price} E.L`}
                                     </button>
                                 )}

@@ -57,7 +57,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             {/* --- Header Section (User Info) --- */}
             <div onClick={() => navigate('/profile')} className="p-4 border-b border-slate-100 dark:border-[#2a2a2e] flex items-center gap-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-[#2a2a2e] transition-colors">
                 <img
-                    src="https://avatar.iran.liara.run/public/30"
+                    src={user?.imageUrl}
                     alt="User"
                     className="w-10 h-10 rounded-full border border-slate-200 dark:border-[#3a3a3e] object-cover"
                 />

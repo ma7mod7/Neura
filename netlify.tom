@@ -1,10 +1,11 @@
+# قاعدة الـ Proxy اللي عملناها للـ API (خليها زي ما هي)
 [[redirects]]
   from = "/api/*"
-  to = "https://neura-lms.runasp.net/:splat"
+  to = "http://neura.runasp.net/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/*"
-  to = "https://neura-lms.runasp.net/:splat"
+  to = "/index.html"
   status = 200

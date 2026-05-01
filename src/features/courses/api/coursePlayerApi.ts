@@ -1,0 +1,27 @@
+import axiosInstance from '../../../shared/api/axiosInstance';
+// ================= Lessons =================
+
+export const getLessonVideoLink = async (lessonId: string) => {
+    const res = await axiosInstance.get(`/api/Lessons/${lessonId}/video/link`);
+    return res.data;
+};
+
+export const getLessonArticle = async (lessonId: string) => {
+    const res = await axiosInstance.get(`/api/Lessons/${lessonId}/article`);
+    return res.data; 
+};
+// ================= Courses =================
+export const getCourseContent = async (courseId: string) => {
+    const res = await axiosInstance.get(`/api/Courses/${courseId}/content`);
+    return res.data;
+};
+
+export const getCourseMetadata = async (courseId: string) => {
+    const res = await axiosInstance.get(`/api/Courses/${courseId}/metadata`);
+    return res.data;
+};
+
+export const completeCourse = async (courseId: string) => {
+    const res = await axiosInstance.post(`/api/Courses/${courseId}/complete`);
+    return res.data;
+};

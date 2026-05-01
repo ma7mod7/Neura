@@ -10,7 +10,6 @@ import {
   Reply,
   Edit2,
 } from "lucide-react";
-import Course from "../../../assets/course.png";
 import { useEffect, useRef, useState } from "react";
 import {
   useLikePost,
@@ -25,6 +24,7 @@ import type { AnnouncementPost, AnnouncementComment } from "../api";
 
 interface Props {
   post: AnnouncementPost;
+  
 }
 
 // Get current user id
@@ -37,24 +37,25 @@ const getCurrentUserId = (): string => {
   }
 };
 
-// ⭐ مكون التعليق يدعم شكل الردود
 const CommentItem = ({ 
   comment, 
   postId, 
   onReplySuccess,
-  isReply = false // ⭐ بروب جديدة لتغيير شكل الرد
+  userPhoto,
+  isReply = false 
 }: { 
   comment: AnnouncementComment; 
   postId: string;
   onReplySuccess: () => void;
   isReply?: boolean;
+  userPhoto:string
+  
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [text, setText] = useState(comment.content);
   const [replyText, setReplyText] = useState("");
 
-  // ⭐ استخراج الـ ID الصحيح (لأن الباك إند قد يرسل id أو commentId)
   const cid = String(comment.id || comment.commentId);
 
   const { mutate: updateComment } = useUpdateComment(cid, postId);
@@ -80,11 +81,12 @@ const CommentItem = ({
     });
   };
 
+
   return (
     <div className={`group mt-3 flex ${isReply ? 'gap-2' : 'gap-3'} animate-in fade-in slide-in-from-left-2`}>
       {/* تصغير صورة الرد */}
       <img 
-        src={comment.authorAvatar || Course} 
+        src={userPhoto} 
         className={`${isReply ? 'h-6 w-6 mt-1' : 'h-8 w-8'} rounded-full border border-slate-200 dark:border-slate-700`} 
         alt="avatar" 
       />
@@ -92,7 +94,7 @@ const CommentItem = ({
       <div className="flex-1">
         {/* تغيير شكل خلفية الرد ليكون أرق وأبسط */}
         <div className={`rounded-2xl ${isReply ? 'bg-transparent' : 'bg-slate-100 p-3 dark:bg-[#2a2a2e]'}`}>
-          <p className="text-xs font-bold text-slate-900 dark:text-white mb-1">{comment.authorName || "User"}</p>
+          <p className="text-xs font-bold text-slate-900 dark:text-white mb-1">{comment.createdByFullName || "User"}</p>
           
           {isEditing ? (
             <div className="flex gap-2 items-center mt-1">
@@ -152,7 +154,8 @@ const CommentItem = ({
                 comment={reply} 
                 postId={postId} 
                 onReplySuccess={onReplySuccess} 
-                isReply={true}               
+                isReply={true} 
+                userPhoto={comment.createdByImageUrl}              
               />
             ))}
           </div>
@@ -164,6 +167,8 @@ const CommentItem = ({
 
 
 const AnnouncementCard = ({ post }: Props) => {
+  console.log("post index",post)
+  
   const currentUserId = getCurrentUserId();
   const isOwner = !!currentUserId && post.createdById === currentUserId;
 
@@ -259,6 +264,9 @@ const AnnouncementCard = ({ post }: Props) => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+
+  
+
   return (
     <>
       <div className="bg-white dark:bg-[#1c1c1f] rounded-xl p-6 shadow-sm mb-6 border border-slate-200 dark:border-[#2a2a2e] relative">
@@ -266,13 +274,13 @@ const AnnouncementCard = ({ post }: Props) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <img
-              src={post.authorAvatar ?? Course}
+              src={post.createdByImageUrl}
               alt="Avatar"
               className="w-12 h-12 rounded-full border-2 border-blue-500 p-0.5"
             />
             <div>
               <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                {post.authorName ?? "Unknown"}
+                {post.createdByFullName?? "Unknown"}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-xs">
                 {createdAt ? new Date(createdAt).toLocaleString() : ""}
@@ -411,6 +419,9 @@ const AnnouncementCard = ({ post }: Props) => {
                       comment={comment} 
                       postId={postId} 
                       onReplySuccess={() => {}} 
+                      userPhoto={comment.createdByImageUrl}              
+
+                      
                     />
                 ))
               ) : (

@@ -65,7 +65,7 @@ export interface CourseContent {
 }
 const getCourseById = async (courseId:string): Promise<CourseContent> => {
 
-    const response = await axiosInstance.get(`api/Courses/${courseId}`, {
+    const response = await axiosInstance.get(`api/Courses/${courseId}/content`, {
     });
     
     return response.data;

@@ -5,7 +5,6 @@ import {
     LayoutDashboard,
 } from 'lucide-react';
 
-import Course from '../../../assets/course.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
 
@@ -47,13 +46,13 @@ const SideBar = () => {
                     <div className='flex mb-2'>
                         <div className="relative mb-3">
                             <img
-                                src={Course}
+                                src={user?.imageUrl}
                                 alt="Profile"
                                 className="w-20 h-20 mr-2 rounded-full border-2 border-[#0061EF] object-cover shadow-sm"
                             />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">{user?.firstName} {user?.lastName}</h2>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{user?.firstName} {user?.lastName}</h2>
                             <p className="text-slate-500 text-sm mb-3">{user?.userName}</p>
                             <span className="bg-[#FFB52B] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
                                 # 21558
