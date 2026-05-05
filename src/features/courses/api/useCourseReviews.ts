@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../../shared/api/axiosInstance';
 
-// هوك لجلب التقييمات
 export const useGetCourseReviews = (courseId: string) => {
     return useQuery({
         queryKey: ['course-reviews', courseId],
@@ -13,7 +12,6 @@ export const useGetCourseReviews = (courseId: string) => {
     });
 };
 
-// هوك لإضافة أو تحديث تقييم
 export const useAddCourseReview = (courseId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -22,7 +20,6 @@ export const useAddCourseReview = (courseId: string) => {
             return data;
         },
         onSuccess: () => {
-            // تحديث التقييمات وبيانات الكورس فوراً بعد الإضافة
             queryClient.invalidateQueries({ queryKey: ['course-reviews', courseId] });
             queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById', courseId] });
         }

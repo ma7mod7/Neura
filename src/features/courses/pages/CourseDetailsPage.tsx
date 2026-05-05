@@ -20,30 +20,14 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../../../shared/components/Footer';
 import { CommentsSection } from '../../../shared/components/CommentsSection';
-import {  useGetCourseMetaDataById } from '../api/useGetCourseById'; 
+import { useGetCourseMetaDataById } from '../api/useGetCourseById';
 import { useBookMark } from '../api/useBookMark';
 import { useGetInstById } from '../../../shared/api/useGetInsApi';
 import { useGetCourseReviews, useAddCourseReview } from '../api/useCourseReviews';
 import { useGetCoursesContent } from '../api/useGetAllCourses';
 import useEnroll from '../api/useEnrolle';
 
-const supportData = [
-    {
-        id: '1',
-        name: "Youssef Salah",
-        feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
-    },
-    {
-        id: '2',
-        name: "Ziad Nouh ",
-        feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
-    },
-    {
-        id: '3',
-        name: "Emad saleh",
-        feedback: "Education is delivered through interaction, whether with the mentor during the lecture or through a community specific to each level, which the student can ask any questions."
-    }
-];
+
 
 const isUserLoggedIn = (): boolean => {
     try {
@@ -53,17 +37,38 @@ const isUserLoggedIn = (): boolean => {
     }
 };
 
-// ⭐ دالة ذكية لتحويل الثواني إلى دقائق وثواني (MM:SS)
-const formatDuration = (secondsParam: string | number | null | undefined) => {
-    if (secondsParam == null) return null;
-    const totalSeconds = Number(secondsParam);
+const formatDuration = (durationParam: string | number | null | undefined) => {
+    if (!durationParam || durationParam === "00:00:00") return null;
+
+    let totalSeconds = 0;
+
+    // إذا كانت القيمة بالشكل HH:MM:SS أو HH:MM:SS.fff
+    if (typeof durationParam === 'string' && durationParam.includes(':')) {
+        const parts = durationParam.split(':');
+        if (parts.length === 3) {
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
+            const seconds = Math.floor(parseFloat(parts[2]));
+            totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        }
+    } else {
+        // دعم للأرقام (ثواني) في حالة كان الـ API يرجع ثواني
+        totalSeconds = Number(durationParam);
+    }
+
     if (isNaN(totalSeconds) || totalSeconds <= 0) return null;
-    
-    const minutes = Math.floor(totalSeconds / 60);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = Math.floor(totalSeconds % 60);
-    
-    // إرجاع التنسيق بالشكل MM:SS
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    if (hours > 0) {
+        return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+    if (minutes > 0) {
+        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes} min`;
+    }
+    return `${seconds}s`;
 };
 
 const CourseDetailsPage = () => {
@@ -71,9 +76,9 @@ const CourseDetailsPage = () => {
     const [openSection, setOpenSection] = useState<number | null>(0);
     const { courseId } = useParams();
     const isLoggedIn = isUserLoggedIn();
-    const {mutate}=useEnroll(courseId!)
-    
-    
+    const { mutate } = useEnroll(courseId!)
+
+
     // --- Data Fetching ---
     const { data: CourseContent } = useGetCoursesContent(courseId!);
     const { data: courseMetaData } = useGetCourseMetaDataById(courseId!);
@@ -134,7 +139,7 @@ const CourseDetailsPage = () => {
     const course = {
         lastUpdated: "December 2024",
     };
-      const handleEnroll = (courseId:string) => {
+    const handleEnroll = (courseId: string) => {
 
         mutate(courseId);
     };
@@ -252,7 +257,7 @@ const CourseDetailsPage = () => {
                                                 </span>
                                             </div>
                                             <span className="text-xs text-slate-500 dark:text-[#d0d0E0] hidden sm:block">
-                                                {section.lessonsCount || section.lessons?.length || 0} lessons • {section.totalMinutes || 0} minutes
+                                                {section.lessonsCount || section.lessons?.length || 0} lessons 
                                             </span>
                                         </button>
 
@@ -265,22 +270,26 @@ const CourseDetailsPage = () => {
                                                                 {/* ⭐ تفريق الأيقونات بناءً على النوع */}
                                                                 {item.isLocked ? (
                                                                     <Lock size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                                                ) : item.type === 3 || item.exam ? (
-                                                                    <FileText size={16} className="text-yellow-500"  />
-                                                                ) : item.type === 2 ? (
-                                                                    <FileText size={16} className="text-blue-500"  />
+                                                                ) : item.type === "Quiz" || item.type === 3 || item.exam ? (
+                                                                    <FileText size={16} className="text-yellow-500" />
+                                                                ) : item.type === "Article" || item.type === 2 ? (
+                                                                    <FileText size={16} className="text-blue-500" />
                                                                 ) : (
-                                                                    <PlayCircle size={16} className="text-[#0061EF]"  />
+                                                                    <PlayCircle size={16} className="text-[#0061EF]" />
                                                                 )}
                                                                 <span>{item.title || `Lesson ${item.orderIndex || itemIdx + 1}`}</span>
                                                             </div>
-                                                            
-                                                            {/* ⭐ عرض الوقت فقط إذا كان فيديو (أو غير محدد بأنه Resource/Quiz) ويوجد وقت فعلي */}
-                                                            {(!item.type || item.type === 1) && !item.exam && formatDuration(item.duration) && (
-                                                                <span className="text-slate-400 dark:text-[#d0d0E0] font-medium">
-                                                                    {formatDuration(item.duration)} min
+
+                                                            {/* ⭐ عرض الوقت الخاص بالامتحان أو الفيديو متضمن الوحدة */}
+                                                            {item.exam?.durationInMinutes ? (
+                                                                <span className="text-slate-400 dark:text-[#d0d0E0] font-medium text-sm">
+                                                                    {item.exam.durationInMinutes} min
                                                                 </span>
-                                                            )}
+                                                            ) : (item.type === "Video" || item.type === 1 || !item.type) && formatDuration(item.duration) ? (
+                                                                <span className="text-slate-400 dark:text-[#d0d0E0] font-medium text-sm">
+                                                                    {formatDuration(item.duration)}
+                                                                </span>
+                                                            ) : null}
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -400,7 +409,7 @@ const CourseDetailsPage = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <button onClick={()=>handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
+                                    <button onClick={() => handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
                                         Enroll for {courseMetaData?.price === 0 ? 'Free' : `${courseMetaData?.price} E.L`}
                                     </button>
                                 )}
@@ -433,13 +442,13 @@ const CourseDetailsPage = () => {
 
             <div className='bg-[#191919]'>
                 <div className='max-w-[1450px] mx-auto px-4 md:px-8 py-12 flex flex-col'>
-                    <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent text-xl md:text-4xl lg:text-[48px] font-bold text-center leading-tight py-3">
-                        Student Opinion
-                    </h1>
-                    {formattedReviews.length > 0 ? (
-                        <CommentsSection comments={formattedReviews} />
-                    ) : (
-                        <CommentsSection comments={supportData} />
+                    {formattedReviews.length > 0 && (
+                        <div>
+                            <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent text-xl md:text-4xl lg:text-[48px] font-bold text-center leading-tight py-3">
+                                Student Opinion
+                            </h1>
+                            <CommentsSection comments={formattedReviews} />
+                        </div>
                     )}
                 </div>
             </div>

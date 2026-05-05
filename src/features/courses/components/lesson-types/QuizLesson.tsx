@@ -16,6 +16,17 @@ interface QuizLessonProps {
     lessonTitle: string;
 }
 
+const formatTimeLeft = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
 export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const navigate = useNavigate();
     const [attemptId, setAttemptId] = useState<string | null>(null);
@@ -23,6 +34,10 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
     const [started, setStarted] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
+    
+    // Timer States
+    const [timeLeft, setTimeLeft] = useState<number | null>(null);
+    const [endTime, setEndTime] = useState<number | null>(null);
 
     useEffect(() => {
         setAttemptId(null);
@@ -30,6 +45,8 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         setSelectedAnswers({});
         setStarted(false);
         setIsRedirecting(false);
+        setTimeLeft(null);
+        setEndTime(null);
     }, [lessonId]);
 
     const { data: examInfo, isLoading: infoLoading, error: infoError } = useQuery({
@@ -39,13 +56,18 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         retry: false,
     });
 
+    const clearLocalTimer = (id: string) => {
+        localStorage.removeItem(`exam_${id}_end`);
+    };
+
     // Resume Logic
     useEffect(() => {
         const fetchResumeData = async () => {
             if (examInfo?.hasInProgressAttempt && examInfo.inProgressAttemptId) {
                 try {
                     const resumeData = await resumeAttempt(String(examInfo.inProgressAttemptId));
-                    setAttemptId(String(examInfo.inProgressAttemptId));
+                    const currentAttemptId = String(examInfo.inProgressAttemptId);
+                    setAttemptId(currentAttemptId);
                     setQuestions(resumeData.questions ?? []);
 
                     const previousAnswers: Record<string, string> = {};
@@ -57,6 +79,30 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                         });
                     }
                     setSelectedAnswers(previousAnswers);
+                    
+                    // --- Timer Resume Logic ---
+                    if (examInfo.durationInMinutes) {
+                        const savedEndTime = localStorage.getItem(`exam_${currentAttemptId}_end`);
+                        
+                        if (savedEndTime) {
+                            setEndTime(parseInt(savedEndTime, 10));
+                        } else {
+                            // إذا لم يكن محفوظاً في الـ LocalStorage (مثلا فتح من جهاز آخر)
+                            // نتحقق إذا كان API يرجع وقت البدء لنبني عليه
+                            if (resumeData.startTime || resumeData.createdAt) {
+                                const startMs = new Date(resumeData.startTime || resumeData.createdAt).getTime();
+                                const calculatedEnd = startMs + (examInfo.durationInMinutes * 60 * 1000);
+                                localStorage.setItem(`exam_${currentAttemptId}_end`, calculatedEnd.toString());
+                                setEndTime(calculatedEnd);
+                            } else {
+                                // حل بديل أخير: بدء العداد من الآن
+                                const fallbackEnd = Date.now() + (examInfo.durationInMinutes * 60 * 1000);
+                                localStorage.setItem(`exam_${currentAttemptId}_end`, fallbackEnd.toString());
+                                setEndTime(fallbackEnd);
+                            }
+                        }
+                    }
+                    
                     setStarted(true);
                 } catch (error) {
                     console.error("Failed to resume attempt", error);
@@ -69,8 +115,17 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const { mutate: startExam, isPending: isStarting } = useMutation({
         mutationFn: () => startExamAttempt(lessonId),
         onSuccess: (data) => {
-            setAttemptId(String(data.attemptId ?? data.id));
+            const newAttemptId = String(data.attemptId ?? data.id);
+            setAttemptId(newAttemptId);
             setQuestions(data.questions ?? []);
+            
+            // --- Timer Start Logic ---
+            if (examInfo?.durationInMinutes) {
+                const end = Date.now() + (examInfo.durationInMinutes * 60 * 1000);
+                localStorage.setItem(`exam_${newAttemptId}_end`, end.toString());
+                setEndTime(end);
+            }
+            
             setStarted(true);
         },
         onError: (error: any) => {
@@ -87,17 +142,18 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         }
     });
 
-    const { mutate: handleSubmit, isPending: isSubmitting } = useMutation({
+    const { mutate: submitExamMutation, isPending: isSubmitting } = useMutation({
         mutationFn: () => submitAttempt(attemptId!),
         onMutate: () => setIsRedirecting(true),
         onSuccess: () => {
+            if (attemptId) clearLocalTimer(attemptId);
             toast.success("Exam submitted successfully!");
             navigate(`/exam/${lessonId}/results/${attemptId}`);
         },
         onError: (error: any) => {
             const errorData = error.response?.data;
-            // Handle the 400 error cleverly: If it's already submitted, just redirect!
             if (error.response?.status === 400 && JSON.stringify(errorData).toLowerCase().includes('submitted')) {
+                if (attemptId) clearLocalTimer(attemptId);
                 navigate(`/exam/${lessonId}/results/${attemptId}`);
             } else {
                 setIsRedirecting(false);
@@ -106,13 +162,35 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         }
     });
 
+    // --- Absolute Timer Tick Logic ---
+    useEffect(() => {
+        if (!started || !endTime || isSubmitting || isRedirecting) return;
+
+        const calculateAndCheckTime = () => {
+            const remainingSeconds = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+            setTimeLeft(remainingSeconds);
+
+            if (remainingSeconds <= 0) {
+                toast.error("Time is up! Submitting exam automatically.");
+                submitExamMutation();
+            }
+        };
+
+        // حساب الوقت المتبقي فوراً عند التحميل
+        calculateAndCheckTime(); 
+        
+        // ثم كل ثانية
+        const timerId = setInterval(calculateAndCheckTime, 1000);
+
+        return () => clearInterval(timerId);
+    }, [started, endTime, isSubmitting, isRedirecting, submitExamMutation]);
+
+
     const handleSelectOption = async (questionId: string, optionId: string) => {
         setSelectedAnswers(prev => ({ ...prev, [questionId]: optionId }));
         if (attemptId) {
             try { 
-                // Fire and forget, no need to block UI
                 await saveAnswer(attemptId, questionId, optionId); 
-    
             }
             catch (error) { toast.error("Failed to save answer. Connection issue."); }
         }
@@ -189,11 +267,20 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     return (
         <div className="w-full bg-white dark:bg-[#1A1A1A] px-4 py-8">
             <div className="max-w-3xl mx-auto mb-8 bg-slate-50 dark:bg-[#0e0e10] border border-slate-200 dark:border-[#2a2a2e] rounded-2xl p-5 sticky top-4 z-10 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                     <h3 className="font-bold text-slate-800 dark:text-[#E0E0E0]">{examInfo?.title || lessonTitle}</h3>
-                    <span className="text-sm font-bold text-[#0061EF] bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-full">
-                        {answeredCount} / {totalQuestions} Answered
-                    </span>
+                    
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                        {timeLeft !== null && (
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${timeLeft < 60 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse' : 'bg-slate-200 text-slate-700 dark:bg-[#3a3a3e] dark:text-[#E0E0E0]'}`}>
+                                <Clock size={16} />
+                                <span>{formatTimeLeft(timeLeft)}</span>
+                            </div>
+                        )}
+                        <span className="text-sm font-bold text-[#0061EF] bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full">
+                            {answeredCount} / {totalQuestions} Answered
+                        </span>
+                    </div>
                 </div>
                 <div className="w-full h-2 bg-slate-200 dark:bg-[#2a2a2e] rounded-full overflow-hidden">
                     <div className="h-full bg-[#0061EF] rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercentage}%` }} />
@@ -245,7 +332,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
 
             <div className="max-w-3xl mx-auto mt-10 pt-6 border-t border-slate-200 dark:border-[#2a2a2e] flex flex-col items-center gap-4">
                 <button 
-                    onClick={() => handleSubmit()} 
+                    onClick={() => submitExamMutation()} 
                     disabled={isSubmitting || isRedirecting || answeredCount !== totalQuestions}
                     className={`w-full md:w-auto md:min-w-[240px] px-8 py-4 rounded-xl font-bold text-white transition-all ${isSubmitting || isRedirecting || answeredCount !== totalQuestions ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed' : 'bg-[#0061EF] hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-500/25'}`}
                 >

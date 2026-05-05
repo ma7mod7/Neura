@@ -30,7 +30,7 @@ const MenuItem = ({ icon: Icon, label, isActive = false, link }: { icon: any, la
 const SideBar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user } = useAuth()
+    const { user,logout } = useAuth()
 
     // دالة مساعدة عشان تفحص إذا كان المسار الحالي هو نفس مسار الزرار
     const checkIsActive = (path: string) => {
@@ -78,7 +78,7 @@ const SideBar = () => {
 
                 {/* Sign Out */}
                 <button className="mt-8 w-full bg-[#FEE2E2] dark:bg-red-500/10 hover:bg-[#fecaca] dark:hover:bg-red-500/20 text-[#EF4444] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm">
-                    <LogOut size={18} />
+                    <LogOut onClick={()=>logout()} size={18} />
                     Sign Out
                 </button>
             </div>

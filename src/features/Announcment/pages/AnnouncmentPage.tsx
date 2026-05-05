@@ -1,7 +1,7 @@
 import {
    Plus, X, Image as ImageIcon, Trash2, Loader2
 } from 'lucide-react';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 import AnnouncementCard from '../components/AnnouncementCard';
 import NavBar from '../../../shared/components/NavBar';
 import { useRef, useState } from 'react';

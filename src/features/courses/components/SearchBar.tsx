@@ -1,4 +1,4 @@
-import { Bell, Home, Search } from 'lucide-react';
+import {  Home, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProfileMenu from '../../../shared/components/ProfileMenu';
@@ -142,9 +142,7 @@ export const SearchBar = () => {
                             <Home size={22} />
                         </button>
                         
-                        <button className="p-2 text-slate-600 dark:text-slate-400 hover:text-[#0061EF] dark:hover:text-[#0061EF] transition-colors hidden sm:block">
-                            <Bell size={22} />
-                        </button>
+                        
                         
                         <button onClick={handleOpenProfileMenu}>
                             <img src={user?.imageUrl} className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5 " alt="Profile" />

@@ -167,7 +167,6 @@ const CommentItem = ({
 
 
 const AnnouncementCard = ({ post }: Props) => {
-  console.log("post index",post)
   
   const currentUserId = getCurrentUserId();
   const isOwner = !!currentUserId && post.createdById === currentUserId;
