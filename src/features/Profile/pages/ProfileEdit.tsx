@@ -1,17 +1,22 @@
-import { User, Lock, Save, Loader2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { User, Lock, Save, Loader2, Camera } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import NavBar from '../../../shared/components/NavBar';
 import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
-import { useUpdateName, useUpdatePassword } from '../hooks/useProfileUpdate';
+import { useUpdateName, useUpdatePassword, useUpdateImage } from '../hooks/useProfileUpdate';
 import { updateNameSchema, updatePasswordSchema, type UpdateNameInputs, type UpdatePasswordInputs } from '../schema/profile.schema';
-
 
 const ProfileEditPage = () => {
     // Mutations
     const { mutate: mutateName, isPending: isPendingName } = useUpdateName();
     const { mutate: mutatePassword, isPending: isPendingPassword } = useUpdatePassword();
+    const { mutate: mutateImage, isPending: isPendingImage } = useUpdateImage();
+
+    // Image Upload State & Ref
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Form for Personal Info (Name)
     const {
@@ -48,10 +53,25 @@ const ProfileEditPage = () => {
             newPassword: data.newPassword,
         }, {
             onSuccess: () => {
-                // تصفير الحقول بعد النجاح
+                
                 resetPasswordForm();
             }
         });
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // 1. عرض الصورة للمستخدم كـ Preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string); 
+            };
+            reader.readAsDataURL(file);
+
+            // 2. إرسال الملف الفعلي (File Object) للسيرفر
+            mutateImage(file as any); // استخدم as any إذا كان الـ Hook لا يزال مقيداً بـ string مؤقتاً
+        }
     };
 
     return (
@@ -70,6 +90,43 @@ const ProfileEditPage = () => {
 
                         {/* --- FORM 1: Personal Info --- */}
                         <div className="bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-sm border border-slate-100 dark:border-[#2a2a2e] p-6 md:p-8">
+                            
+                            {/* --- User Image Upload Section --- */}
+                            <div className="flex flex-col items-center mb-8 pb-8 border-b border-slate-100 dark:border-[#2a2a2e]">
+                                <div className="relative group">
+                                    <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-[#1c1c1f] shadow-lg bg-slate-100 dark:bg-[#2a2a2e] flex items-center justify-center relative">
+                                        {imagePreview ? (
+                                            <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={48} className="text-slate-400" />
+                                        )}
+                                        {/* Hover Overlay */}
+                                        <div 
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        >
+                                            <Camera size={28} className="text-white" />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isPendingImage}
+                                        className="absolute bottom-1 right-1 p-2.5 bg-[#0061EF] text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors disabled:opacity-70"
+                                    >
+                                        {isPendingImage ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                    />
+                                </div>
+                                <p className="mt-3 text-sm font-medium text-slate-500 dark:text-slate-400">Profile Picture</p>
+                            </div>
+
                             <form onSubmit={handleSubmitName(onSubmitName)} className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4 text-[#0061EF]">
                                     <User size={20} />

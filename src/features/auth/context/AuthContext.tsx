@@ -9,7 +9,7 @@ interface User {
     firstName: string;
     lastName: string;
     discordHandle: string;
-    imageUrl:string
+    imageUrl: string;
 }
 
 interface AuthResponse extends User {
@@ -27,6 +27,8 @@ interface AuthContextType {
     isLoading: boolean;
     login: (authData: AuthResponse) => void;
     logout: () => void;
+    // 1. أضفنا الدالة الجديدة هنا
+    updateUser: (updatedData: Partial<User>) => void; 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const expirationTime = new Date().getTime() + (expiresin * 1000); 
 
         setToken(token);
-        setUser(userData);
+        setUser(userData as User);
 
         localStorage.setItem('token', token);
         localStorage.setItem('refreshToken', refreshToken);
@@ -62,6 +64,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('tokenExpiration', expirationTime.toString()); 
 
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    };
+
+    // 2. بناء دالة updateUser لتحديث الـ State والـ localStorage معاً
+    const updateUser = (updatedData: Partial<User>) => {
+        setUser((prevUser) => {
+            if (!prevUser) return null;
+            const newUser = { ...prevUser, ...updatedData };
+            localStorage.setItem('user', JSON.stringify(newUser)); // تحديث الـ Storage
+            return newUser; // تحديث الـ React State
+        });
     };
 
     useEffect(() => {
@@ -77,34 +89,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const currentTime = new Date().getTime();
             const expirationTime = parseInt(storedExpiration, 10);
 
-            // التحقق مما إذا كان التوكن قد انتهى
             if (currentTime > expirationTime) {
-                // محاولة تجديد التوكن إذا كان لدينا Refresh Token
                 if (storedRefreshToken) {
-                    // ملاحظة: تأكد من تعديل المسار الأساسي (Base URL) ليتطابق مع مشروعك
                     axios.post('/Auth/refresh', { refreshToken: storedRefreshToken })
                         .then(response => {
-                            // نجح التجديد! نستخدم دالة login لتحديث البيانات
                             login(response.data);
                         })
                         .catch(error => {
-                            // فشل التجديد (الـ Refresh Token انتهى أيضاً أو غير صالح)
                             console.error("Session expired. Please login again.", error);
                             logout();
                         })
                         .finally(() => {
                             setIsLoading(false);
                         });
-                    return; // نوقف التنفيذ هنا لانتظار استجابة الـ API
+                    return; 
                 } else {
-                    // لا يوجد Refresh Token، اطرد المستخدم
                     logout();
                     setIsLoading(false);
                     return;
                 }
             }
 
-            // إذا كان التوكن لا يزال صالحاً، نقوم بوضعه في الـ State
             try {
                 const parsedUser = JSON.parse(storedUser);
                 setToken(storedToken);
@@ -131,7 +136,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isAuthenticated: !!token,
             isLoading,
             login,
-            logout
+            logout,
+            updateUser 
         }}>
             {!isLoading && children}
         </AuthContext.Provider>

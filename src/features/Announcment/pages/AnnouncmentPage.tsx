@@ -19,7 +19,6 @@ const AnnouncementsPage = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // ── Hooks ──────────────────────────────────────────────────
-  // ⭐ استخدام الـ Infinite Query الجديد
   const { 
     data, 
     isLoading, 

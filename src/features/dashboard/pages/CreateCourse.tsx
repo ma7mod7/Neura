@@ -455,10 +455,35 @@ export default function CreateCourse() {
                 return;
             }
 
+            // =========================
+            // Validation for Resource
+            // =========================
+            const isEmptyHtml = !modalHtmlContent || 
+                                modalHtmlContent === '<p></p>' || 
+                                modalHtmlContent === '<p><br></p>' || 
+                                modalHtmlContent.replace(/<[^>]*>?/gm, '').trim() === '';
+
+            if (modalConfig.action === 'add') {
+                if (isEmptyHtml) {
+                    toast.error("Please enter some content for the resource before saving.", {
+                        icon: '⚠️',
+                        duration: 4000
+                    });
+                    return;
+                }
+            } else {
+                if (isEmptyHtml) {
+                    toast.error("Resource content cannot be empty.", {
+                        icon: '⚠️',
+                        duration: 4000
+                    });
+                    return;
+                }
+            }
+
             setSyncStatus('Saving...');
             try {
                 if (modalConfig.action === 'add') {
-                    if (!modalHtmlContent || modalHtmlContent === '<p></p>') return toast.error("Please enter some content.");
                     const newItemResponse = await createSectionItem(Number(modalConfig.sectionId), {
                         title: modalInputValue, type: 2, position: newPosition
                     });

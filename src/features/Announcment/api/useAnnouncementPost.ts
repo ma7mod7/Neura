@@ -79,17 +79,14 @@ export const resolveImageUrl = (imageUrl?: string): string | null => {
 export const useGetAllPosts = () => {
   return useInfiniteQuery({
     queryKey: announcementKeys.posts(),
-    initialPageParam: 1, // الصفحة الأولى
+    initialPageParam: 1, 
     queryFn: ({ pageParam }) => getAllPostsApi(pageParam),
     getNextPageParam: (lastPage, allPages) => {
-      // إذا كان الباك إند يعيد hasNextPage بشكل صريح
       if (lastPage?.hasNextPage) {
         return lastPage.pageNumber + 1;
       }
       
-      // كبديل: استخراج البيانات والتحقق من العدد
       const items = Array.isArray(lastPage) ? lastPage : (lastPage?.items || lastPage?.data || []);
-      // إذا رجع 10 بوستات (حجم الصفحة)، معناها إن فيه احتمالية لصفحة تانية
       return items.length === 10 ? allPages.length + 1 : undefined;
     },
   });

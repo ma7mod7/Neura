@@ -117,7 +117,6 @@ const ProfilePage = () => {
                             </div>
                         ) : (
                             <>
-                                {/* ⭐ تم تعديل الـ Grid هنا ليكون متناسق مع مقاسات الشاشات المختلفة ⭐ */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
                                     {data?.items.map((course: any) => (
                                         <CourseCard key={course.keyId} course={{

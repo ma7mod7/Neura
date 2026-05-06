@@ -200,8 +200,8 @@ const AddCoursePage = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                     ref={fileRef}
                                     onChange={(e) => {
-                                        fileOnChange(e); // قول لـ Hook Form إن فيه تغيير
-                                        handleImageChange(e); // حدث الـ Preview بتاعنا
+                                        fileOnChange(e); 
+                                        handleImageChange(e); 
                                     }}
                                 />
                             </div>

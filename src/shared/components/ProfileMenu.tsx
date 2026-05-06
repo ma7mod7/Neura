@@ -32,7 +32,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             path: '/admin/course-list',
             isActive: false
         },
-  
+
     ];
 
     useEffect(() => {
@@ -54,7 +54,6 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
     return (
         <div ref={menuRef} className="absolute top-full right-0 mt-4 w-64 bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-xl border border-slate-100 dark:border-[#2a2a2e] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
 
-            {/* --- Header Section (User Info) --- */}
             <div onClick={() => navigate('/profile')} className="p-4 border-b border-slate-100 dark:border-[#2a2a2e] flex items-center gap-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-[#2a2a2e] transition-colors">
                 <img
                     src={user?.imageUrl}
