@@ -6,7 +6,8 @@ import {
     EyeOff,
     CodeXml,
     GithubIcon,
-    Database
+    Database,
+    House
 } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
@@ -45,14 +46,14 @@ const sliderData = [
     }
 ];
 
-const BACKEND_BASE_URL = "https://neura-lms.runasp.net"; 
+const BACKEND_BASE_URL = "https://neura-lms.runasp.net";
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { mutate, isPending } = useLogin();
     const { login } = useAuth();
-    
+
     const {
         register,
         handleSubmit,
@@ -63,7 +64,7 @@ const LoginPage = () => {
         resolver: zodResolver(loginSchema)
     });
 
-    
+
     const handleSocialLogin = (provider: string) => {
         window.location.href = `${BACKEND_BASE_URL}/auth/external-login/${provider}`;
     };
@@ -89,9 +90,25 @@ const LoginPage = () => {
         <div className="h-dvh bg-[#0A0A0A] flex items-center justify-center p-2 lg:p-4 font-inter overflow-hidden">
             <div className="w-full max-w-[1550px] grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
 
-                
                 <div className="relative px-4 lg:px-8 flex flex-col justify-center">
-                    
+
+                    <button className="inline w-fit p-2  hover:bg-gray-100 rounded-full " onClick={()=>navigate('/')}>
+                        <svg width="0" height="0" className="absolute">
+                            <defs>
+                                <linearGradient id="house-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="32%" stopColor="#4B5BE9" />
+                                    <stop offset="69%" stopColor="#3B8FC0" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+
+                        <House
+                            size={40} 
+                            stroke="url(#house-gradient)"
+                            className="hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        />
+                    </button>
+
                     <svg width="0" height="0" className="absolute">
                         <linearGradient id="icon-gradient" x1="10%" y1="0%" x2="10%" y2="100%">
                             <stop offset="0%" stopColor="#4262E4" />
@@ -111,7 +128,7 @@ const LoginPage = () => {
                         </h1>
                         <p className="text-slate-400 text-lg text-center">Develop your skills and prepare for the next challenge.</p>
                     </div>
-                    
+
                     {errors.root && (
                         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 mb-4 flex items-center gap-2 max-w-xl mx-auto w-full">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -159,7 +176,7 @@ const LoginPage = () => {
                             {errors.password && <p className="text-red-500 text-sm ml-4">{errors.password.message}</p>}
                         </div>
 
-                        
+
                         <button
                             type="submit"
                             disabled={isSubmitting || isPending}
@@ -180,9 +197,9 @@ const LoginPage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
-                        
-                            <button 
-                                type="button" 
+
+                            <button
+                                type="button"
                                 onClick={() => handleSocialLogin('Google')}
                                 className="flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold lg:py-4 py-2 px-4 rounded-full transition-all"
                             >
@@ -190,9 +207,9 @@ const LoginPage = () => {
                                 continue with Google
                             </button>
 
-                        
-                            <button 
-                                type="button" 
+
+                            <button
+                                type="button"
                                 onClick={() => handleSocialLogin('GitHub')}
                                 className="flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold lg:py-4 py-2 px-4 rounded-full transition-all"
                             >
@@ -200,7 +217,7 @@ const LoginPage = () => {
                                 continue with GitHub
                             </button>
                         </div>
-                        
+
                         <div className="absolute -bottom-10 left-0 w-full overflow-hidden leading-[0] pointer-events-none rounded-full">
                             <svg
                                 viewBox="0 0 600 150"

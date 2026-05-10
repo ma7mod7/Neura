@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, CodeXml, GithubIcon, Database } from 'lucide-react';
+import { Eye, EyeOff, CodeXml, GithubIcon, Database, House } from 'lucide-react';
 import { RiBardLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 import signupSchema, { type SignUpFormValues } from '../schema/SignUpSchema';
 import { useSignup } from '../api/useSignUp';
 
 
-const BACKEND_BASE_URL = "https://neura-lms.runasp.net"; 
+const BACKEND_BASE_URL = "https://neura-lms.runasp.net";
 
 const SignupPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +47,25 @@ const SignupPage = () => {
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4 font-inter overflow-hidden relative">
+            <div className='absolute lg:top-10 lg:left-40 '>
 
+            <button className="inline w-fit p-2  hover:bg-gray-100 rounded-full " onClick={() => navigate('/')}>
+                <svg width="0" height="0" className="absolute">
+                    <defs>
+                        <linearGradient id="house-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="32%" stopColor="#4B5BE9" />
+                            <stop offset="69%" stopColor="#3B8FC0" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                <House
+                    size={40}
+                    stroke="url(#house-gradient)"
+                    className="hover:scale-105 transition-transform duration-300 cursor-pointer"
+                />
+            </button>
+            </div>
             <svg width="0" height="0" className="absolute">
                 <linearGradient id="icon-gradient" x1="10%" y1="0%" x2="10%" y2="100%">
                     <stop offset="0%" stopColor="#4262E4" />
@@ -141,7 +159,7 @@ const SignupPage = () => {
                 {/* Social Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     <button
-                    onClick={() => handleSocialLogin('Google')}
+                        onClick={() => handleSocialLogin('Google')}
                         type="button"
                         className="flex-1 flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold py-4 md:rounded-l-full rounded-full transition-all">
                         <img src="https://www.google.com/favicon.ico" className="w-6 h-6" alt="Google" />

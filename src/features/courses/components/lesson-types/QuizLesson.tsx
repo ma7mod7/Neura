@@ -10,6 +10,7 @@ import {
     resumeAttempt
 } from '../../api/examApi';
 import toast from 'react-hot-toast';
+import { useProctoring } from '../../../dashboard/hooks/useProctoring';
 
 interface QuizLessonProps {
     lessonId: string;
@@ -87,15 +88,12 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                         if (savedEndTime) {
                             setEndTime(parseInt(savedEndTime, 10));
                         } else {
-                            // إذا لم يكن محفوظاً في الـ LocalStorage (مثلا فتح من جهاز آخر)
-                            // نتحقق إذا كان API يرجع وقت البدء لنبني عليه
                             if (resumeData.startTime || resumeData.createdAt) {
                                 const startMs = new Date(resumeData.startTime || resumeData.createdAt).getTime();
                                 const calculatedEnd = startMs + (examInfo.durationInMinutes * 60 * 1000);
                                 localStorage.setItem(`exam_${currentAttemptId}_end`, calculatedEnd.toString());
                                 setEndTime(calculatedEnd);
                             } else {
-                                // حل بديل أخير: بدء العداد من الآن
                                 const fallbackEnd = Date.now() + (examInfo.durationInMinutes * 60 * 1000);
                                 localStorage.setItem(`exam_${currentAttemptId}_end`, fallbackEnd.toString());
                                 setEndTime(fallbackEnd);
@@ -160,6 +158,14 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                 toast.error("Failed to submit quiz. Please try again.");
             }
         }
+    });
+
+    // ⭐ تم نقل useProctoring هنا لكي يرى isSubmitting بشكل سليم
+    useProctoring({
+        isActive: started && !isSubmitting, 
+        attemptId: attemptId,
+        wsUrl: 'wss://your-ai-domain.com/ws/proctor', 
+        intervalMs: 3000 
     });
 
     // --- Absolute Timer Tick Logic ---
