@@ -15,7 +15,7 @@ export default function CourseListDashboard() {
 
     const { data, isLoading, isError, isFetching } = useQuery({
         queryKey: ['courseListDashboard', currentPage],
-        queryFn: () => getCourseListDashboard({ PageNumber: currentPage, PageSize: 5 }),
+        queryFn: () => getCourseListDashboard({ PageNumber: currentPage, PageSize: 9 }),
         placeholderData: keepPreviousData,
     });
 

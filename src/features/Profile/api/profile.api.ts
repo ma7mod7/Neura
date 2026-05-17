@@ -12,6 +12,8 @@ export const fetchProfileCourses = async (
     let courseStatus: number | undefined = undefined;
     let isBookmarked: boolean | undefined = undefined;
 
+    let endpoint = '/api/courses/enrolled';
+
     switch (tab) {
         case 'In Progress': 
             courseStatus = 2; 
@@ -21,13 +23,14 @@ export const fetchProfileCourses = async (
             break;
         case 'Bookmarked': 
             isBookmarked = true; 
+            endpoint = '/api/Courses';
             break;
         case 'My Courses':
         default: 
             break; 
     }
 
-    const response = await axiosInstance.get<PaginatedCourseResponse>('/api/courses/enrolled', {
+    const response = await axiosInstance.get<PaginatedCourseResponse>(endpoint, {
         params: {
             PageNumber: pageNumber,
             PageSize: 6,

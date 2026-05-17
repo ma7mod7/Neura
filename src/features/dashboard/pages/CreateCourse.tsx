@@ -348,7 +348,10 @@ export default function CreateCourse() {
     };
 
     const handleModalSubmit = async () => {
-        if (!modalInputValue.trim()) return;
+        if (!modalInputValue.trim()) {
+            toast.error("Please enter a title.", { icon: '⚠️', duration: 3000 });
+            return;
+        }
 
         if (modalConfig.type === 'section') {
             if (modalConfig.action === 'add') {
@@ -620,11 +623,6 @@ export default function CreateCourse() {
                     <h1 className="text-2xl font-bold dark:text-[#E0E0E0]">Create New Course</h1>
 
                     <div className="flex items-center gap-4">
-                        <div className="text-sm font-medium">
-                            {syncStatus === 'Saving...' && <span className="text-yellow-600 animate-pulse">Saving changes...</span>}
-                            {syncStatus === 'Saved' && <span className="text-green-600 flex items-center gap-1"><Check size={16} /> Saved</span>}
-                            {syncStatus === 'Error' && <span className="text-red-500 flex items-center gap-1"><X size={16} /> Error</span>}
-                        </div>
                         <button type="button" onClick={handleClearDraft} className="text-sm text-red-500 border border-red-500 px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition">
                             Clear Draft
                         </button>
@@ -804,7 +802,7 @@ export default function CreateCourse() {
                                 </div>
                             )}
                             <button onClick={handleModalSubmit} disabled={isUploading || syncStatus === 'Saving...'} className={`w-full text-white rounded py-3 font-medium capitalize transition-colors ${isUploading || syncStatus === 'Saving...' ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                                {isUploading ? 'Uploading...' : (modalConfig.action === 'add' ? 'Add' : 'Save Changes')}
+                                {isUploading ? 'Uploading...' : (syncStatus === 'Saving...' ? 'Saving...' : (modalConfig.action === 'add' ? 'Add' : 'Save Changes'))}
                             </button>
                         </div>
                     </div>
@@ -831,6 +829,14 @@ export default function CreateCourse() {
                     </div>
                 </div>
             )}
+
+            {/* Sync Status Fixed Badge */}
+            <div className="fixed bottom-16 right-6 z-[100] bg-white dark:bg-[#1A1A1A] shadow-lg rounded-full px-4 py-2 border border-gray-200 dark:border-[#2a2a2e] flex items-center gap-2 transition-all duration-300">
+                {syncStatus === 'Saving...' && <><div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" /><span className="text-sm font-medium text-gray-700 dark:text-[#E0E0E0]">Saving changes...</span></>}
+                {syncStatus === 'Saved' && <><Check size={16} className="text-green-500" /><span className="text-sm font-medium text-gray-700 dark:text-[#E0E0E0]">All changes saved</span></>}
+                {syncStatus === 'Error' && <><X size={16} className="text-red-500" /><span className="text-sm font-medium text-gray-700 dark:text-[#E0E0E0]">Error saving changes</span></>}
+                {syncStatus === 'Loading' && <><div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" /><span className="text-sm font-medium text-gray-700 dark:text-[#E0E0E0]">Loading...</span></>}
+            </div>
         </div>
     );
 }

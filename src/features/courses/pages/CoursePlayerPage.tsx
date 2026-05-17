@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
-import Footer from '../../../shared/components/Footer';
+import Footer from '../../../shared/components/footerauth';
 // ====== Components ======
 import CourseContentSidebar from '../components/CourseContentSidebar';
 import PlayerHeader from '../components/PlayerHeader';
@@ -42,7 +42,7 @@ export default function CoursePlayerPage() {
     const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
     const [activeLessonTitle, setActiveLessonTitle] = useState('');
     const [activeLessonType, setActiveLessonType] = useState<'video' | 'article' | 'quiz'>('video');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
     // ================= Data Fetching =================
@@ -103,6 +103,9 @@ export default function CoursePlayerPage() {
         setActiveLessonId(String(lesson.id));
         setActiveLessonTitle(lesson.title);
         setActiveLessonType(getLessonType(lesson.type));
+        if (window.innerWidth < 768) {
+            setIsSidebarOpen(false);
+        }
     }, []);
 
     // ================= Prev / Next =================
@@ -137,10 +140,10 @@ export default function CoursePlayerPage() {
             />
 
             {/* ====== Main Body ====== */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden relative">
 
                 {/* ====== Left: Lesson Content Area ====== */}
-                <div className={`flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? 'flex-1' : 'w-full'}`}>
+                <div className="flex flex-col min-w-0 transition-all duration-300 flex-1 w-full">
 
                     <div className="flex-1 overflow-y-auto bg-white dark:bg-[#1A1A1A]">
                         {/* VIDEO */}
@@ -205,19 +208,31 @@ export default function CoursePlayerPage() {
 
                         <button
                             onClick={() => setIsSidebarOpen(prev => !prev)}
-                            className="hidden md:flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2e] shrink-0 ml-3"
+                            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2e] shrink-0 ml-3"
                         >
                             {isSidebarOpen
-                                ? <><PanelRightClose size={16} /> Hide Sidebar</>
-                                : <><PanelRightOpen size={16} /> Show Sidebar</>
+                                ? <><PanelRightClose size={16} /> <span className="hidden sm:inline">Hide Sidebar</span></>
+                                : <><PanelRightOpen size={16} /> <span className="hidden sm:inline">Course Content</span></>
                             }
                         </button>
                     </div>
                 </div>
 
                 {/* ====== Right: Course Content Sidebar ====== */}
+                {/* Mobile overlay */}
                 {isSidebarOpen && (
-                    <div className="hidden md:flex w-[340px] shrink-0 flex-col border-l border-gray-200 dark:border-[#2a2a2e] overflow-hidden">
+                    <div 
+                        className="md:hidden absolute inset-0 bg-black/50 z-40 transition-opacity" 
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                )}
+                
+                <div className={`
+                    absolute md:relative right-0 top-0 bottom-0 z-50
+                    w-[85vw] sm:w-[340px] shrink-0 flex-col border-l border-gray-200 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden
+                    transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none
+                    ${isSidebarOpen ? 'translate-x-0 flex' : 'translate-x-full md:hidden'}
+                `}>
                         {contentLoading ? (
                             <div className="flex flex-col h-full bg-white dark:bg-[#1A1A1A] p-4 space-y-3">
                                 {[...Array(8)].map((_, i) => (
@@ -236,7 +251,6 @@ export default function CoursePlayerPage() {
                             </div>
                         )}
                     </div>
-                )}
             </div>
 
             <Footer />

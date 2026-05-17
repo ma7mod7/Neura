@@ -4,6 +4,7 @@ import {
     ChevronDown, ChevronUp,
     PlaySquare, 
     X, CheckSquare, Square,
+    HelpCircle, FileText
 } from 'lucide-react';
 
 interface Lesson {
@@ -30,16 +31,16 @@ interface CourseContentSidebarProps {
 }
 
 // ================= Lesson type icon =================
-// function LessonIcon({ type }: { type: string | number | undefined }) {
-//     const t = String(type ?? '').toLowerCase();
-//     if (t === 'quiz' || t === '3') {
-//         return <HelpCircle size={13} className="text-yellow-500 shrink-0" />;
-//     }
-//     if (t === 'article' || t === '2') {
-//         return <FileText size={13} className="text-green-500 shrink-0" />;
-//     }
-//     return <PlaySquare size={13} className="text-blue-500 shrink-0" />;
-// }
+function LessonIcon({ type }: { type: string | number | undefined }) {
+    const t = String(type ?? '').toLowerCase();
+    if (t === 'quiz' || t === '3') {
+        return <HelpCircle size={13} className="text-yellow-500 shrink-0" />;
+    }
+    if (t === 'article' || t === '2') {
+        return <FileText size={13} className="text-green-500 shrink-0" />;
+    }
+    return <PlaySquare size={13} className="text-blue-500 shrink-0" />;
+}
 
 // ================= Duration formatter =================
 // function formatDuration(raw?: string): string {
@@ -160,21 +161,21 @@ export default function CourseContentSidebar({
                                                 </span>
 
                                                 {/* Info */}
-                                                <div className="flex-1 min-w-0">
+                                                <div className="flex  min-w-0">
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        <LessonIcon type={lesson.type} />
+                                                        {lesson.duration && (
+                                                            <span className="text-xs text-gray-400 dark:text-[#d0d0E0]">
+                                                                
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className={`text-sm leading-snug ${isActive
                                                         ? 'font-semibold text-[#a435f0]'
                                                         : 'text-gray-700 dark:text-[#d0d0E0]'}`}
                                                     >
                                                         {lesson.title}
                                                     </p>
-                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                        {/* <LessonIcon type={lesson.type} />
-                                                        {lesson.duration && (
-                                                            <span className="text-xs text-gray-400 dark:text-[#d0d0E0]">
-                                                                
-                                                            </span>
-                                                        )} */}
-                                                    </div>
                                                 </div>
                                             </button>
                                         );
