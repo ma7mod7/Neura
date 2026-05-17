@@ -1,0 +1,32 @@
+{
+  "announcements": {
+    "user": "مستخدم",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "reply": "رد",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "deleteCommentConfirm": "هل أنت متأكد من حذف هذا التعليق؟",
+    "replyTo": "الرد على {{name}}...",
+    "hideReplies": "إخفاء الردود",
+    "viewReply_zero": "عرض الردود (0)",
+    "viewReply_one": "عرض رد واحد",
+    "viewReply_two": "عرض ردين",
+    "viewReply_few": "عرض {{count}} ردود",
+    "viewReply_many": "عرض {{count}} رداً",
+    "viewReply_other": "عرض {{count}} رداً",
+    "unknown": "غير معروف",
+    "deleting": "جاري الحذف...",
+    "editAnnouncement": "تعديل الإعلان",
+    "titleOptional": "العنوان (اختياري)",
+    "writeHere": "اكتب هنا...",
+    "addImage": "إضافة صورة",
+    "replaceImage": "استبدال الصورة",
+    "saving": "جاري الحفظ...",
+    "saveChanges": "حفظ التغييرات",
+    "likes": "{{count}} إعجاب",
+    "comments": "{{count}} تعليق",
+    "writeComment": "اكتب تعليقاً...",
+    "noComments": "لا توجد تعليقات بعد. كن أول من يعلق!"
+  }
+}

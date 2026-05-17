@@ -1,0 +1,28 @@
+{
+  "announcements": {
+    "user": "User",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reply": "Reply",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteCommentConfirm": "Delete this comment?",
+    "replyTo": "Reply to {{name}}...",
+    "hideReplies": "Hide replies",
+    "viewReply_one": "View {{count}} reply",
+    "viewReply_other": "View {{count}} replies",
+    "unknown": "Unknown",
+    "deleting": "Deleting...",
+    "editAnnouncement": "Edit Announcement",
+    "titleOptional": "Title (optional)",
+    "writeHere": "Write here...",
+    "addImage": "Add Image",
+    "replaceImage": "Replace image",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "likes": "{{count}} Likes",
+    "comments": "{{count}} Comments",
+    "writeComment": "Write a comment...",
+    "noComments": "No comments yet. Be the first to comment!"
+  }
+}

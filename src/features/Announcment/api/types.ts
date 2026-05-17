@@ -20,9 +20,9 @@ export interface AnnouncementPost {
   updatedAt?: string;
   updatedOn?: string;
   comments?: AnnouncementComment[];
-  createdByFullName:string,
-  createdByImageUrl:string
-
+  createdByFullName:string;
+  createdByImageUrl:string;
+  isCreatedByCurrentUser?: boolean;
 }
 
 export interface CreatePostDto {
@@ -56,9 +56,9 @@ export interface AnnouncementComment {
   updatedAt?: string;
   parentCommentId?: string | null; 
   replies?: AnnouncementComment[]; 
-  createdByFullName:string
-    createdByImageUrl:string
-
+  createdByFullName:string;
+  createdByImageUrl:string;
+  isCreatedByCurrentUser?: boolean;
 }
 
 export interface CreateCommentDto {

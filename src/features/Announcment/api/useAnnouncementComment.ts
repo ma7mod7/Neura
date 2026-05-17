@@ -22,6 +22,7 @@ const createCommentApi = async (
     formData,
     { headers: { "Content-Type": "multipart/form-data" } }
   );
+
   return data;
 };
 

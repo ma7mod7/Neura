@@ -12,7 +12,10 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import {
   useLikePost,
   useDeletePost,
@@ -29,15 +32,6 @@ interface Props {
   
 }
 
-// Get current user id
-const getCurrentUserId = (): string => {
-  try {
-    const user = JSON.parse(localStorage.getItem("user") ?? "{}");
-    return user?.id ?? "";
-  } catch {
-    return "";
-  }
-};
 
 const CommentItem = ({ 
   comment, 
@@ -53,6 +47,7 @@ const CommentItem = ({
   userPhoto:string
   
 }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
@@ -65,8 +60,7 @@ const CommentItem = ({
   const { mutate: deleteComment } = useDeleteComment(postId);
   const { mutate: addReply, isPending: isSubmittingReply } = useCreateComment(postId);
 
-  //const currentUserId = getCurrentUserId();
-  //const isCommentOwner = !!currentUserId && comment.authorId === currentUserId; 
+  // We use comment.isCreatedByCurrentUser to check permissions 
 
   const handleUpdate = () => {
     if (!text.trim()) return;
@@ -97,7 +91,7 @@ const CommentItem = ({
       <div className="flex-1">
         {/* تغيير شكل خلفية الرد ليكون أرق وأبسط */}
         <div className={`rounded-2xl ${isReply ? 'bg-transparent' : 'bg-slate-100 p-3 dark:bg-[#2a2a2e]'}`}>
-          <p className="text-xs font-bold text-slate-900 dark:text-white mb-1">{comment.createdByFullName || "User"}</p>
+          <p className="text-xs font-bold text-slate-900 dark:text-white mb-1">{comment.createdByFullName || t('announcements.user')}</p>
           
           {isEditing ? (
             <div className="flex gap-2 items-center mt-1">
@@ -106,8 +100,8 @@ const CommentItem = ({
                 onChange={e => setText(e.target.value)} 
                 className="flex-1 bg-white dark:bg-[#1c1c1f] text-sm p-1.5 rounded-lg outline-none border border-blue-500 text-slate-800 dark:text-white" 
               />
-              <button onClick={handleUpdate} className="text-blue-600 font-bold text-xs">Save</button>
-              <button onClick={() => setIsEditing(false)} className="text-red-500 text-xs">Cancel</button>
+              <button onClick={handleUpdate} className="text-blue-600 font-bold text-xs">{t('announcements.save')}</button>
+              <button onClick={() => setIsEditing(false)} className="text-red-500 text-xs">{t('announcements.cancel')}</button>
             </div>
           ) : (
             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{comment.content}</p>
@@ -117,16 +111,20 @@ const CommentItem = ({
         {/* أزرار التحكم */}
         <div className="flex gap-4 mt-1 ml-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
           <button onClick={() => setIsReplying(!isReplying)} className="hover:text-blue-500 flex items-center gap-1">
-            <Reply size={12}/> Reply
+            <Reply size={12}/> {t('announcements.reply')}
           </button>
-          <button onClick={() => setIsEditing(!isEditing)} className="hover:text-green-500 flex items-center gap-1">
-            <Edit2 size={12}/> Edit
-          </button>
-          <button onClick={() => {
-            if(window.confirm("Delete this comment?")) deleteComment(cid);
-          }} className="hover:text-red-500 flex items-center gap-1">
-            <Trash2 size={12}/> Delete
-          </button>
+          {comment.isCreatedByCurrentUser && (
+            <>
+              <button onClick={() => setIsEditing(!isEditing)} className="hover:text-green-500 flex items-center gap-1">
+                <Edit2 size={12}/> {t('announcements.edit')}
+              </button>
+              <button onClick={() => {
+                if(window.confirm(t('announcements.deleteCommentConfirm'))) deleteComment(cid);
+              }} className="hover:text-red-500 flex items-center gap-1">
+                <Trash2 size={12}/> {t('announcements.delete')}
+              </button>
+            </>
+          )}
         </div>
 
         {/* إدخال الرد */}
@@ -135,7 +133,7 @@ const CommentItem = ({
             <input 
               value={replyText} 
               onChange={e => setReplyText(e.target.value)} 
-              placeholder={`Reply to ${comment.authorName || "User"}...`}
+              placeholder={t('announcements.replyTo', { name: comment.authorName || t('announcements.user') })}
               className="flex-1 bg-blue-50/50 dark:bg-[#0e0e10] dark:text-white text-xs p-2 rounded-xl outline-none border border-transparent focus:border-blue-500"
             />
             <button 
@@ -158,8 +156,8 @@ const CommentItem = ({
             >
               {showReplies ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               {showReplies
-                ? 'Hide replies'
-                : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+                ? t('announcements.hideReplies')
+                : t('announcements.viewReply', { count: comment.replies.length })
               }
             </button>
 
@@ -187,9 +185,8 @@ const CommentItem = ({
 
 
 const AnnouncementCard = ({ post }: Props) => {
-  
-  const currentUserId = getCurrentUserId();
-  const isOwner = !!currentUserId && post.createdById === currentUserId;
+  const { t } = useTranslation();
+  const isOwner = !!post.isCreatedByCurrentUser;
 
   const [isOpenPostCardSetting, setIsOpenPostCardSetting] = useState(false);
   const [showComments, setShowComments] = useState(false); 
@@ -299,7 +296,7 @@ const AnnouncementCard = ({ post }: Props) => {
             />
             <div>
               <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                {post.createdByFullName?? "Unknown"}
+                {post.createdByFullName?? t('announcements.unknown')}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-xs">
                 {createdAt ? new Date(createdAt).toLocaleString() : ""}
@@ -331,7 +328,7 @@ const AnnouncementCard = ({ post }: Props) => {
                       className="w-full text-left px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#3a3a3e] hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition-colors"
                     >
                       <Pencil size={14} />
-                      <span>Edit</span>
+                      <span>{t('announcements.edit')}</span>
                     </button>
                     <div className="h-px bg-slate-100 dark:bg-[#3a3a3e] mx-2 my-0.5" />
                     <button
@@ -340,7 +337,7 @@ const AnnouncementCard = ({ post }: Props) => {
                       className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 transition-colors disabled:opacity-50"
                     >
                       <Trash2 size={14} />
-                      <span>{isDeleting ? "Deleting..." : "Delete"}</span>
+                      <span>{isDeleting ? t('announcements.deleting') : t('announcements.delete')}</span>
                     </button>
                   </div>
                 </div>
@@ -375,9 +372,9 @@ const AnnouncementCard = ({ post }: Props) => {
         {/* --- Stats --- */}
         <div className="pt-4 border-t border-slate-100 dark:border-[#2a2a2e]" />
         <div className="flex items-center justify-between gap-4 text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">
-          <span>{likesCount} Likes</span>
+          <span>{t('announcements.likes', { count: likesCount })}</span>
           <button onClick={() => setShowComments(!showComments)} className="hover:text-blue-500 transition-colors">
-            {post.commentsCount ?? post.comments?.length ?? 0} Comments
+            {t('announcements.comments', { count: post.commentsCount ?? post.comments?.length ?? 0 })}
           </button>
         </div>
 
@@ -416,7 +413,7 @@ const AnnouncementCard = ({ post }: Props) => {
                     handleAddComment();
                   }
                 }}
-                placeholder="Write a comment..."
+                placeholder={t('announcements.writeComment')}
                 className="flex-1 bg-slate-50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 rounded-xl px-4 py-2 text-sm outline-none border border-slate-200 dark:border-[#2a2a2e] focus:ring-2 ring-blue-500"
               />
               <button
@@ -445,7 +442,7 @@ const AnnouncementCard = ({ post }: Props) => {
                 ))
               ) : (
                 <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-2">
-                  No comments yet. Be the first to comment!
+                  {t('announcements.noComments')}
                 </p>
               )}
             </div>
@@ -464,7 +461,7 @@ const AnnouncementCard = ({ post }: Props) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center bg-[#AFAFAF] dark:bg-[#2a2a2e] p-3 border-b border-slate-100 dark:border-[#3a3a3e]">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Edit Announcement</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('announcements.editAnnouncement')}</h2>
               <button
                 onClick={() => setIsEditing(false)}
                 className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-[#3a3a3e] text-slate-500 dark:text-slate-300 transition-colors bg-[#E4E4E4] dark:bg-[#3a3a3e]"
@@ -478,13 +475,13 @@ const AnnouncementCard = ({ post }: Props) => {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="w-full bg-blue-50/50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 rounded-xl p-4 text-slate-700 outline-none text-sm border border-transparent focus:ring-2 ring-blue-500"
-                placeholder="Title (optional)"
+                placeholder={t('announcements.titleOptional')}
               />
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 className="w-full h-32 bg-blue-50/50 dark:bg-[#0e0e10] dark:text-white dark:placeholder:text-slate-500 rounded-xl p-4 text-slate-700 outline-none resize-none text-base"
-                placeholder="Write here..."
+                placeholder={t('announcements.writeHere')}
               />
       
               {editImagePreview ? (
@@ -503,7 +500,7 @@ const AnnouncementCard = ({ post }: Props) => {
                   className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors border border-dashed border-slate-300 dark:border-[#3a3a3e] rounded-xl p-3 w-fit"
                 >
                   <ImageIcon size={18} />
-                  <span>Add Image</span>
+                  <span>{t('announcements.addImage')}</span>
                 </button>
               )}
       
@@ -521,7 +518,7 @@ const AnnouncementCard = ({ post }: Props) => {
                   className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors w-fit"
                 >
                   <ImageIcon size={16} />
-                  <span>Replace image</span>
+                  <span>{t('announcements.replaceImage')}</span>
                 </button>
               )}
             </div>
@@ -532,7 +529,7 @@ const AnnouncementCard = ({ post }: Props) => {
                 disabled={isUpdating || !editContent.trim()}
                 className="w-full bg-[#0061EF] text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 disabled:opacity-50"
               >
-                {isUpdating ? "Saving..." : "Save Changes"}
+                {isUpdating ? t('announcements.saving') : t('announcements.saveChanges')}
               </button>
             </div>
           </div>

@@ -12,7 +12,6 @@ const BASE_URL = "http://neura.runasp.net/";
 
 // ── API calls ────────────────────────────────────────────────
 
-// ⭐ تم تعديل الدالة لتقبل pageParam وتمرره كـ Query Parameter للباك إند
 const getAllPostsApi = async (pageParam: number) => {
   const { data } = await axiosInstance.get("/api/announcements/posts", { 
     params: { 
@@ -20,7 +19,7 @@ const getAllPostsApi = async (pageParam: number) => {
       PageSize: 10
     } 
   });
-  console.log(data)
+  console.log("announcements posts data",data)
   return data.items;
 };
 

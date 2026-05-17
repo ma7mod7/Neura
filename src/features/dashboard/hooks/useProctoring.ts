@@ -56,7 +56,8 @@ export const useProctoring = ({ isActive, attemptId, wsUrl, intervalMs = 3000 }:
             canvasRef.current = null;
         };
 
-        const connectWebSocket = ( canvas: HTMLCanvasElement) => {
+        const connectWebSocket = (video: HTMLVideoElement, canvas: HTMLCanvasElement) => {
+            void video
             if (cancelled) return;
 
             const ws = new WebSocket(`${wsUrl}?attemptId=${attemptId}`);

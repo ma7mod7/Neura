@@ -24,9 +24,16 @@ import CoursePlayerPage from './features/courses/pages/CoursePlayerPage';
 import ExamResultsPage from './features/courses/pages/ExamResultsPage';
 import  AuthCallback from './features/auth/components/AuthCallback';
 import ScrollToTop from './shared/components/ScrollToTop';
-
-
+import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 function App() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <ThemeProvider>
         <ScrollToTop />

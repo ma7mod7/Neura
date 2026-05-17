@@ -5,9 +5,17 @@ import { useState } from 'react';
 import Logo from '../../assets/logo.png'
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
+import { Globe } from 'lucide-react';
 
 const NavBar = () => {
 
+
+    const { i18n } = useTranslation();
+    const toggleLanguage = () => {
+        const newLang = i18n.language === 'en' ? 'ar' : 'en';
+        i18n.changeLanguage(newLang);
+    };
 
     const [isOpenProfileMenu, setIsOpenProfileMenu] = useState<boolean>(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -60,6 +68,14 @@ const NavBar = () => {
                         <Bell size={22} />
                         <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0e0e10]"></span>
                     </button> */}
+
+                    <button 
+                        onClick={toggleLanguage}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-[#1c1c1f] text-slate-600 dark:text-slate-300 transition-colors font-medium text-sm"
+                    >
+                        <Globe size={18} />
+                        <span className="hidden sm:inline">{i18n.language === 'en' ? 'العربية' : 'English'}</span>
+                    </button>
 
                     {/* Profile Picture */}
                     <div className="relative">
