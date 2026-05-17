@@ -42,9 +42,32 @@ export const getAttemptResults = async (attemptId: string) => {
     return res.data;
 };
 
-export const reportViolation = async (attemptId: string, type: string) => {
-    const res = await axiosInstance.post(`/api/ExamAttempts/${attemptId}/violations`, { type });
-    return res.data;
+/**
+ * Report a violation to the backend for instructor review.
+ * Wrapped in try/catch so it never breaks the exam flow.
+ * 
+ * Backend expects: POST /api/ExamAttempts/{attemptId}/violations
+ * Body: { type: string, timestamp: string, details?: string }
+ * 
+ * Violation types:
+ *   - "TabSwitch"         → Student switched tabs (counts toward auto-submit)
+ *   - "MultiScreen"       → Multiple screens detected (counts toward auto-submit)
+ *   - "CopyPasteAttempt"  → Student tried copy/paste/right-click (logged only)
+ *   - "AIViolation"       → AI proctoring detected anomaly (logged)
+ */
+export const reportViolation = async (attemptId: string, type: string, details?: string) => {
+    try {
+        const res = await axiosInstance.post(`/api/ExamAttempts/${attemptId}/violations`, {
+            type,
+            timestamp: new Date().toISOString(),
+            details: details || null,
+        });
+        return res.data;
+    } catch (error) {
+        // Don't throw — violation reporting must never break the exam
+        console.warn('[Violation Report] Failed to send to backend:', { attemptId, type, details }, error);
+        return null;
+    }
 };
 
 // ================= Exam Analytics =================

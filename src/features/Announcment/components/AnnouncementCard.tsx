@@ -9,6 +9,8 @@ import {
   ImageIcon,
   Reply,
   Edit2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -53,6 +55,7 @@ const CommentItem = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
   const [text, setText] = useState(comment.content);
   const [replyText, setReplyText] = useState("");
 
@@ -147,17 +150,34 @@ const CommentItem = ({
 
         {/* الردود المتداخلة */}
         {comment.replies && comment.replies.length > 0 && (
-          <div className={`${isReply ? 'mt-2 border-l border-slate-200 dark:border-[#3a3a3e] pl-3' : 'mt-2 ml-2 border-l-2 border-slate-200 dark:border-[#3a3a3e] pl-4'}`}>
-            {comment.replies.map(reply => (
-              <CommentItem 
-                key={reply.id || reply.commentId} 
-                comment={reply} 
-                postId={postId} 
-                onReplySuccess={onReplySuccess} 
-                isReply={true} 
-                userPhoto={comment.createdByImageUrl}              
-              />
-            ))}
+          <div className="mt-2">
+            {/* Toggle button */}
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors ml-1 mb-1"
+            >
+              {showReplies ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {showReplies
+                ? 'Hide replies'
+                : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+              }
+            </button>
+
+            {/* Replies list */}
+            {showReplies && (
+              <div className={`${isReply ? 'border-l border-slate-200 dark:border-[#3a3a3e] pl-3' : 'ml-2 border-l-2 border-slate-200 dark:border-[#3a3a3e] pl-4'} animate-in slide-in-from-top-2 duration-200`}>
+                {comment.replies.map(reply => (
+                  <CommentItem 
+                    key={reply.id || reply.commentId} 
+                    comment={reply} 
+                    postId={postId} 
+                    onReplySuccess={onReplySuccess} 
+                    isReply={true} 
+                    userPhoto={comment.createdByImageUrl}              
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

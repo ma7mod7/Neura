@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
 import { useState } from 'react';
 import Logo from '../../assets/logo.png'
-import ThemeToggle from "./ThemeToggle";
+
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 const NavBar = () => {
@@ -55,7 +55,7 @@ const NavBar = () => {
 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3 sm:gap-4">
-                    <ThemeToggle />
+
                     {/* <button className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-[#1c1c1f] rounded-full transition-colors relative">
                         <Bell size={22} />
                         <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0e0e10]"></span>

@@ -1,11 +1,13 @@
 import {
     BookOpen,
-
     LogOut,
     LayoutDashboard,
+    Moon,
+    Sun,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef } from 'react';
 
 interface ProfileMenuProps {
@@ -16,6 +18,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth()
+    const { isDark, toggleTheme } = useTheme();
 
 
 
@@ -79,6 +82,32 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                         {item.label}
                     </button>
                 ))}
+
+                {/* Dark / Light Mode Toggle */}
+                <div className="mx-1 my-1.5 border-t border-slate-100 dark:border-[#2a2a2e]" />
+                <div className="flex items-center justify-between px-3 py-2">
+                    <span className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
+                        {isDark ? <Moon size={18} /> : <Sun size={18} />}
+                        Theme
+                    </span>
+                    <button
+                        onClick={toggleTheme}
+                        aria-label="Toggle dark mode"
+                        className="relative flex items-center w-16 h-8 rounded-full bg-slate-200 dark:bg-[#2a2a2e] p-1 transition-colors duration-300 cursor-pointer"
+                    >
+                        <span
+                            className={`absolute flex items-center justify-center w-6 h-6 rounded-full bg-white dark:bg-[#0061EF] shadow-md transition-all duration-300 ${isDark ? 'translate-x-8' : 'translate-x-0'}`}
+                        >
+                            {isDark
+                                ? <Moon size={14} className="text-white" />
+                                : <Sun size={14} className="text-amber-500" />
+                            }
+                        </span>
+                        <Sun size={12} className={`ml-0.5 transition-opacity duration-300 ${isDark ? 'opacity-40 text-slate-500' : 'opacity-0'}`} />
+                        <Moon size={12} className={`ml-auto mr-0.5 transition-opacity duration-300 ${isDark ? 'opacity-0' : 'opacity-40 text-slate-400'}`} />
+                    </button>
+                </div>
+                <div className="mx-1 my-1.5 border-t border-slate-100 dark:border-[#2a2a2e]" />
 
                 {/* Sign Out (Separate Item) */}
                 <button

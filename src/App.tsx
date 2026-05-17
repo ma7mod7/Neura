@@ -41,8 +41,8 @@ function App() {
         <Route path="auth/reset-password" element={<ResetPasswordPage />} />
 
         {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
           <Route path="/announcements" element={<AnnouncmentPage />} />
+        <Route element={<ProtectedRoute />}>
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailsPage />} />
           <Route path="/courses/:courseId/learn" element={<CoursePlayerPage />} />

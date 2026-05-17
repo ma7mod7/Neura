@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, Loader2, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { HelpCircle, Loader2, CheckCircle2, Clock, AlertCircle, Shield, Camera, ClipboardX, Eye, AlertTriangle } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,6 +11,8 @@ import {
 } from '../../api/examApi';
 import toast from 'react-hot-toast';
 import { useProctoring } from '../../../dashboard/hooks/useProctoring';
+import { useExamSecurity } from '../../hooks/useExamSecurity';
+import { useAuth } from '../../../auth/hooks/useAuth';
 
 interface QuizLessonProps {
     lessonId: string;
@@ -35,6 +37,9 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
     const [started, setStarted] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [acceptedRules, setAcceptedRules] = useState(false);
+    const {user}=useAuth()
     
     // Timer States
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -46,6 +51,8 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         setSelectedAnswers({});
         setStarted(false);
         setIsRedirecting(false);
+        setShowInstructions(false);
+        setAcceptedRules(false);
         setTimeLeft(null);
         setEndTime(null);
     }, [lessonId]);
@@ -164,8 +171,14 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     useProctoring({
         isActive: started && !isSubmitting, 
         attemptId: attemptId,
-        wsUrl: 'wss://your-ai-domain.com/ws/proctor', 
+        wsUrl: `wss://neura-lms-proctor-vision-api.hf.space/ws/proctor/${lessonId}/${user?.id}`, 
         intervalMs: 3000 
+    });
+
+    // ⭐ Anti-cheating: copy/paste prevention + tab switch detection (warn only, no auto-submit)
+    const { violationCount, examContainerRef } = useExamSecurity({
+        isActive: started && !isSubmitting && !isRedirecting,
+        attemptId: attemptId,
     });
 
     // --- Absolute Timer Tick Logic ---
@@ -220,6 +233,89 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         );
     }
 
+    if (!started && showInstructions) {
+        // ── Instructions Modal ──────────────────────────────────────────
+        const rules = [
+            { icon: <Camera size={20} className="text-blue-500" />, title: 'Camera Required', desc: 'Your camera will be active for AI-based proctoring throughout the exam.' },
+            { icon: <ClipboardX size={20} className="text-red-500" />, title: 'No Copy & Paste', desc: 'Copying, pasting, and right-clicking are disabled during the exam.' },
+            { icon: <Eye size={20} className="text-amber-500" />, title: 'Tab Switching Monitored', desc: 'Switching tabs or windows will be recorded as a violation.' },
+            { icon: <AlertTriangle size={20} className="text-orange-500" />, title: 'Violations Are Tracked', desc: 'All suspicious activity (tab switching, copy attempts) will be logged and reported.' },
+            { icon: <Shield size={20} className="text-green-500" />, title: 'Instructor Review', desc: 'Your instructor will review all logged violations before finalizing your exam results.' },
+        ];
+
+        return (
+            <div className="w-full bg-white dark:bg-[#1A1A1A] flex flex-col items-center justify-center px-6 py-12" style={{ minHeight: '420px' }}>
+                <div className="w-full max-w-lg">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+                            <Shield size={24} className="text-amber-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-[#E0E0E0]">Exam Rules & Guidelines</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Please read carefully before starting</p>
+                        </div>
+                    </div>
+
+                    {/* Duration badge */}
+                    {examInfo?.durationInMinutes && (
+                        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl px-4 py-3 mb-5">
+                            <Clock size={18} className="text-[#0061EF]" />
+                            <span className="text-sm font-semibold text-[#0061EF]">Time Limit: {examInfo.durationInMinutes} minutes</span>
+                        </div>
+                    )}
+
+                    {/* Rules list */}
+                    <div className="space-y-3 mb-6">
+                        {rules.map((rule, i) => (
+                            <div key={i} className="flex items-start gap-3 bg-slate-50 dark:bg-[#0e0e10] border border-slate-100 dark:border-[#2a2a2e] rounded-xl px-4 py-3">
+                                <div className="mt-0.5 shrink-0">{rule.icon}</div>
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-[#E0E0E0]">{rule.title}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{rule.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Acceptance checkbox */}
+                    <label className="flex items-start gap-3 cursor-pointer mb-5 bg-amber-50/50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-xl px-4 py-3">
+                        <input
+                            type="checkbox"
+                            checked={acceptedRules}
+                            onChange={(e) => setAcceptedRules(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 accent-[#0061EF] cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            I have read and understood the exam rules. I agree to be monitored during this exam.
+                        </span>
+                    </label>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => { setShowInstructions(false); setAcceptedRules(false); }}
+                            className="flex-1 px-6 py-3.5 border border-slate-200 dark:border-[#2a2a2e] text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-[#2a2a2e] transition-all"
+                        >
+                            Go Back
+                        </button>
+                        <button
+                            onClick={() => startExam()}
+                            disabled={!acceptedRules || isStarting}
+                            className={`flex-1 px-6 py-3.5 font-bold rounded-xl text-white transition-all ${
+                                !acceptedRules || isStarting
+                                    ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
+                                    : 'bg-[#0061EF] hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-500/25'
+                            }`}
+                        >
+                            {isStarting ? 'Starting...' : 'Start Exam'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!started) {
         const max = examInfo?.maxAttempts ? Number(examInfo.maxAttempts) : null;
         const taken = Number(examInfo?.attemptsTaken || 0);
@@ -258,7 +354,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                         </p>
                     </div>
                 ) : (
-                    <button onClick={() => startExam()} disabled={isStarting} className="px-10 py-3.5 bg-[#0061EF] text-white font-bold rounded-xl hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-60 shadow-lg shadow-blue-500/25">
+                    <button onClick={() => setShowInstructions(true)} disabled={isStarting} className="px-10 py-3.5 bg-[#0061EF] text-white font-bold rounded-xl hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-60 shadow-lg shadow-blue-500/25">
                         {isStarting ? 'Starting...' : (examInfo?.hasInProgressAttempt ? 'Resume Quiz' : 'Start Quiz')}
                     </button>
                 )}
@@ -271,7 +367,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
     return (
-        <div className="w-full bg-white dark:bg-[#1A1A1A] px-4 py-8">
+        <div ref={examContainerRef} className="w-full bg-white dark:bg-[#1A1A1A] px-4 py-8" style={{ userSelect: 'none' }}>
             <div className="max-w-3xl mx-auto mb-8 bg-slate-50 dark:bg-[#0e0e10] border border-slate-200 dark:border-[#2a2a2e] rounded-2xl p-5 sticky top-4 z-10 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                     <h3 className="font-bold text-slate-800 dark:text-[#E0E0E0]">{examInfo?.title || lessonTitle}</h3>
@@ -286,6 +382,12 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                         <span className="text-sm font-bold text-[#0061EF] bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full">
                             {answeredCount} / {totalQuestions} Answered
                         </span>
+                        {violationCount > 0 && (
+                            <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2.5 py-1.5 rounded-full flex items-center gap-1">
+                                <AlertTriangle size={12} />
+                                {violationCount}/3
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div className="w-full h-2 bg-slate-200 dark:bg-[#2a2a2e] rounded-full overflow-hidden">
