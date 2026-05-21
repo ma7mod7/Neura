@@ -12,6 +12,7 @@ import ResetPasswordPage from './features/auth/pages/ResetPasswordPage';
 import CourseDetailsPage from './features/courses/pages/CourseDetailsPage';
 import ProfilePage from './features/Profile/pages/ProfilePage';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
+import AdminRoute from './features/auth/components/AdminRoute';
 import ComingSoonPage from './shared/pages/ComingSoonPage';
 import CreateCourse from './features/dashboard/pages/CreateCourse';
 import CourseListDashboard from './features/dashboard/pages/CourseList';
@@ -58,11 +59,13 @@ function App() {
           <Route path="/search-results" element={<SearchResultsPage />} />
           <Route path="/exam/:examId/results/:attemptId" element={<ExamResultsPage />} />
           { /* Admin Routes */}
-          <Route path="/admin/course-list" element={<CourseListDashboard />} />
-          <Route path={`/admin/create-course/:id?`} element={<CreateCourse />} />
-          <Route path="/admin/students" element={<StudentList />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin/course-list" element={<CourseListDashboard />} />
+            <Route path={`/admin/create-course/:id?`} element={<CreateCourse />} />
+            <Route path="/admin/students" element={<StudentList />} />
+            <Route path="/community/admin" element={<CommunityAdminDashboard />} />
+          </Route>
           <Route path="/community/students" element={<CommunityApp />} />
-          <Route path="/community/admin" element={<CommunityAdminDashboard />} />
           <Route path="/announcements/callback" element={<AuthCallback />} />
 
 

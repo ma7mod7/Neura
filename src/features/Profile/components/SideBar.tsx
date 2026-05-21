@@ -7,6 +7,7 @@ import {
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
+import { hasAdminRole } from '../../../utils/jwt';
 
 // 1. Sidebar Menu Item
 const MenuItem = ({ icon: Icon, label, isActive = false, link }: { icon: any, label: string, isActive?: boolean, link?: string }) => {
@@ -30,7 +31,8 @@ const MenuItem = ({ icon: Icon, label, isActive = false, link }: { icon: any, la
 const SideBar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user,logout } = useAuth()
+    const { user, token, logout } = useAuth()
+    const canSeeAdminDashboard = hasAdminRole(token);
 
     // دالة مساعدة عشان تفحص إذا كان المسار الحالي هو نفس مسار الزرار
     const checkIsActive = (path: string) => {
@@ -73,7 +75,9 @@ const SideBar = () => {
                 <nav className="space-y-2 flex-1">
                     {/* استخدمنا checkIsActive ومررنا الـ link لكل واحدة عشان ترجع true أو false */}
                     <MenuItem icon={BookOpen} label="My Learning" link='/profile' isActive={checkIsActive('/profile')} />
-                    <MenuItem icon={LayoutDashboard} label="Admin Dashboard" link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
+                    {canSeeAdminDashboard && (
+                        <MenuItem icon={LayoutDashboard} label="Admin Dashboard" link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
+                    )}
                 </nav>
 
                 {/* Sign Out */}

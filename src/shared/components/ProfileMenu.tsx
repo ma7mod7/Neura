@@ -9,18 +9,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef } from 'react';
+import { hasAdminRole } from '../../utils/jwt';
 
 interface ProfileMenuProps {
     setIsOpen: (value: boolean) => void;
 }
 const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
-    const { logout } = useAuth()
+    const { logout, token } = useAuth()
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth()
     const { isDark, toggleTheme } = useTheme();
 
 
+
+    const canSeeAdminDashboard = hasAdminRole(token);
 
     const menuItems = [
         {
@@ -29,12 +32,12 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             path: '/profile',
             isActive: false
         },
-        {
+        ...(canSeeAdminDashboard ? [{
             label: 'Admin Dashboard',
             icon: LayoutDashboard,
             path: '/admin/course-list',
             isActive: false
-        },
+        }] : []),
 
     ];
 
