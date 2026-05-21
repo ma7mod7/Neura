@@ -9,6 +9,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import CourseCard from '../../../shared/components/CourseCard';
 import Footer from '../../../shared/components/footerauth';
+import { useTranslation } from 'react-i18next';
 
 export interface Tag {
     id: number;
@@ -20,6 +21,7 @@ export interface Tag {
 const SearchResultsPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { t } = useTranslation();
 
     // بناخد كلمة البحث من الرابط (URL)
     // لو مفيش كلمة بحث، بنفترض إنها "blockchain" زي الصورة
@@ -96,14 +98,15 @@ const SearchResultsPage = () => {
 
                     {/* Search Bar */}
                     <div className="flex-1 max-w-2xl relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                        <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             // لما يضغط Enter يبحث تاني
                             onKeyDown={(e) => e.key === 'Enter' && navigate(`/search-results?query=${searchQuery}`)}
-                            className="w-full bg-white dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 rounded-xl py-2.5 pl-12 pr-4 outline-none border border-[#0061EF] dark:border-[#0061EF]/40 text-slate-700 text-sm shadow-sm focus:ring-2 focus:ring-[#0061EF] transition-all"
+                            placeholder={t('navigation.searchPlaceholder')}
+                            className="w-full bg-white dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 rounded-xl py-2.5 ps-12 pe-4 outline-none border border-[#0061EF] dark:border-[#0061EF]/40 text-slate-700 text-sm shadow-sm focus:ring-2 focus:ring-[#0061EF] transition-all"
                         />
                     </div>
 
@@ -114,7 +117,7 @@ const SearchResultsPage = () => {
                         </button>
                         <button className="p-2 text-slate-600 dark:text-slate-400 hover:text-[#0061EF] dark:hover:text-[#0061EF] transition-colors relative">
                             <Bell size={22} />
-                            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0e0e10]"></span>
+                            <span className="absolute top-2 end-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0e0e10]"></span>
                         </button>
                         <img src="https://avatar.iran.liara.run/public/30"onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full border-2 border-[#0061EF] cursor-pointer object-cover p-0.5" alt="Profile" />
                     </div>
@@ -128,7 +131,7 @@ const SearchResultsPage = () => {
 
                     {/* Title */}
                     <h1 className="text-2xl text-slate-600 dark:text-slate-400 mb-6">
-                        Result of <span className="font-bold text-black dark:text-white">"{query}"</span>
+                        {t('courses.searchResultTitle', { query })}
                     </h1>
 
                     {/* Filter Tags Row */}
@@ -136,20 +139,20 @@ const SearchResultsPage = () => {
 
                         {/* Active Filter 1: Free */}
                         <button className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#0061EF] text-[#0061EF] bg-white dark:bg-[#1c1c1f] hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 transition-colors text-sm font-medium">
-                            Free
+                            {t('common.free')}
                             <XCircle size={16} />
                         </button>
 
                         {/* Active Filter 2: Beginner */}
                         <button className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#0061EF] text-[#0061EF] bg-white dark:bg-[#1c1c1f] hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 transition-colors text-sm font-medium">
-                            Beginner
+                            {t('courses.beginner')}
                             <XCircle size={16} />
                         </button>
 
                         {/* Filter Trigger Button */}
-                        <button className="flex items-center gap-2 px-6 py-1.5 rounded-full border border-[#0061EF] text-[#0061EF] bg-white dark:bg-[#1c1c1f] hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 transition-colors text-sm font-medium ml-2">
+                        <button className="flex items-center gap-2 px-6 py-1.5 rounded-full border border-[#0061EF] text-[#0061EF] bg-white dark:bg-[#1c1c1f] hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 transition-colors text-sm font-medium ms-2">
                             <Filter size={16} />
-                            Filter
+                            {t('courses.filter')}
                         </button>
                     </div>
                 </div>

@@ -9,6 +9,7 @@ import {
   Maximize,
   Loader2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface VideoPlayerProps {
   videoUrl: string | null;
@@ -29,6 +30,7 @@ export default function VideoPlayer({
   hasPrev,
   hasNext,
 }: VideoPlayerProps) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -105,7 +107,7 @@ export default function VideoPlayer({
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111] z-10">
           <Play size={60} className="text-gray-600 mb-4" />
           <p className="text-gray-500 text-sm">
-            Select a lesson to start watching
+            {t('courses.selectLessonToWatch')}
           </p>
         </div>
       )}
@@ -131,26 +133,26 @@ export default function VideoPlayer({
       <button
         onClick={onPrev}
         disabled={!hasPrev}
-        className={`absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all
+        className={`absolute start-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all
                     ${hasPrev ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg" : "bg-black/30 text-gray-600 cursor-not-allowed"}`}
       >
-        <ChevronLeft size={20} />
+        <ChevronLeft size={20} className="rtl:rotate-180" />
       </button>
 
       {/* ====== Next Button ====== */}
       <button
         onClick={onNext}
         disabled={!hasNext}
-        className={`absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all
+        className={`absolute end-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full flex items-center justify-center transition-all
                     ${hasNext ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg" : "bg-black/30 text-gray-600 cursor-not-allowed"}`}
       >
-        <ChevronRight size={20} />
+        <ChevronRight size={20} className="rtl:rotate-180" />
       </button>
 
       {/* ====== Controls Bar ====== */}
       {videoUrl && (
         <div
-          className={`absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+          className={`absolute bottom-0 inset-x-0 z-20 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
         >
           {/* Progress Bar */}
           <div

@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { useGetCourses } from '../api/useGetAllCourses';
 import { useAuth } from '../../auth/hooks/useAuth';
 import Pagination from '../../dashboard/components/Pagination';
+import { useTranslation } from 'react-i18next';
 
 // --- Types for API consistency ---
 export interface Tag {
@@ -21,6 +22,7 @@ export interface Tag {
 
 const CoursesPage = () => {
     const { user } = useAuth()
+    const { t } = useTranslation();
     const [page, setPage] = useState(1);
     
     // يفضل لو الـ hook بيرجع isLoading نستخدمها لعرض حالة تحميل (Loading State)
@@ -41,14 +43,16 @@ const CoursesPage = () => {
                 {/* --- PART 2: Welcome & Hero Banner --- */}
                 <div className="flex items-center gap-3 mb-8">
                     <img src={user?.imageUrl} className="w-10 h-10 rounded-full border-2 border-[#0061EF]  object-cover p-0.5 " alt="Profile" />
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Welcome back, {user?.firstName} {user?.lastName}</h2>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                        {t('courses.welcomeBack', { name: `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() })}
+                    </h2>
                 </div>
                 <div className="mx-auto max-w-[1450px]">
                     <div className="rounded-[2rem]  bg-[#0061EF] px-6 lg:px-12 py-1 flex flex-col lg:flex-row items-center gap-12 text-white">
-                        <div className="flex-1 text-center lg:text-left">
-                            <h2 className="text-3xl lg:text-[44px] font-bold mb-6">Develop Your Skills</h2>
-                            <p className="text-lg lg:text-[24px]">Enhance your skills by watching the courses in all fields,
-                                sharing your way with others in one community.
+                        <div className="flex-1 text-center lg:text-start">
+                            <h2 className="text-3xl lg:text-[44px] font-bold mb-6">{t('courses.heroTitle')}</h2>
+                            <p className="text-lg lg:text-[24px]">
+                                {t('courses.heroDescription')}
                             </p>
                         </div>
 
@@ -63,7 +67,7 @@ const CoursesPage = () => {
 
                     {/* All Courses / Recommended */}
                     <section>
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8">All Courses</h2>
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8">{t('courses.allCourses')}</h2>
                         
                         {/* يمكنك إضافة حالة تحميل هنا إذا أردت: {isLoading && <p>Loading...</p>} */}
                         

@@ -1,4 +1,5 @@
 import { Loader2, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ArticleLessonProps {
     articleHtml: string | null;
@@ -14,6 +15,7 @@ export default function ArticleLesson({
     isLoading,
     lessonTitle,
 }: ArticleLessonProps) {
+    const { t } = useTranslation();
 
     // ====== Loading ======
     if (isLoading) {
@@ -29,7 +31,7 @@ export default function ArticleLesson({
         return (
             <div className="w-full flex flex-col items-center justify-center bg-white dark:bg-[#1A1A1A]" style={{ minHeight: '420px' }}>
                 <FileText size={48} className="text-gray-300 dark:text-[#2a2a2e] mb-3" />
-                <p className="text-gray-400 dark:text-[#d0d0E0] text-sm">No content available for this lesson.</p>
+                <p className="text-gray-400 dark:text-[#d0d0E0] text-sm">{t('courses.noLessonContent')}</p>
             </div>
         );
     }
@@ -40,7 +42,7 @@ export default function ArticleLesson({
             <div className="px-8 pt-8 pb-4 border-b border-gray-100 dark:border-[#2a2a2e]">
                 <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-2">
                     <FileText size={18} />
-                    <span className="text-sm font-semibold uppercase tracking-wide">Article</span>
+                    <span className="text-sm font-semibold uppercase tracking-wide">{t('courses.article')}</span>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-800 dark:text-[#E0E0E0]">{lessonTitle}</h1>
             </div>

@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { useProctoring } from '../../../dashboard/hooks/useProctoring';
 import { useExamSecurity } from '../../hooks/useExamSecurity';
 import { useAuth } from '../../../auth/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 interface QuizLessonProps {
     lessonId: string;
@@ -32,6 +33,7 @@ const formatTimeLeft = (seconds: number) => {
 
 export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [attemptId, setAttemptId] = useState<string | null>(null);
     const [questions, setQuestions] = useState<any[]>([]);
     const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -142,7 +144,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
             } else if (typeof data === 'string') {
                 toast.error(data);
             } else {
-                toast.error("Maximum attempts reached or quiz unavailable.");
+                toast.error(t('quiz.maxAttemptsToast'));
             }
         }
     });
@@ -152,7 +154,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         onMutate: () => setIsRedirecting(true),
         onSuccess: () => {
             if (attemptId) clearLocalTimer(attemptId);
-            toast.success("Exam submitted successfully!");
+            toast.success(t('quiz.submittedToast'));
             navigate(`/exam/${lessonId}/results/${attemptId}`);
         },
         onError: (error: any) => {
@@ -162,7 +164,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                 navigate(`/exam/${lessonId}/results/${attemptId}`);
             } else {
                 setIsRedirecting(false);
-                toast.error("Failed to submit quiz. Please try again.");
+                toast.error(t('quiz.submitFailedToast'));
             }
         }
     });
@@ -190,7 +192,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
             setTimeLeft(remainingSeconds);
 
             if (remainingSeconds <= 0) {
-                toast.error("Time is up! Submitting exam automatically.");
+                toast.error(t('quiz.timeUpToast'));
                 submitExamMutation();
             }
         };
@@ -211,7 +213,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
             try { 
                 await saveAnswer(attemptId, questionId, optionId); 
             }
-            catch (error) { toast.error("Failed to save answer. Connection issue."); }
+            catch (error) { toast.error(t('quiz.saveFailedToast')); }
         }
     };
 
@@ -227,8 +229,8 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         return (
             <div className="w-full flex flex-col items-center justify-center bg-white dark:bg-[#1A1A1A]" style={{ minHeight: '420px' }}>
                 <AlertCircle size={48} className="text-gray-300 dark:text-[#2a2a2e] mb-3" />
-                <h2 className="text-xl font-bold text-slate-800 dark:text-[#E0E0E0] mb-2">Quiz Not Found</h2>
-                <p className="text-slate-400 dark:text-[#d0d0E0] text-sm text-center max-w-sm px-4">Instructor hasn't added content yet.</p>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-[#E0E0E0] mb-2">{t('quiz.notFound')}</h2>
+                <p className="text-slate-400 dark:text-[#d0d0E0] text-sm text-center max-w-sm px-4">{t('quiz.noContent')}</p>
             </div>
         );
     }
@@ -236,11 +238,11 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     if (!started && showInstructions) {
         // ── Instructions Modal ──────────────────────────────────────────
         const rules = [
-            { icon: <Camera size={20} className="text-blue-500" />, title: 'Camera Required', desc: 'Your camera will be active for AI-based proctoring throughout the exam.' },
-            { icon: <ClipboardX size={20} className="text-red-500" />, title: 'No Copy & Paste', desc: 'Copying, pasting, and right-clicking are disabled during the exam.' },
-            { icon: <Eye size={20} className="text-amber-500" />, title: 'Tab Switching Monitored', desc: 'Switching tabs or windows will be recorded as a violation.' },
-            { icon: <AlertTriangle size={20} className="text-orange-500" />, title: 'Violations Are Tracked', desc: 'All suspicious activity (tab switching, copy attempts) will be logged and reported.' },
-            { icon: <Shield size={20} className="text-green-500" />, title: 'Instructor Review', desc: 'Your instructor will review all logged violations before finalizing your exam results.' },
+            { icon: <Camera size={20} className="text-blue-500" />, title: t('quiz.cameraRequired'), desc: t('quiz.cameraRequiredDesc') },
+            { icon: <ClipboardX size={20} className="text-red-500" />, title: t('quiz.noCopyPaste'), desc: t('quiz.noCopyPasteDesc') },
+            { icon: <Eye size={20} className="text-amber-500" />, title: t('quiz.tabSwitching'), desc: t('quiz.tabSwitchingDesc') },
+            { icon: <AlertTriangle size={20} className="text-orange-500" />, title: t('quiz.violationsTracked'), desc: t('quiz.violationsTrackedDesc') },
+            { icon: <Shield size={20} className="text-green-500" />, title: t('quiz.instructorReview'), desc: t('quiz.instructorReviewDesc') },
         ];
 
         return (
@@ -252,8 +254,8 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                             <Shield size={24} className="text-amber-500" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-[#E0E0E0]">Exam Rules & Guidelines</h2>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Please read carefully before starting</p>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-[#E0E0E0]">{t('quiz.rulesTitle')}</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{t('quiz.rulesSubtitle')}</p>
                         </div>
                     </div>
 
@@ -261,7 +263,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                     {examInfo?.durationInMinutes && (
                         <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl px-4 py-3 mb-5">
                             <Clock size={18} className="text-[#0061EF]" />
-                            <span className="text-sm font-semibold text-[#0061EF]">Time Limit: {examInfo.durationInMinutes} minutes</span>
+                            <span className="text-sm font-semibold text-[#0061EF]">{t('quiz.timeLimit', { count: examInfo.durationInMinutes })}</span>
                         </div>
                     )}
 
@@ -287,7 +289,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                             className="mt-0.5 w-4 h-4 accent-[#0061EF] cursor-pointer"
                         />
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            I have read and understood the exam rules. I agree to be monitored during this exam.
+                            {t('quiz.acceptRules')}
                         </span>
                     </label>
 
@@ -297,7 +299,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                             onClick={() => { setShowInstructions(false); setAcceptedRules(false); }}
                             className="flex-1 px-6 py-3.5 border border-slate-200 dark:border-[#2a2a2e] text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-[#2a2a2e] transition-all"
                         >
-                            Go Back
+                            {t('quiz.goBack')}
                         </button>
                         <button
                             onClick={() => startExam()}
@@ -308,7 +310,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                                     : 'bg-[#0061EF] hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-500/25'
                             }`}
                         >
-                            {isStarting ? 'Starting...' : 'Start Exam'}
+                            {isStarting ? t('quiz.starting') : t('quiz.startExam')}
                         </button>
                     </div>
                 </div>
@@ -331,18 +333,18 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                 <div className="flex flex-wrap gap-3 mb-8 justify-center">
                     <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#2a2a2e] border border-slate-100 dark:border-[#3a3a3e] rounded-xl px-4 py-2.5">
                         <HelpCircle size={16} className="text-[#0061EF]" />
-                        <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">{examInfo?.questionCount || 0} Questions</span>
+                        <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">{t('quiz.questions', { count: examInfo?.questionCount || 0 })}</span>
                     </div>
                     {examInfo?.durationInMinutes && (
                         <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#2a2a2e] border border-slate-100 dark:border-[#3a3a3e] rounded-xl px-4 py-2.5">
                             <Clock size={16} className="text-purple-500" />
-                            <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">{examInfo.durationInMinutes} Minutes</span>
+                            <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">{t('quiz.minutes', { count: examInfo.durationInMinutes })}</span>
                         </div>
                     )}
                     {max !== null && (
                         <div className="flex items-center gap-2 bg-slate-50 dark:bg-[#2a2a2e] border border-slate-100 dark:border-[#3a3a3e] rounded-xl px-4 py-2.5">
                             <CheckCircle2 size={16} className="text-green-500" />
-                            <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">Attempts: {taken} / {max}</span>
+                            <span className="text-sm font-medium text-slate-600 dark:text-[#d0d0E0]">{t('quiz.attempts', { taken, max })}</span>
                         </div>
                     )}
                 </div>
@@ -350,12 +352,12 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                 {hasReachedMax ? (
                     <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4 w-full max-w-md text-center">
                         <p className="text-red-600 dark:text-red-400 font-medium text-sm">
-                            You have reached the maximum number of attempts for this exam.
+                            {t('quiz.maxAttemptsReached')}
                         </p>
                     </div>
                 ) : (
                     <button onClick={() => setShowInstructions(true)} disabled={isStarting} className="px-10 py-3.5 bg-[#0061EF] text-white font-bold rounded-xl hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-60 shadow-lg shadow-blue-500/25">
-                        {isStarting ? 'Starting...' : (examInfo?.hasInProgressAttempt ? 'Resume Quiz' : 'Start Quiz')}
+                        {isStarting ? t('quiz.starting') : (examInfo?.hasInProgressAttempt ? t('quiz.resumeQuiz') : t('quiz.startQuiz'))}
                     </button>
                 )}
             </div>
@@ -380,7 +382,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                             </div>
                         )}
                         <span className="text-sm font-bold text-[#0061EF] bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 rounded-full">
-                            {answeredCount} / {totalQuestions} Answered
+                            {t('quiz.answered', { answered: answeredCount, total: totalQuestions })}
                         </span>
                         {violationCount > 0 && (
                             <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2.5 py-1.5 rounded-full flex items-center gap-1">
@@ -403,11 +405,11 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                         <div key={qId} className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 border border-slate-200 dark:border-[#2a2a2e] shadow-sm hover:border-blue-200 dark:hover:border-blue-500/30 transition-colors">
                             <div className="flex justify-between items-start gap-4 mb-5">
                                 <h4 className="font-semibold text-slate-800 dark:text-[#E0E0E0] text-base leading-relaxed">
-                                    <span className="text-slate-400 dark:text-slate-500 mr-2">Question {qIndex + 1}.</span>
+                                    <span className="text-slate-400 dark:text-slate-500 me-2">{t('quiz.question', { number: qIndex + 1 })}</span>
                                     {question.text ?? question.questionText}
                                 </h4>
                                 <span className="shrink-0 text-xs font-bold text-slate-500 bg-slate-100 dark:bg-[#2a2a2e] px-2 py-1 rounded-lg">
-                                    {question.points ?? 1} Points
+                                    {t('quiz.points', { count: question.points ?? 1 })}
                                 </span>
                             </div>
                             
@@ -446,13 +448,13 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                 >
                     {isRedirecting || isSubmitting ? (
                         <div className="flex items-center justify-center gap-2">
-                            <Loader2 size={18} className="animate-spin" /> Processing...
+                            <Loader2 size={18} className="animate-spin" /> {t('quiz.processing')}
                         </div>
-                    ) : 'Submit Quiz'}
+                    ) : t('quiz.submitQuiz')}
                 </button>
                 {answeredCount !== totalQuestions && (
                     <p className="text-sm text-slate-500 dark:text-[#d0d0E0]">
-                        Please answer all questions before submitting.
+                        {t('quiz.answerAll')}
                     </p>
                 )}
             </div>

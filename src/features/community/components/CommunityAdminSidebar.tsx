@@ -3,10 +3,12 @@ import {
 } from 'lucide-react';
 // قم بتعديل مسار الـ Link حسب مكتبة التوجيه التي تستخدمها (react-router-dom)
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function CommunityAdminSidebar() {
     const location = useLocation();
     const currentPath = location.pathname;
+    const { t } = useTranslation();
 
     const navItems = [
         { name: 'Overview', icon: <Server size={20} />, path: '/admin/community' },
@@ -17,7 +19,7 @@ export default function CommunityAdminSidebar() {
     ];
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-[#1c1c1f] border-r border-slate-200 dark:border-[#2a2a2e] flex flex-col z-30 transition-colors shadow-sm">
+        <aside className="fixed inset-y-0 start-0 w-64 bg-white dark:bg-[#1c1c1f] border-e border-slate-200 dark:border-[#2a2a2e] flex flex-col z-30 transition-colors shadow-sm">
 
             {/* Header */}
             <div className="h-20 flex items-center px-6 border-b border-slate-200 dark:border-[#2a2a2e]">
@@ -63,8 +65,8 @@ export default function CommunityAdminSidebar() {
                     to="/community/students"
                     className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-[#2a2a2e]"
                 >
-                    <ArrowLeft size={18} />
-                    Back to Main Platform
+                    <ArrowLeft size={18} className="rtl:rotate-180" />
+                    {t('admin.backToMainPlatform', 'Back to Main Platform')}
                 </Link>
             </div>
         </aside>

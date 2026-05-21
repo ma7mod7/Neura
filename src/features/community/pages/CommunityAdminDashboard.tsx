@@ -23,7 +23,7 @@ export default function CommunityAdminDashboard() {
             <CommunityAdminSidebar />
 
             {/* ⭐ الـ Layout سيعمل هنا بامتياز لأن السايدبار أعلاه ثابت وعرضه 64 */}
-            <main className="flex-1 ml-64 p-8 overflow-y-auto">
+            <main className="flex-1 ms-64 p-8 overflow-y-auto">
 
                 {/* Page Header */}
                 <div className="flex justify-between items-center mb-8">

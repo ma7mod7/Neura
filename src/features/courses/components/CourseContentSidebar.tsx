@@ -6,6 +6,8 @@ import {
     X, CheckSquare, Square,
     HelpCircle, FileText
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 interface Lesson {
     id: string;
@@ -58,11 +60,13 @@ function LessonIcon({ type }: { type: string | number | undefined }) {
 //     return raw;
 // }
 
-function formatTotalMinutes(minutes?: number): string {
+function formatTotalMinutes(minutes: number | undefined, t: TFunction): string {
     if (!minutes) return '';
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return h > 0 ? `${h}hr ${m}min` : `${m}min`;
+    return h > 0
+        ? `${t('courseDetails.hours', { count: h })} ${t('courseDetails.minutes', { count: m })}`
+        : t('courseDetails.minutes', { count: m });
 }
 
 export default function CourseContentSidebar({
@@ -72,6 +76,7 @@ export default function CourseContentSidebar({
     onClose,
 }: CourseContentSidebarProps) {
     const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
+    const { t } = useTranslation();
     
     // ⭐ إضافة الـ Query Client للتحكم في الكاش
     const queryClient = useQueryClient();
@@ -99,7 +104,7 @@ export default function CourseContentSidebar({
 
             {/* ====== Header ====== */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-[#2a2a2e] bg-gray-50 dark:bg-[#1A1A1A] shrink-0">
-                <h2 className="font-bold text-gray-900 dark:text-[#E0E0E0] text-sm">Course content</h2>
+                <h2 className="font-bold text-gray-900 dark:text-[#E0E0E0] text-sm">{t('courses.contentTitle')}</h2>
                 <button
                     onClick={onClose}
                     className="text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors p-1 rounded"
@@ -120,16 +125,16 @@ export default function CourseContentSidebar({
                             {/* Section Header */}
                             <button
                                 onClick={() => toggleSection(sectionIndex)}
-                                className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2a2a2e] transition-colors text-left"
+                                className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-[#222222] hover:bg-gray-200 dark:hover:bg-[#2a2a2e] transition-colors text-start"
                             >
-                                <div className="flex-1 min-w-0 pr-2">
+                                <div className="flex-1 min-w-0 pe-2">
                                     <p className="font-semibold text-sm text-gray-800 dark:text-[#E0E0E0] leading-snug">
                                         {section.title}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-[#d0d0E0] mt-0.5">
                                         {completedCount}/{section.lessons.length}
                                         {section.totalMinutes
-                                            ? ` | ${formatTotalMinutes(section.totalMinutes)}`
+                                            ? ` | ${formatTotalMinutes(section.totalMinutes, t)}`
                                             : ''}
                                     </p>
                                 </div>
@@ -147,9 +152,9 @@ export default function CourseContentSidebar({
                                             <button
                                                 key={lesson.id}
                                                 onClick={() => onLessonSelect(lesson)}
-                                                className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors border-b border-gray-100 dark:border-[#2a2a2e] last:border-0
+                                                className={`w-full flex items-start gap-3 px-4 py-3 text-start transition-colors border-b border-gray-100 dark:border-[#2a2a2e] last:border-0
                                                     ${isActive
-                                                        ? 'bg-purple-50 dark:bg-purple-500/10 border-l-2 border-l-[#a435f0]'
+                                                        ? 'bg-purple-50 dark:bg-purple-500/10 border-s-2 border-s-[#a435f0]'
                                                         : 'hover:bg-gray-50 dark:hover:bg-[#2a2a2e]'
                                                     }`}
                                             >
@@ -189,7 +194,7 @@ export default function CourseContentSidebar({
                 {sections.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-[#d0d0E0]">
                         <PlaySquare size={36} className="mb-3 opacity-40" />
-                        <p className="text-sm">No content available</p>
+                        <p className="text-sm">{t('courses.noContent')}</p>
                     </div>
                 )}
             </div>

@@ -8,6 +8,7 @@ import PlayerHeader from '../components/PlayerHeader';
 import VideoLesson from '../components/lesson-types/VideoLesson';
 import ArticleLesson from '../components/lesson-types/ArticleLesson';
 import QuizLesson from '../components/lesson-types/QuizLesson';
+import { useTranslation } from 'react-i18next';
 
 // ====== Hooks ======
 import {
@@ -37,6 +38,8 @@ function getLessonType(raw: string | number | undefined): 'video' | 'article' | 
 
 export default function CoursePlayerPage() {
     const { courseId } = useParams<{ courseId: string }>();
+    const { t, i18n } = useTranslation();
+    const isRtl = i18n.dir() === 'rtl';
 
     // ================= State =================
     const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
@@ -126,7 +129,7 @@ export default function CoursePlayerPage() {
 
     const totalLessons = flatLessons.length;
     const completedCount = completedLessons.size;
-    const courseTitle = courseMetadata?.title || 'Loading...';
+    const courseTitle = courseMetadata?.title || t('common.loading');
 
     return (
         <div className="flex flex-col min-h-screen bg-[#F7F9FA] dark:bg-[#0e0e10] font-sans">
@@ -201,18 +204,18 @@ export default function CoursePlayerPage() {
                                 </>
                             ) : (
                                 <p className="text-gray-400 dark:text-[#d0d0E0] text-sm">
-                                    {contentLoading ? 'Loading course...' : 'Select a lesson to begin'}
+                                    {contentLoading ? t('courses.loadingCourse') : t('courses.selectLesson')}
                                 </p>
                             )}
                         </div>
 
                         <button
                             onClick={() => setIsSidebarOpen(prev => !prev)}
-                            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2e] shrink-0 ml-3"
+                            className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2e] shrink-0 ms-3"
                         >
                             {isSidebarOpen
-                                ? <><PanelRightClose size={16} /> <span className="hidden sm:inline">Hide Sidebar</span></>
-                                : <><PanelRightOpen size={16} /> <span className="hidden sm:inline">Course Content</span></>
+                                ? <><PanelRightClose size={16} /> <span className="hidden sm:inline">{t('courses.hideSidebar')}</span></>
+                                : <><PanelRightOpen size={16} /> <span className="hidden sm:inline">{t('courses.courseContent')}</span></>
                             }
                         </button>
                     </div>
@@ -228,10 +231,10 @@ export default function CoursePlayerPage() {
                 )}
                 
                 <div className={`
-                    absolute md:relative right-0 top-0 bottom-0 z-50
-                    w-[85vw] sm:w-[340px] shrink-0 flex-col border-l border-gray-200 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden
+                    absolute md:relative ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} top-0 bottom-0 z-50
+                    w-[85vw] sm:w-[340px] shrink-0 flex-col border-gray-200 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden
                     transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none
-                    ${isSidebarOpen ? 'translate-x-0 flex' : 'translate-x-full md:hidden'}
+                    ${isSidebarOpen ? 'translate-x-0 flex' : `${isRtl ? '-translate-x-full' : 'translate-x-full'} md:hidden`}
                 `}>
                         {contentLoading ? (
                             <div className="flex flex-col h-full bg-white dark:bg-[#1A1A1A] p-4 space-y-3">

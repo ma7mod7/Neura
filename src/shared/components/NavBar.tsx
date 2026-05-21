@@ -11,9 +11,9 @@ import { Globe } from 'lucide-react';
 const NavBar = () => {
 
 
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const toggleLanguage = () => {
-        const newLang = i18n.language === 'en' ? 'ar' : 'en';
+        const newLang = i18n.resolvedLanguage === 'ar' ? 'en' : 'ar';
         i18n.changeLanguage(newLang);
     };
 
@@ -31,9 +31,9 @@ const NavBar = () => {
     }
     const navigate = useNavigate();
     const navLinks = [
-        { name: 'Home', path: '/', active: false, action: () => navigate('/announcements') },
-        { name: 'Courses', path: '/courses', active: false, action: () => navigate('/courses') },
-        { name: 'Community', path: '/community', active: false, action: () => navigate('/community/students') },
+        { name: t('navigation.home'), path: '/', active: false, action: () => navigate('/announcements') },
+        { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
+        { name: t('navigation.community'), path: '/community', active: false, action: () => navigate('/community/students') },
     ];
     const dataLogin = useAuth()
 
@@ -74,7 +74,7 @@ const NavBar = () => {
                         className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-[#1c1c1f] text-slate-600 dark:text-slate-300 transition-colors font-medium text-sm"
                     >
                         <Globe size={18} />
-                        <span className="hidden sm:inline">{i18n.language === 'en' ? 'العربية' : 'English'}</span>
+                        <span className="hidden sm:inline">{t('navigation.languageToggle')}</span>
                     </button>
 
                     {/* Profile Picture */}
@@ -99,7 +99,7 @@ const NavBar = () => {
 
 
             {isMobileMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-[#0e0e10] border-b border-slate-100 dark:border-[#1c1c1f] shadow-xl z-40 animate-in slide-in-from-top-5 duration-200">
+                <div className="md:hidden absolute top-full inset-x-0 w-full bg-white dark:bg-[#0e0e10] border-b border-slate-100 dark:border-[#1c1c1f] shadow-xl z-40 animate-in slide-in-from-top-5 duration-200">
                     <div className="flex flex-col p-4 space-y-2">
                         {navLinks.map((link, index) => (
                             <button
@@ -108,8 +108,8 @@ const NavBar = () => {
                                     if (link.action) link.action();
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`text-left px-4 py-3 rounded-xl font-medium transition-all 
-                                        ${link.name === 'Home'
+                                className={`text-start px-4 py-3 rounded-xl font-medium transition-all 
+                                        ${index === 0
                                         ? 'bg-blue-50 dark:bg-[#1c1c1f] text-blue-600'
                                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1c1c1f] hover:text-slate-900 dark:hover:text-white'
                                     }`}

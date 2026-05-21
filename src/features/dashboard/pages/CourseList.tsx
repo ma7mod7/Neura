@@ -65,7 +65,7 @@ export default function CourseListDashboard() {
     return (
         <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 ms-64 p-8">
                 <div className="bg-white rounded-xl dark:bg-[#1A1A1A] shadow-sm p-8 min-h-[calc(100vh-4rem)] flex flex-col relative">
 
                     {/* Header Action */}

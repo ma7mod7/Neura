@@ -1,5 +1,6 @@
 import { ArrowLeft, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface PlayerHeaderProps {
     courseTitle: string;
@@ -14,6 +15,7 @@ export default function PlayerHeader({
     
 }: PlayerHeaderProps) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     return (
         <header className="h-14 flex items-center justify-between px-4 bg-[#1c1d1f] dark:bg-[#0e0e10] border-b border-[#3e4143] dark:border-[#2a2a2e] shrink-0 z-30">
@@ -24,8 +26,8 @@ export default function PlayerHeader({
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-1.5 text-gray-300 hover:text-white transition-colors text-sm shrink-0"
                 >
-                    <ArrowLeft size={16} />
-                    <span className="hidden sm:inline">Home</span>
+                    <ArrowLeft size={16} className="rtl:rotate-180" />
+                    <span className="hidden sm:inline">{t('navigation.home')}</span>
                 </button>
 
                 <span className="text-[#3e4143] dark:text-[#2a2a2e]">|</span>

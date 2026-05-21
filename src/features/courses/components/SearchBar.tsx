@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ProfileMenu from '../../../shared/components/ProfileMenu';
 import Logo from '../../../assets/logo.png'
 import { useAuth } from '../../auth/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 const mockSuggestions = [
     { id: '1', type: 'course', name: 'Machine Learning Bootcamp' },
@@ -14,6 +15,7 @@ const mockSuggestions = [
 ];
 
 export const SearchBar = () => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState<typeof mockSuggestions>([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -25,9 +27,9 @@ export const SearchBar = () => {
 
     // ⭐ مصفوفة الروابط التي طلبتها (تم وضعها داخل المكون لتتمكن من استخدام navigate)
     const navLinks = [
-        { name: 'Home', path: '/announcements', action: () => navigate('/announcements') },
-        { name: 'Courses', path: '/courses', action: () => navigate('/courses') },
-        { name: 'Community', path: '/community', action: () => navigate('/community/students') },
+        { name: t('navigation.home'), path: '/announcements', action: () => navigate('/announcements') },
+        { name: t('navigation.courses'), path: '/courses', action: () => navigate('/courses') },
+        { name: t('navigation.community'), path: '/community', action: () => navigate('/community/students') },
     ];
 
     const handleSearchChange = (value: string) => {
@@ -109,25 +111,25 @@ export const SearchBar = () => {
                     </div>
 
                     <div ref={searchRef} className="flex-1 max-w-2xl relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
+                        <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => handleSearchChange(e.target.value)}
-                            placeholder="Search for anything"
-                            className="w-full bg-slate-50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 rounded-xl py-2.5 pl-12 pr-4 outline-none border border-slate-200 dark:border-[#2a2a2e] focus:ring-2 ring-[#0061EF] focus:bg-white dark:focus:bg-[#2a2a2e] transition-all text-sm"
+                            placeholder={t('navigation.searchPlaceholder')}
+                            className="w-full bg-slate-50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 rounded-xl py-2.5 ps-12 pe-4 outline-none border border-slate-200 dark:border-[#2a2a2e] focus:ring-2 ring-[#0061EF] focus:bg-white dark:focus:bg-[#2a2a2e] transition-all text-sm"
                         />
                         {isDropdownOpen && suggestions.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1c1c1f] border border-slate-200 dark:border-[#2a2a2e] rounded-xl shadow-lg z-50 overflow-hidden">
+                            <div className="absolute top-full inset-x-0 mt-2 bg-white dark:bg-[#1c1c1f] border border-slate-200 dark:border-[#2a2a2e] rounded-xl shadow-lg z-50 overflow-hidden">
                                 {suggestions.map((item) => (
                                     <button
                                         type="button"
                                         key={item.id}
                                         onClick={(e) => { e.preventDefault(); handleSelectSuggestion(item); }}
-                                        className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:hover:bg-[#2a2a2e] text-sm text-slate-800 dark:text-slate-200 transition-colors"
+                                        className="w-full text-start px-4 py-3 hover:bg-slate-100 dark:hover:bg-[#2a2a2e] text-sm text-slate-800 dark:text-slate-200 transition-colors"
                                     >
                                         <span className="font-medium">{item.name}</span>
-                                        <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
+                                        <span className="ms-2 text-xs text-slate-400 dark:text-slate-500">
                                             {item.type}
                                         </span>
                                     </button>

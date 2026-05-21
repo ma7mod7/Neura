@@ -4,12 +4,14 @@ import {
     LayoutDashboard,
     Moon,
     Sun,
+    Globe,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef } from 'react';
 import { hasAdminRole } from '../../utils/jwt';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileMenuProps {
     setIsOpen: (value: boolean) => void;
@@ -20,6 +22,12 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth()
     const { isDark, toggleTheme } = useTheme();
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const newLang = i18n.resolvedLanguage === 'ar' ? 'en' : 'ar';
+        i18n.changeLanguage(newLang);
+    };
 
 
 
@@ -27,13 +35,13 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
 
     const menuItems = [
         {
-            label: 'My Learning',
+            label: t('navigation.myLearning'),
             icon: BookOpen,
             path: '/profile',
             isActive: false
         },
         ...(canSeeAdminDashboard ? [{
-            label: 'Admin Dashboard',
+            label: t('navigation.adminDashboard'),
             icon: LayoutDashboard,
             path: '/admin/course-list',
             isActive: false
@@ -58,7 +66,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
     }, []);
 
     return (
-        <div ref={menuRef} className="absolute top-full right-0 mt-4 w-64 bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-xl border border-slate-100 dark:border-[#2a2a2e] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+        <div ref={menuRef} className="absolute top-full end-0 mt-4 w-64 bg-white dark:bg-[#1c1c1f] rounded-2xl shadow-xl border border-slate-100 dark:border-[#2a2a2e] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
 
             <div onClick={() => navigate('/profile')} className="p-4 border-b border-slate-100 dark:border-[#2a2a2e] flex items-center gap-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-[#2a2a2e] transition-colors">
                 <img
@@ -91,7 +99,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                 <div className="flex items-center justify-between px-3 py-2">
                     <span className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
                         {isDark ? <Moon size={18} /> : <Sun size={18} />}
-                        Theme
+                        {t('navigation.theme')}
                     </span>
                     <button
                         onClick={toggleTheme}
@@ -106,8 +114,22 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                                 : <Sun size={14} className="text-amber-500" />
                             }
                         </span>
-                        <Sun size={12} className={`ml-0.5 transition-opacity duration-300 ${isDark ? 'opacity-40 text-slate-500' : 'opacity-0'}`} />
-                        <Moon size={12} className={`ml-auto mr-0.5 transition-opacity duration-300 ${isDark ? 'opacity-0' : 'opacity-40 text-slate-400'}`} />
+                        <Sun size={12} className={`ms-0.5 transition-opacity duration-300 ${isDark ? 'opacity-40 text-slate-500' : 'opacity-0'}`} />
+                        <Moon size={12} className={`ms-auto me-0.5 transition-opacity duration-300 ${isDark ? 'opacity-0' : 'opacity-40 text-slate-400'}`} />
+                    </button>
+                </div>
+
+                {/* Language Toggle */}
+                <div className="flex items-center justify-between px-3 py-2">
+                    <span className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-400">
+                        <Globe size={18} />
+                        {t('navigation.language', 'Language')}
+                    </span>
+                    <button
+                        onClick={toggleLanguage}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2a2a2e] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#3a3a3e] transition-colors text-sm font-medium"
+                    >
+                        {i18n.resolvedLanguage === 'ar' ? 'EN' : 'AR'}
                     </button>
                 </div>
                 <div className="mx-1 my-1.5 border-t border-slate-100 dark:border-[#2a2a2e]" />
@@ -118,7 +140,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 transition-all mt-1"
                 >
                     <LogOut size={18} />
-                    Sign Out
+                    {t('navigation.signOut')}
                 </button>
             </div>
         </div>

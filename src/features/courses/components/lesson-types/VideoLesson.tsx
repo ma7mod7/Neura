@@ -1,6 +1,7 @@
 import { AlertCircle } from 'lucide-react';
 import VideoPlayer from '../VideoPlayer';
 import { useGetLessonVideoLink } from '../../api/useCoursePlayer';
+import { useTranslation } from 'react-i18next';
 
 interface VideoLessonProps {
     lessonId: string;
@@ -24,6 +25,7 @@ export default function VideoLesson({
     hasNext,
 }: VideoLessonProps) {
     const { data: videoData, isLoading, isError } = useGetLessonVideoLink(lessonId);
+    const { t } = useTranslation();
 
     // ====== Error: 404 = not enrolled or video not ready ======
     if (isError) {
@@ -33,10 +35,9 @@ export default function VideoLesson({
                 style={{ aspectRatio: '16/9' }}
             >
                 <AlertCircle size={40} className="text-red-400" />
-                <p className="text-white font-semibold text-sm">Video not available</p>
+                <p className="text-white font-semibold text-sm">{t('courses.videoNotAvailable')}</p>
                 <p className="text-gray-400 text-xs text-center max-w-xs">
-                    This video may not be finalized yet, or you may not have access.
-                    Please make sure you are enrolled in this course.
+                    {t('courses.videoAccessMessage')}
                 </p>
             </div>
         );

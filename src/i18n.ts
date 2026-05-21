@@ -20,6 +20,8 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
+    supportedLngs: ['en', 'ar'],
+    nonExplicitSupportedLngs: true,
     interpolation: {
       escapeValue: false, 
     },

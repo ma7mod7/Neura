@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { BookOpen, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Logo from '../../../assets/logo.png'
 
 export default function Sidebar() {
     const [isCoursesOpen, setIsCoursesOpen] = useState(true);
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // استدعاء useLocation لمعرفة مسار الصفحة الحالي
     const location = useLocation();
     const currentPath = location.pathname;
 
     return (
-        <aside className="w-64 bg-white dark:bg-[#1c1c1f] flex flex-col fixed h-full shadow-md z-10">
+        <aside className="w-64 bg-white dark:bg-[#1c1c1f] flex flex-col fixed h-full shadow-md z-10 start-0">
             {/* ================= Header ================= */}
             <div className="p-6 flex items-center gap-2">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl">
@@ -34,7 +36,7 @@ export default function Sidebar() {
                     >
                         <div className="flex items-center gap-3 font-medium">
                             <BookOpen size={20} />
-                            <span>Courses</span>
+                            <span>{t('admin.courses', 'Courses')}</span>
                         </div>
                         <ChevronDown
                             size={18}
@@ -52,11 +54,11 @@ export default function Sidebar() {
                             onClick={() => navigate('/admin/create-course')}
                             className={`flex items-center gap-3 py-2 transition-colors text-sm mt-1 ${currentPath === '/admin/create-course'
                                 ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
-                                : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
+                                : 'ps-10 pe-6 text-blue-100 hover:bg-blue-700' // Inactive Style
                                 }`}
                         >
                             <Plus size={16} />
-                            Create Course
+                            {t('admin.createCourse', 'Create Course')}
                         </button>
 
                         {/* زر قائمة الكورسات */}
@@ -64,11 +66,11 @@ export default function Sidebar() {
                             onClick={() => navigate('/admin/course-list')}
                             className={`flex items-center gap-3 py-2 transition-colors text-sm mt-1 ${currentPath === '/admin/course-list'
                                 ? 'bg-white text-blue-600 rounded-md mx-4 px-6 font-medium' // Active Style
-                                : 'px-10 text-blue-100 hover:bg-blue-700' // Inactive Style
+                                : 'ps-10 pe-6 text-blue-100 hover:bg-blue-700' // Inactive Style
                                 }`}
                         >
                             <List size={16} />
-                            Course List
+                            {t('admin.courseList', 'Course List')}
                         </button>
                     </div>
                 </div>
@@ -92,8 +94,8 @@ export default function Sidebar() {
                     onClick={() => navigate('/courses')}
                     className="flex items-center gap-3 p-3 w-full text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-[#0061EF]/10 rounded-lg transition-colors font-medium"
                 >
-                    <ArrowLeft size={20} />
-                    <span>Back to Courses</span>
+                    <ArrowLeft size={20} className="rtl:rotate-180" />
+                    <span>{t('admin.backToCourses', 'Back to Courses')}</span>
                 </button>
             </div>
         </aside>

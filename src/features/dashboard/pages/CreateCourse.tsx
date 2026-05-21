@@ -618,7 +618,7 @@ export default function CreateCourse() {
         <div className="flex min-h-screen bg-[#EAEAEA] dark:bg-[#0e0e10] font-sans">
             <Sidebar />
 
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 ms-64 p-8">
                 <div className="flex justify-between items-center mb-6 ">
                     <h1 className="text-2xl font-bold dark:text-[#E0E0E0]">Create New Course</h1>
 

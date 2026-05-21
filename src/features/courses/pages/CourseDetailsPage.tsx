@@ -26,6 +26,8 @@ import { useGetInstById } from '../../../shared/api/useGetInsApi';
 import { useGetCourseReviews, useAddCourseReview } from '../api/useCourseReviews';
 import { useGetCoursesContent } from '../api/useGetAllCourses';
 import useEnroll from '../api/useEnrolle';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 
 
@@ -37,7 +39,7 @@ const isUserLoggedIn = (): boolean => {
     }
 };
 
-const formatDuration = (durationParam: string | number | null | undefined) => {
+const formatDuration = (durationParam: string | number | null | undefined, t: TFunction) => {
     if (!durationParam || durationParam === "00:00:00") return null;
 
     let totalSeconds = 0;
@@ -63,16 +65,21 @@ const formatDuration = (durationParam: string | number | null | undefined) => {
     const seconds = Math.floor(totalSeconds % 60);
 
     if (hours > 0) {
-        return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+        return minutes > 0
+            ? `${t('courseDetails.hours', { count: hours })} ${t('courseDetails.minutes', { count: minutes })}`
+            : t('courseDetails.hours', { count: hours });
     }
     if (minutes > 0) {
-        return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes} min`;
+        return seconds > 0
+            ? `${t('courseDetails.minutes', { count: minutes })} ${t('courseDetails.seconds', { count: seconds })}`
+            : t('courseDetails.minutes', { count: minutes });
     }
-    return `${seconds}s`;
+    return t('courseDetails.seconds', { count: seconds });
 };
 
 const CourseDetailsPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [openSection, setOpenSection] = useState<number | null>(0);
     const { courseId } = useParams();
     const isLoggedIn = isUserLoggedIn();
@@ -131,13 +138,13 @@ const CourseDetailsPage = () => {
 
     const formattedReviews = safeReviewsArray.map((r: any) => ({
         id: r.id?.toString() || Math.random().toString(),
-        name: r.userName || r.studentName || 'Student',
-        feedback: r.comment || 'No comment provided.'
+        name: r.userName || r.studentName || t('courseDetails.student'),
+        feedback: r.comment || t('courseDetails.noComment')
     }));
 
     // --- Mock Data ---
     const course = {
-        lastUpdated: "December 2024",
+        lastUpdated: t('courseDetails.lastUpdatedValue'),
     };
     const handleEnroll = (courseId: string) => {
 
@@ -150,7 +157,7 @@ const CourseDetailsPage = () => {
 
             {/* --- Hero Section --- */}
             <div className="relative bg-[#1a1a1a] text-white overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-black via-black/80 to-transparent z-10"></div>
                 <img
                     src={courseMetaData?.imageUrl || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1470&q=80'}
                     alt="Background"
@@ -160,8 +167,8 @@ const CourseDetailsPage = () => {
                 <div className="relative z-20 max-w-[1450px] mx-auto px-4 md:px-8 py-12 lg:py-16">
                     <button
                         onClick={() => navigate(-1)} className="flex p-2 items-center gap-2 text-slate-300 hover:text-white mb-8 transition-colors rounded-xl hover:bg-blue-600">
-                        <ArrowLeft size={20} />
-                        <span className="font-medium">Back to Courses</span>
+                        <ArrowLeft size={20} className="rtl:rotate-180" />
+                        <span className="font-medium">{t('courseDetails.backToCourses')}</span>
                     </button>
 
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
@@ -189,17 +196,17 @@ const CourseDetailsPage = () => {
                                             <Star key={i} size={16} fill={i < Math.round(courseMetaData?.rating || 0) ? "currentColor" : "none"} />
                                         ))}
                                     </div>
-                                    <span className="text-slate-400 underline ml-1 dark:text-[#d0d0E0]">
-                                        ({courseMetaData?.totalReviews || 0} ratings)
+                                    <span className="text-slate-400 underline ms-1 dark:text-[#d0d0E0]">
+                                        ({t('courseDetails.ratings', { count: courseMetaData?.totalReviews || 0 })})
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Users size={18} />
-                                    <span className="dark:text-[#d0d0E0]">{courseMetaData?.numberOfStudents || 0} students</span>
+                                    <span className="dark:text-[#d0d0E0]">{t('courseDetails.students', { count: courseMetaData?.numberOfStudents || 0 })}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock size={18} />
-                                    <span className="dark:text-[#d0d0E0]">{CourseContent?.totalHours || 0}h Total</span>
+                                    <span className="dark:text-[#d0d0E0]">{t('courseDetails.totalHours', { count: CourseContent?.totalHours || 0 })}</span>
                                 </div>
                             </div>
                         </div>
@@ -214,7 +221,7 @@ const CourseDetailsPage = () => {
                     <div className="lg:col-span-8 flex flex-col gap-10">
                         {/* Description */}
                         <section>
-                            <h2 className="text-2xl font-bold text-slate-800 mb-4 dark:text-[#E0E0E0]">Description</h2>
+                            <h2 className="text-2xl font-bold text-slate-800 mb-4 dark:text-[#E0E0E0]">{t('courseDetails.description')}</h2>
                             <p className="text-slate-600 dark:text-[#d0d0E0] leading-relaxed">
                                 {courseMetaData?.description}
                             </p>
@@ -222,7 +229,7 @@ const CourseDetailsPage = () => {
 
                         {/* What You'll Learn */}
                         <section className="bg-white border border-slate-200 p-6 dark:bg-[#1A1A1A] dark:border-[#2a2a2e] rounded-[1rem]">
-                            <h2 className="text-2xl font-bold text-slate-800 dark:text-[#FAFAFA] mb-6">What You'll Learn</h2>
+                            <h2 className="text-2xl font-bold text-slate-800 dark:text-[#FAFAFA] mb-6">{t('courseDetails.whatYouWillLearn')}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {courseMetaData?.learningOutcomes?.map((item: string, index: number) => (
                                     <div key={index} className="flex items-start gap-3">
@@ -235,9 +242,9 @@ const CourseDetailsPage = () => {
 
                         {/* Course Content */}
                         <section>
-                            <h2 className="text-2xl font-bold text-slate-800 mb-2 dark:text-[#E0E0E0]">Course Content</h2>
+                            <h2 className="text-2xl font-bold text-slate-800 mb-2 dark:text-[#E0E0E0]">{t('courses.courseContent')}</h2>
                             <p className="text-slate-500 text-sm mb-6 dark:text-[#E0E0E0]">
-                                {CourseContent?.sections?.length || 0} sections • {CourseContent?.totalLessons || 0} lessons
+                                {t('courseDetails.sectionsLessons', { sections: CourseContent?.sections?.length || 0, lessons: CourseContent?.totalLessons || 0 })}
                             </p>
 
                             <div className="border border-slate-200 dark:border-[#2a2a2e] rounded-[1rem] overflow-hidden bg-white dark:bg-[#1A1A1A]">
@@ -245,7 +252,7 @@ const CourseDetailsPage = () => {
                                     <div key={section.id || idx} className="border-b border-slate-100 dark:border-[#2a2a2e] last:border-0">
                                         <button
                                             onClick={() => toggleSection(section.id)}
-                                            className="w-full flex items-center justify-between p-4 bg-[#F8FAFC] dark:bg-[#1A1A1A] hover:bg-slate-100 dark:hover:bg-[#2a2a2e] transition-colors text-left"
+                                            className="w-full flex items-center justify-between p-4 bg-[#F8FAFC] dark:bg-[#1A1A1A] hover:bg-slate-100 dark:hover:bg-[#2a2a2e] transition-colors text-start"
                                         >
                                             <div className="flex items-center gap-3">
                                                 {openSection === section.id
@@ -253,11 +260,11 @@ const CourseDetailsPage = () => {
                                                     : <ChevronDown size={20} className="text-slate-600 dark:text-[#d0d0E0]" />
                                                 }
                                                 <span className="font-bold text-slate-800 dark:text-[#E0E0E0]">
-                                                    {section.title || `Section ${section.position || idx + 1}`}
+                                                    {section.title || t('courseDetails.section', { number: section.position || idx + 1 })}
                                                 </span>
                                             </div>
                                             <span className="text-xs text-slate-500 dark:text-[#d0d0E0] hidden sm:block">
-                                                {section.lessonsCount || section.lessons?.length || 0} lessons 
+                                                {t('courseDetails.lessons', { count: section.lessonsCount || section.lessons?.length || 0 })}
                                             </span>
                                         </button>
 
@@ -265,7 +272,7 @@ const CourseDetailsPage = () => {
                                             <div className="p-4 bg-white dark:bg-[#1A1A1A]">
                                                 <ul className="flex flex-col gap-3">
                                                     {section.lessons?.map((item: any, itemIdx: number) => (
-                                                        <li key={item.id || itemIdx} className="flex items-center justify-between text-sm text-slate-600 dark:text-[#d0d0E0] ml-8">
+                                                        <li key={item.id || itemIdx} className="flex items-center justify-between text-sm text-slate-600 dark:text-[#d0d0E0] ms-8">
                                                             <div className="flex items-center gap-3">
                                                                 {/* ⭐ تفريق الأيقونات بناءً على النوع */}
                                                                 {item.isLocked ? (
@@ -277,17 +284,17 @@ const CourseDetailsPage = () => {
                                                                 ) : (
                                                                     <PlayCircle size={16} className="text-[#0061EF]" />
                                                                 )}
-                                                                <span>{item.title || `Lesson ${item.orderIndex || itemIdx + 1}`}</span>
+                                                                <span>{item.title || t('courseDetails.lesson', { number: item.orderIndex || itemIdx + 1 })}</span>
                                                             </div>
 
                                                             {/* ⭐ عرض الوقت الخاص بالامتحان أو الفيديو متضمن الوحدة */}
                                                             {item.exam?.durationInMinutes ? (
                                                                 <span className="text-slate-400 dark:text-[#d0d0E0] font-medium text-sm">
-                                                                    {item.exam.durationInMinutes} min
+                                                                    {t('courseDetails.minutes', { count: item.exam.durationInMinutes })}
                                                                 </span>
-                                                            ) : (item.type === "Video" || item.type === 1 || !item.type) && formatDuration(item.duration) ? (
+                                                            ) : (item.type === "Video" || item.type === 1 || !item.type) && formatDuration(item.duration, t) ? (
                                                                 <span className="text-slate-400 dark:text-[#d0d0E0] font-medium text-sm">
-                                                                    {formatDuration(item.duration)}
+                                                                    {formatDuration(item.duration, t)}
                                                                 </span>
                                                             ) : null}
                                                         </li>
@@ -306,9 +313,9 @@ const CourseDetailsPage = () => {
                                 <div className="bg-yellow-100 dark:bg-yellow-500/20 p-1 rounded-full">
                                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                                 </div>
-                                Prerequisites
+                                {t('courseDetails.prerequisites')}
                             </h2>
-                            <p className="text-slate-500 text-sm mb-4 dark:text-[#E0E0E0]">Before taking this course, you should have:</p>
+                            <p className="text-slate-500 text-sm mb-4 dark:text-[#E0E0E0]">{t('courseDetails.beforeCourse')}</p>
                             <ul className="flex flex-col gap-3">
                                 {courseMetaData?.prerequisites?.map((prereq: string, i: number) => (
                                     <li key={i} className="flex items-center gap-3 text-slate-600 dark:text-[#d0d0E0] text-sm">
@@ -326,47 +333,47 @@ const CourseDetailsPage = () => {
 
                             {/* Instructor Card */}
                             <div className="bg-white border border-slate-200 rounded-[1rem] p-6 shadow-sm dark:bg-[#1A1A1A] dark:border-[#2a2a2e]">
-                                <h3 className="font-bold text-slate-800 mb-4 dark:text-[#E0E0E0]">Instructor</h3>
+                                <h3 className="font-bold text-slate-800 mb-4 dark:text-[#E0E0E0]">{t('courseDetails.instructor')}</h3>
                                 <div className="flex items-center gap-4 mb-4">
-                                    <img src={InstructorData?.imageUrl || `https://ui-avatars.com/api/?name=${InstructorData?.name || 'Instructor'}&background=0061EF&color=fff`} alt="Instructor" className="w-16 h-16 rounded-full object-cover border-2 border-[#0061EF] p-0.5" />
+                                    <img src={InstructorData?.imageUrl || `https://ui-avatars.com/api/?name=${InstructorData?.name || 'Instructor'}&background=0061EF&color=fff`} alt={t('courseDetails.instructor')} className="w-16 h-16 rounded-full object-cover border-2 border-[#0061EF] p-0.5" />
                                     <div>
-                                        <h4 className="font-bold text-[#0061EF] text-lg">{InstructorData?.name || "Instructor Name"}</h4>
-                                        <p className="text-xs text-slate-500 dark:text-[#d0d0E0]">{InstructorData?.headline || "Instructor"}</p>
+                                        <h4 className="font-bold text-[#0061EF] text-lg">{InstructorData?.name || t('courseDetails.instructorName')}</h4>
+                                        <p className="text-xs text-slate-500 dark:text-[#d0d0E0]">{InstructorData?.headline || t('courseDetails.instructor')}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2 text-sm text-slate-600 mb-2">
                                     <div className="flex items-center gap-2 dark:text-[#d0d0E0]">
                                         <Users size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                        <span>{InstructorData?.totalStudents || 0} Students</span>
+                                        <span>{InstructorData?.totalStudents || 0} {t('courseDetails.studentsLabel')}</span>
                                     </div>
                                     <div className="flex items-center gap-2 dark:text-[#d0d0E0]">
                                         <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                                        <span>{InstructorData?.rating || 0} Instructor Rating</span>
+                                        <span>{InstructorData?.rating || 0} {t('courseDetails.instructorRating')}</span>
                                     </div>
                                     <div className="flex items-center gap-2 dark:text-[#d0d0E0]">
                                         <PlayCircle size={16} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                        <span>{InstructorData?.totalCourses || 0} Courses</span>
+                                        <span>{InstructorData?.totalCourses || 0} {t('courseDetails.courses')}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Course Info Card */}
                             <div className="bg-white border border-slate-200 rounded-[1rem] p-6 shadow-sm dark:bg-[#1A1A1A] dark:border-[#2a2a2e]">
-                                <h3 className="font-bold text-slate-800 mb-6 dark:text-[#E0E0E0]">Course Info</h3>
+                                <h3 className="font-bold text-slate-800 mb-6 dark:text-[#E0E0E0]">{t('courseDetails.courseInfo')}</h3>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-3 text-slate-600 dark:text-[#d0d0E0]">
                                             <BarChart size={20} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                            <span>Level</span>
+                                            <span>{t('courseDetails.level')}</span>
                                         </div>
-                                        <span className="font-semibold text-slate-800 dark:text-[#d0d0E0]">Intermediate</span>
+                                        <span className="font-semibold text-slate-800 dark:text-[#d0d0E0]">{t('courseDetails.intermediate')}</span>
                                     </div>
                                     <div className="border-b border-slate-100 dark:border-[#2a2a2e]"></div>
 
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-3 text-slate-600 dark:text-[#d0d0E0]">
                                             <Calendar size={20} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                            <span>Last Updated</span>
+                                            <span>{t('courseDetails.lastUpdated')}</span>
                                         </div>
                                         <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{course.lastUpdated}</span>
                                     </div>
@@ -375,25 +382,25 @@ const CourseDetailsPage = () => {
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-3 text-slate-600 dark:text-[#d0d0E0]">
                                             <Award size={20} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                            <span>Certificate</span>
+                                            <span>{t('courseDetails.certificate')}</span>
                                         </div>
-                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">Yes</span>
+                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{t('common.yes')}</span>
                                     </div>
                                     <div className="border-b border-slate-100 dark:border-[#2a2a2e]"></div>
 
                                     <div className="flex items-center justify-between text-sm">
                                         <div className="flex items-center gap-3 text-slate-600 dark:text-[#d0d0E0]">
                                             <Clock size={20} className="text-slate-400 dark:text-[#d0d0E0]" />
-                                            <span>Duration</span>
+                                            <span>{t('courseDetails.duration')}</span>
                                         </div>
-                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{CourseContent?.totalHours || 0} hours</span>
+                                        <span className="font-semibold text-slate-800 dark:text-[#E0E0E0]">{t('courseDetails.hours', { count: CourseContent?.totalHours || 0 })}</span>
                                     </div>
                                 </div>
 
                                 {courseMetaData?.isEnrolled ? (
                                     <div className='flex justify-center items-center gap-4'>
                                         <button onClick={() => navigate(`/courses/${courseId}/learn`)} className="w-full mt-8 bg-[#0061EF] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg dark:shadow-sm shadow-blue-200">
-                                            Go to Course
+                                            {t('courses.goToCourse')}
                                         </button>
                                         <button
                                             onClick={handleAddBookmark}
@@ -410,7 +417,7 @@ const CourseDetailsPage = () => {
                                     </div>
                                 ) : (
                                     <button onClick={() => handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
-                                        Enroll for {courseMetaData?.price === 0 ? 'Free' : `${courseMetaData?.price} E.L`}
+                                        {t('courseDetails.enrollFor', { price: courseMetaData?.price === 0 ? t('common.free') : t('courses.price', { price: courseMetaData?.price }) })}
                                     </button>
                                 )}
                             </div>
@@ -424,15 +431,15 @@ const CourseDetailsPage = () => {
             <div className='bg-[#191919]'>
                 <div className='max-w-[1450px] mx-auto px-4 md:px-8 py-12 flex flex-col'>
                     <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                        <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent py-3 text-2xl md:text-4xl lg:text-[48px] font-bold text-center md:text-left leading-tight">
-                            Add Your Opinion
+                        <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent py-3 text-2xl md:text-4xl lg:text-[48px] font-bold text-center md:text-start leading-tight">
+                            {t('courseDetails.addOpinion')}
                         </h1>
                         {isLoggedIn && courseMetaData?.isEnrolled ? (
                             <button
                                 onClick={() => setIsReviewModalOpen(true)}
                                 className="flex items-center gap-2 bg-[#0061EF] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-md shadow-blue-500/30"
                             >
-                                <Edit3 size={18} /> Write a Review
+                                <Edit3 size={18} /> {t('courseDetails.writeReview')}
                             </button>
                         ) : null}
 
@@ -445,7 +452,7 @@ const CourseDetailsPage = () => {
                     {formattedReviews.length > 0 && (
                         <div>
                             <h1 className="bg-[linear-gradient(120deg,_#4262E4_32%,_#3995B9_69%)] bg-clip-text text-transparent text-xl md:text-4xl lg:text-[48px] font-bold text-center leading-tight py-3">
-                                Student Opinion
+                                {t('courseDetails.studentOpinion')}
                             </h1>
                             <CommentsSection comments={formattedReviews} />
                         </div>
@@ -461,15 +468,15 @@ const CourseDetailsPage = () => {
                     <div className="bg-white dark:bg-[#1c1c1f] rounded-2xl p-6 w-full max-w-md shadow-2xl relative animate-in zoom-in-95">
                         <button
                             onClick={() => setIsReviewModalOpen(false)}
-                            className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            className="absolute end-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                         >
                             <X size={20} />
                         </button>
 
-                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Leave a Review</h2>
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">{t('courseDetails.leaveReview')}</h2>
 
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Rate your experience <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">{t('courseDetails.rateExperience')} <span className="text-red-500">*</span></label>
                             <div className="flex gap-1">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
@@ -490,11 +497,11 @@ const CourseDetailsPage = () => {
                         </div>
 
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Your Comment (Optional)</label>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">{t('courseDetails.commentOptional')}</label>
                             <textarea
                                 value={reviewComment}
                                 onChange={(e) => setReviewComment(e.target.value)}
-                                placeholder="Tell us what you think about this course..."
+                                placeholder={t('courseDetails.commentPlaceholder')}
                                 className="w-full bg-slate-50 dark:bg-[#0e0e10] border border-slate-200 dark:border-[#2a2a2e] rounded-xl p-3 text-slate-800 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none h-28"
                             />
                         </div>
@@ -504,14 +511,14 @@ const CourseDetailsPage = () => {
                                 onClick={() => setIsReviewModalOpen(false)}
                                 className="px-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#2a2a2e] rounded-xl transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleReviewSubmit}
                                 disabled={rating === 0 || isSubmittingReview}
                                 className="px-5 py-2.5 text-sm font-medium bg-[#0061EF] text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                                {isSubmittingReview ? t('common.submitting') : t('courseDetails.submitReview')}
                             </button>
                         </div>
                     </div>

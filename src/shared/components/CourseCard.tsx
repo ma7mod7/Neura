@@ -3,6 +3,7 @@ import useEnroll from "../../features/courses/api/useEnrolle";
 import useBookMark from "../../features/courses/api/useBookMark";
 import { useNavigate } from "react-router-dom";
 import type { CourseListItem } from "../types/course";
+import { useTranslation } from "react-i18next";
 
 export interface Tag {
     id: number;
@@ -11,6 +12,7 @@ export interface Tag {
 
 const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: CourseListItem }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const isBookmarked = course.isBookmarked;
     const isEnrolled = course.isEnrolled;
     const { mutate: Enrollment, isPending } = useEnroll();
@@ -41,7 +43,7 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                 <button
                     onClick={handleAddBookmark}
                     disabled={bookMarkPending}
-                    className={`absolute top-5 right-5 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 z-10 ${isBookmarked
+                    className={`absolute top-5 end-5 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 z-10 ${isBookmarked
                         ? 'bg-[#0066FF] text-white' // Active state
                         : 'bg-white/90 dark:bg-[#2a2a2e]/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]' // Inactive state
                         }`}
@@ -67,12 +69,12 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                             </span>
                         ))
                     ) : (
-                        <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500">#General</span>
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500">#{t('courses.general')}</span>
                     )}
                 </div>
 
                 <h3 className="font-bold text-slate-800 dark:text-white mb-1 line-clamp-2">{course.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Dr. {course.instructorName}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">{t('courses.instructorPrefix')} {course.instructorName}</p>
 
                 <div className="flex items-center gap-2 mb-6">
                     <div className="flex items-center gap-1 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
@@ -85,14 +87,14 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                     </div>
                     <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
                         <BookOpen size={14} />
-                        <span className="text-[10px]">{course.numberOfLessons} lectures</span>
+                        <span className="text-[10px]">{t('courses.lectures', { count: course.numberOfLessons })}</span>
                     </div>
                 </div>
 
                 <div className="lg:mt-auto flex items-center justify-between ">
                     <div className="flex gap-2">
                         <span className="font-bold text-slate-900 dark:text-white">
-                            {course.price === 0 ? 'Free' : (course.isEnrolled ? 'Go to Course' : `${course.price} E.L`)}
+                            {course.price === 0 ? t('common.free') : (course.isEnrolled ? t('courses.goToCourse') : t('courses.price', { price: course.price }))}
                         </span>
                         <span className="flex items-center">
                             <ArrowUpRight size={24} className="bg-blue-600 rounded-full text-white p-1"/>
@@ -104,8 +106,8 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                         className={`text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white transition-all z-10 ${isEnrolled ? 'cursor-not-allowed bg-green-500 text-white border-green-500 hover:bg-green-500' : 'cursor-pointer'}`}
                     >
                         {isPending
-                            ? "Loading..."
-                            : (course.price === 0 || course.isEnrolled) ? "Enrolled" : "Enroll Now"
+                            ? t('common.loading')
+                            : (course.price === 0 || course.isEnrolled) ? t('courses.enrolled') : t('courses.enrollNow')
                         }
                     </button>
                 </div>

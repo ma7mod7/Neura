@@ -8,6 +8,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { hasAdminRole } from '../../../utils/jwt';
+import { useTranslation } from 'react-i18next';
 
 // 1. Sidebar Menu Item
 const MenuItem = ({ icon: Icon, label, isActive = false, link }: { icon: any, label: string, isActive?: boolean, link?: string }) => {
@@ -33,6 +34,7 @@ const SideBar = () => {
     const location = useLocation();
     const { user, token, logout } = useAuth()
     const canSeeAdminDashboard = hasAdminRole(token);
+    const { t } = useTranslation();
 
     // دالة مساعدة عشان تفحص إذا كان المسار الحالي هو نفس مسار الزرار
     const checkIsActive = (path: string) => {
@@ -50,7 +52,7 @@ const SideBar = () => {
                             <img
                                 src={user?.imageUrl}
                                 alt="Profile"
-                                className="w-20 h-20 mr-2 rounded-full border-2 border-[#0061EF] object-cover shadow-sm"
+                                className="w-20 h-20 me-2 rounded-full border-2 border-[#0061EF] object-cover shadow-sm"
                             />
                         </div>
                         <div>
@@ -67,23 +69,27 @@ const SideBar = () => {
                         className="w-full bg-[#E6F7ED] dark:bg-[#00C267]/10 hover:bg-[#d1f0dd] dark:hover:bg-[#00C267]/20 text-[#00C267] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                     >
                         <Pencil size={16} />
-                        Edit Profile
+                        {t('profile.editProfile', 'Edit Profile')}
                     </button>
                 </div>
 
                 {/* Navigation Links */}
                 <nav className="space-y-2 flex-1">
                     {/* استخدمنا checkIsActive ومررنا الـ link لكل واحدة عشان ترجع true أو false */}
-                    <MenuItem icon={BookOpen} label="My Learning" link='/profile' isActive={checkIsActive('/profile')} />
+                    <MenuItem icon={BookOpen} label={t('navigation.myLearning')} link='/profile' isActive={checkIsActive('/profile')} />
                     {canSeeAdminDashboard && (
-                        <MenuItem icon={LayoutDashboard} label="Admin Dashboard" link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
+                        <MenuItem icon={LayoutDashboard} label={t('navigation.adminDashboard')} link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
                     )}
                 </nav>
 
                 {/* Sign Out */}
-                <button className="mt-8 w-full bg-[#FEE2E2] dark:bg-red-500/10 hover:bg-[#fecaca] dark:hover:bg-red-500/20 text-[#EF4444] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm">
-                    <LogOut onClick={()=>logout()} size={18} />
-                    Sign Out
+                <button
+                    type="button"
+                    onClick={() => logout()}
+                    className="mt-8 w-full bg-[#FEE2E2] dark:bg-red-500/10 hover:bg-[#fecaca] dark:hover:bg-red-500/20 text-[#EF4444] font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+                >
+                    <LogOut size={18} />
+                    {t('navigation.signOut')}
                 </button>
             </div>
         </aside>

@@ -7,7 +7,8 @@ import {
     CodeXml,
     GithubIcon,
     Database,
-    House
+    House,
+    Globe
 } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
@@ -24,27 +25,7 @@ import { useLogin } from '../api/useLogin';
 import type { LoginFormValues } from '../schema/LoginSchmea';
 import loginSchema from '../schema/LoginSchmea';
 import { useAuth } from '../hooks/useAuth';
-
-const sliderData = [
-    {
-        id: 1,
-        image: Teamwork,
-        fullQuote: "Alone we are smart. Together we are brilliant.",
-        highlight: "brilliant"
-    },
-    {
-        id: 2,
-        image: Mind,
-        fullQuote: "Building the mind that solves the puzzle",
-        highlight: "mind"
-    },
-    {
-        id: 3,
-        image: Effort,
-        fullQuote: "Effort is the algorithm that powers your growth.",
-        highlight: "Effort"
-    }
-];
+import { useTranslation } from 'react-i18next';
 
 const BACKEND_BASE_URL = "https://neura-lms.runasp.net";
 
@@ -53,6 +34,29 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const { mutate, isPending } = useLogin();
     const { login } = useAuth();
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const newLang = i18n.resolvedLanguage === 'ar' ? 'en' : 'ar';
+        i18n.changeLanguage(newLang);
+    };
+    const sliderData = [
+        {
+            id: 1,
+            image: Teamwork,
+            fullQuote: t('auth.slides.teamwork')
+        },
+        {
+            id: 2,
+            image: Mind,
+            fullQuote: t('auth.slides.mind')
+        },
+        {
+            id: 3,
+            image: Effort,
+            fullQuote: t('auth.slides.effort')
+        }
+    ];
 
     const {
         register,
@@ -77,7 +81,7 @@ const LoginPage = () => {
                 navigate('/announcements');
             },
             onError: (error: any) => {
-                const errorMessage = error.response?.data?.errors?.[1] || "Invalid login credentials";
+                const errorMessage = error.response?.data?.errors?.[1] || t('auth.invalidCredentials');
                 setError("root", {
                     type: "manual",
                     message: errorMessage,
@@ -92,22 +96,32 @@ const LoginPage = () => {
 
                 <div className="relative px-4 lg:px-8 flex flex-col justify-center">
 
-                    <button className="inline w-fit p-2  hover:bg-gray-100 rounded-full " onClick={()=>navigate('/')}>
-                        <svg width="0" height="0" className="absolute">
-                            <defs>
-                                <linearGradient id="house-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="32%" stopColor="#4B5BE9" />
-                                    <stop offset="69%" stopColor="#3B8FC0" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
+                    <div className="flex items-center justify-between mb-4">
+                        <button className="inline w-fit p-2 hover:bg-gray-100 rounded-full" onClick={() => navigate('/')}>
+                            <svg width="0" height="0" className="absolute">
+                                <defs>
+                                    <linearGradient id="house-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="32%" stopColor="#4B5BE9" />
+                                        <stop offset="69%" stopColor="#3B8FC0" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
 
-                        <House
-                            size={40} 
-                            stroke="url(#house-gradient)"
-                            className="hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        />
-                    </button>
+                            <House
+                                size={40}
+                                stroke="url(#house-gradient)"
+                                className="hover:scale-105 transition-transform duration-300 cursor-pointer"
+                            />
+                        </button>
+
+                        <button
+                            onClick={toggleLanguage}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors font-medium text-sm"
+                        >
+                            <Globe size={18} />
+                            <span>{i18n.resolvedLanguage === 'ar' ? 'EN' : 'AR'}</span>
+                        </button>
+                    </div>
 
                     <svg width="0" height="0" className="absolute">
                         <linearGradient id="icon-gradient" x1="10%" y1="0%" x2="10%" y2="100%">
@@ -115,18 +129,18 @@ const LoginPage = () => {
                             <stop offset="60%" stopColor="#3995B9" />
                         </linearGradient>
                     </svg>
-                    <CodeXml strokeWidth={3} stroke="url(#icon-gradient)" className="hidden xl:block absolute top-12 right-[4%] w-14 h-14" />
-                    <RiBardLine fill="url(#icon-gradient)" stroke="url(#icon-gradient)" className="hidden xl:block absolute top-1/2 -left-10 w-14 h-14" />
-                    <Database stroke="url(#icon-gradient)" className="hidden xl:block absolute bottom-1 right-[2%] w-14 h-14 rotate-12" />
+                    <CodeXml strokeWidth={3} stroke="url(#icon-gradient)" className="hidden xl:block absolute top-12 end-[4%] w-14 h-14" />
+                    <RiBardLine fill="url(#icon-gradient)" stroke="url(#icon-gradient)" className="hidden xl:block absolute top-1/2 -start-10 w-14 h-14" />
+                    <Database stroke="url(#icon-gradient)" className="hidden xl:block absolute bottom-1 end-[2%] w-14 h-14 rotate-12" />
 
                     <div className="mb-10">
                         <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 text-center">
-                            Welcome back,
-                            <span className="bg-gradient-to-r from-[#5042E4] to-[#36A1B3] bg-clip-text text-transparent ml-2">
-                                Problem solver!
+                            {t('auth.welcomeBack')}
+                            <span className="bg-gradient-to-r from-[#5042E4] to-[#36A1B3] bg-clip-text text-transparent ms-2">
+                                {t('auth.problemSolver')}
                             </span>
                         </h1>
-                        <p className="text-slate-400 text-lg text-center">Develop your skills and prepare for the next challenge.</p>
+                        <p className="text-slate-400 text-lg text-center">{t('auth.loginSubtitle')}</p>
                     </div>
 
                     {errors.root && (
@@ -147,11 +161,11 @@ const LoginPage = () => {
                                 <input
                                     {...register("userNameOrEmail")}
                                     type="text"
-                                    placeholder="Username or Email"
+                                    placeholder={t('auth.usernameOrEmail')}
                                     className={`w-full bg-white rounded-full py-4 px-6 text-slate-900 outline-none border-2 transition-all ${errors.userNameOrEmail ? 'border-red-500' : 'border-transparent focus:border-blue-500'}`}
                                 />
                             </div>
-                            {errors.userNameOrEmail && <p className="text-red-500 text-sm ml-4">{errors.userNameOrEmail.message}</p>}
+                            {errors.userNameOrEmail && <p className="text-red-500 text-sm ms-4">{t(errors.userNameOrEmail.message || '')}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -159,21 +173,21 @@ const LoginPage = () => {
                                 <input
                                     {...register("password")}
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Password"
-                                    className={`w-full bg-white rounded-full py-4 px-6 text-slate-900 outline-none border-2 transition-all ${errors.password ? 'border-red-500' : 'border-transparent focus:border-blue-500'}`}
+                                    placeholder={t('auth.password')}
+                                    className={`w-full bg-white rounded-full py-4 ps-6 pe-14 text-slate-900 outline-none border-2 transition-all ${errors.password ? 'border-red-500' : 'border-transparent focus:border-blue-500'}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute end-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 >
                                     {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                                 </button>
                             </div>
                             <div className="flex justify-end">
-                                <Link to="/auth/forget-password" className="text-sm text-slate-400 hover:text-white hover:underline transition-colors">forget Password?</Link>
+                                <Link to="/auth/forget-password" className="text-sm text-slate-400 hover:text-white hover:underline transition-colors">{t('auth.forgotPassword')}</Link>
                             </div>
-                            {errors.password && <p className="text-red-500 text-sm ml-4">{errors.password.message}</p>}
+                            {errors.password && <p className="text-red-500 text-sm ms-4">{t(errors.password.message || '')}</p>}
                         </div>
 
 
@@ -185,14 +199,14 @@ const LoginPage = () => {
                             {isPending ? (
                                 <div className="flex items-center justify-center gap-2">
                                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                    Logging in...
+                                    {t('auth.loggingIn')}
                                 </div>
-                            ) : "Login"}
+                            ) : t('auth.login')}
                         </button>
 
                         <div className="relative flex items-center gap-4 py-2">
                             <div className="h-[1px] flex-1 bg-slate-800"></div>
-                            <span className="text-slate-500 text-sm">or continue with</span>
+                            <span className="text-slate-500 text-sm">{t('auth.orContinueWith')}</span>
                             <div className="h-[1px] flex-1 bg-slate-800"></div>
                         </div>
 
@@ -204,7 +218,7 @@ const LoginPage = () => {
                                 className="flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold lg:py-4 py-2 px-4 rounded-full transition-all"
                             >
                                 <img src="https://www.google.com/favicon.ico" className="w-8 h-8" alt="Google" />
-                                continue with Google
+                                {t('auth.continueWithGoogle')}
                             </button>
 
 
@@ -214,15 +228,15 @@ const LoginPage = () => {
                                 className="flex items-center justify-center gap-3 bg-[#D1D5DB] hover:bg-white text-slate-900 font-semibold lg:py-4 py-2 px-4 rounded-full transition-all"
                             >
                                 <GithubIcon className='w-8 h-8 ' />
-                                continue with GitHub
+                                {t('auth.continueWithGithub')}
                             </button>
                         </div>
 
-                        <div className="absolute -bottom-10 left-0 w-full overflow-hidden leading-[0] pointer-events-none rounded-full">
+                        <div className="absolute -bottom-10 inset-x-0 w-full overflow-hidden leading-[0] pointer-events-none rounded-full">
                             <svg
                                 viewBox="0 0 600 150"
                                 preserveAspectRatio="none"
-                                className="w-full h-[110px] rounded-full ml-8 "
+                                className="w-full h-[110px] rounded-full ms-8 "
                             >
                                 <defs>
                                     <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -244,7 +258,7 @@ const LoginPage = () => {
                     </form>
 
                     <button onClick={() => navigate('/auth/signup')} className="mt-10 text-slate-400 text-center z-10">
-                        Not a member? <span className="bg-gradient-to-r from-[#5042E4] to-[#38B7DE] bg-clip-text text-transparent font-bold hover:underline cursor-pointer">Register now</span>
+                        {t('auth.notMember')} <span className="bg-gradient-to-r from-[#5042E4] to-[#38B7DE] bg-clip-text text-transparent font-bold hover:underline cursor-pointer">{t('auth.registerNow')}</span>
                     </button>
                 </div>
 
@@ -273,18 +287,7 @@ const LoginPage = () => {
 
                                         <div className="text-center px-6 mb-10">
                                             <h2 className="text-4xl font-medium text-white leading-snug mt-6">
-                                                {slide.fullQuote.split(new RegExp(`(${slide.highlight})`, 'gi')).map((part, index) =>
-                                                    part.toLowerCase() === slide.highlight.toLowerCase() ? (
-                                                        <span
-                                                            key={index}
-                                                            className="bg-[linear-gradient(90deg,_#5CE1E6_52%,_#279EC2)] bg-clip-text text-transparent"
-                                                        >
-                                                            {part}
-                                                        </span>
-                                                    ) : (
-                                                        <span key={index}>{part}</span>
-                                                    )
-                                                )}
+                                                {slide.fullQuote}
                                             </h2>
                                         </div>
                                     </div>
