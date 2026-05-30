@@ -6,6 +6,7 @@ import {
     getLessonArticle,
     completeCourse,
     completeLesson,
+    getNextLesson,
 } from './coursePlayerApi';
 
 // ================= Course =================
@@ -25,6 +26,14 @@ export const useGetCourseMetadata = (courseId: string) =>
         enabled: !!courseId,
         staleTime: 1000 * 60 * 5,
         retry: 1,
+    });
+
+export const useGetNextLesson = (courseId: string) =>
+    useQuery({
+        queryKey: ['nextLesson', courseId],
+        queryFn: () => getNextLesson(courseId),
+        enabled: !!courseId,
+        retry: false,
     });
                                                                                                                                                             
 // ================= Lesson: Video =================

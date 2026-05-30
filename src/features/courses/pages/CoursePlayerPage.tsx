@@ -16,6 +16,7 @@ import {
     useGetCourseMetadata,
     useGetLessonArticle,
     useCompleteLesson,
+    useGetNextLesson,
 } from '../api/useCoursePlayer';
 
 // ================= Types =================
@@ -56,6 +57,7 @@ export default function CoursePlayerPage() {
         activeLessonType === 'article' ? activeLessonId : null
     );
     const { mutate: markLessonComplete } = useCompleteLesson(courseId!);
+    const { data: nextLessonData, isLoading: isNextLessonLoading } = useGetNextLesson(courseId!);
 
     // ================= Flat lessons for prev/next navigation =================
     const flatLessons = useMemo<FlatLesson[]>(() => {
@@ -103,15 +105,24 @@ export default function CoursePlayerPage() {
         }
     }, [courseContent, serverInitialized]);
 
-    // ================= Auto-select FIRST lesson on initial load =================
+    // ================= Auto-select FIRST or NEXT lesson on initial load =================
     useEffect(() => {
-        if (activeLessonId === null && flatLessons.length > 0) {
-            const first = flatLessons[0];
-            setActiveLessonId(String(first.id));
-            setActiveLessonTitle(first.title);
-            setActiveLessonType(getLessonType(first.type));
+        if (activeLessonId === null && flatLessons.length > 0 && !isNextLessonLoading) {
+            let initialLesson = flatLessons[0];
+            
+            if (nextLessonData) {
+                const nextId = String(nextLessonData.lessonId || nextLessonData.id || nextLessonData);
+                const found = flatLessons.find(l => String(l.id) === nextId);
+                if (found) {
+                    initialLesson = found;
+                }
+            }
+
+            setActiveLessonId(String(initialLesson.id));
+            setActiveLessonTitle(initialLesson.title);
+            setActiveLessonType(getLessonType(initialLesson.type));
         }
-    }, [flatLessons, activeLessonId]);
+    }, [flatLessons, activeLessonId, isNextLessonLoading, nextLessonData]);
 
     const currentFlatIndex = flatLessons.findIndex(l => l.id === activeLessonId);
 

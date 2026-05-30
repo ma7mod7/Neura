@@ -29,10 +29,15 @@ export const completeCourse = async (courseId: string) => {
 
 export const completeLesson = async (lessonId: string) => {
     try {
-        const res = await axiosInstance.post(`/api/Lessons/${lessonId}/complete`);
+        const res = await axiosInstance.post(`/api/LessonProgres/lessons/${lessonId}/complete`);
         return res.data;
     } catch {
         // Endpoint may not exist on all backends — fail silently
         return null;
     }
+};
+
+export const getNextLesson = async (courseId: string) => {
+    const res = await axiosInstance.get(`/api/LessonProgres/courses/${courseId}/next-lesson`);
+    return res.data;
 };
