@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 import Footer from '../../../shared/components/footerauth';
 import AnnouncementCard from '../components/AnnouncementCard';
+import AnnouncementSkeleton from '../components/AnnouncementSkeleton';
 import NavBar from '../../../shared/components/NavBar';
 import { useRef, useState } from 'react';
 // ⭐ استيراد مكتبة التمرير اللانهائي
@@ -89,8 +90,10 @@ const AnnouncementsPage = () => {
           </div>
 
           {isLoading && (
-            <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin text-blue-600" size={40} />
+            <div className="space-y-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <AnnouncementSkeleton key={i} />
+              ))}
             </div>
           )}
           

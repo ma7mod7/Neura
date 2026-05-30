@@ -4,6 +4,7 @@ import AchievementsImg from '../../../assets/Achievements.png';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import CourseCard from '../../../shared/components/CourseCard';
+import CourseCardSkeleton from '../../../shared/components/CourseCardSkeleton';
 import Footer from '../../../shared/components/footerauth';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ const CoursesPage = () => {
 
     const {
         data: coursesData,
+        isLoading
     } = useGetCourses(page);
 
     return (
@@ -65,27 +67,33 @@ const CoursesPage = () => {
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-8">{t('courses.allCourses')}</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {coursesData?.items?.map((course: any) => (
-                                <CourseCard
-                                    key={course.keyId ?? ''}
-                                    course={{
-                                        keyId: course.keyId,
-                                        imageUrl: course.imageUrl,
-                                        tags: course.tags || [],
-                                        title: course.title,
-                                        instructorName: course.instructorName,
-                                        totalReviews: course.totalReviews,
-                                        hours: course.hours,
-                                        price: course.price,
-                                        isEnrolled: course.isEnrolled,
-                                        isBookmarked: course.isBookmarked,
-                                        isEnrollmentOpen: course.isEnrollmentOpen,
-                                        numberOfLessons: course.numberOfLessons,
-                                        rating: course.rating,
-                                        progressPercentage: course.progressPercentage,
-                                    }}
-                                />
-                            ))}
+                            {isLoading ? (
+                                Array.from({ length: 6 }).map((_, index) => (
+                                    <CourseCardSkeleton key={index} />
+                                ))
+                            ) : (
+                                coursesData?.items?.map((course: any) => (
+                                    <CourseCard
+                                        key={course.keyId ?? ''}
+                                        course={{
+                                            keyId: course.keyId,
+                                            imageUrl: course.imageUrl,
+                                            tags: course.tags || [],
+                                            title: course.title,
+                                            instructorName: course.instructorName,
+                                            totalReviews: course.totalReviews,
+                                            hours: course.hours,
+                                            price: course.price,
+                                            isEnrolled: course.isEnrolled,
+                                            isBookmarked: course.isBookmarked,
+                                            isEnrollmentOpen: course.isEnrollmentOpen,
+                                            numberOfLessons: course.numberOfLessons,
+                                            rating: course.rating,
+                                            progressPercentage: course.progressPercentage,
+                                        }}
+                                    />
+                                ))
+                            )}
                         </div>
                     </section>
 

@@ -27,6 +27,7 @@ import { useGetInstById } from '../../../shared/api/useGetInsApi';
 import { useGetCourseReviews, useAddCourseReview } from '../api/useCourseReviews';
 import { useGetCoursesContent } from '../api/useGetAllCourses';
 import useEnroll from '../api/useEnrolle';
+import CourseDetailsSkeleton from '../components/CourseDetailsSkeleton';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 
@@ -88,10 +89,10 @@ const CourseDetailsPage = () => {
 
 
     // --- Data Fetching ---
-    const { data: CourseContent } = useGetCoursesContent(courseId!);
-    const { data: courseMetaData } = useGetCourseMetaDataById(courseId!);
+    const { data: CourseContent, isLoading: isContentLoading } = useGetCoursesContent(courseId!);
+    const { data: courseMetaData, isLoading: isMetaDataLoading } = useGetCourseMetaDataById(courseId!);
     const { mutate: Bookmarked, isPending: bookMarkPending } = useBookMark();
-    const { data: InstructorData } = useGetInstById(courseId!);
+    const { data: InstructorData, isLoading: isInstructorLoading } = useGetInstById(courseId!);
 
     // --- Reviews Fetching & Mutation ---
     const { data: reviewsData } = useGetCourseReviews(courseId!);
@@ -159,6 +160,10 @@ const CourseDetailsPage = () => {
 
         mutate(courseId);
     };
+
+    if (isContentLoading || isMetaDataLoading || isInstructorLoading) {
+        return <CourseDetailsSkeleton />;
+    }
 
 
     return (
