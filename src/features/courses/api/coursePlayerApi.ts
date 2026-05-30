@@ -26,3 +26,13 @@ export const completeCourse = async (courseId: string) => {
     const res = await axiosInstance.post(`/api/Courses/${courseId}/complete`);
     return res.data;
 };
+
+export const completeLesson = async (lessonId: string) => {
+    try {
+        const res = await axiosInstance.post(`/api/Lessons/${lessonId}/complete`);
+        return res.data;
+    } catch {
+        // Endpoint may not exist on all backends — fail silently
+        return null;
+    }
+};

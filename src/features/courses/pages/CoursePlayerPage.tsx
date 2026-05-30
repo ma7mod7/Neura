@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, CheckSquare, Square } from 'lucide-react';
 import Footer from '../../../shared/components/footerauth';
 // ====== Components ======
 import CourseContentSidebar from '../components/CourseContentSidebar';
@@ -15,6 +15,7 @@ import {
     useGetCourseContent,
     useGetCourseMetadata,
     useGetLessonArticle,
+    useCompleteLesson,
 } from '../api/useCoursePlayer';
 
 // ================= Types =================
@@ -32,7 +33,6 @@ function getLessonType(raw: string | number | undefined): 'video' | 'article' | 
     const s = String(raw).toLowerCase().trim();
     if (s === 'article' || s === '2') return 'article';
     if (s === 'quiz' || s === '3') return 'quiz';
-    
     return 'video';
 }
 
@@ -47,6 +47,7 @@ export default function CoursePlayerPage() {
     const [activeLessonType, setActiveLessonType] = useState<'video' | 'article' | 'quiz'>('video');
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
     const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
+    const [serverInitialized, setServerInitialized] = useState(false);
 
     // ================= Data Fetching =================
     const { data: courseContent, isLoading: contentLoading } = useGetCourseContent(courseId!);
@@ -54,15 +55,14 @@ export default function CoursePlayerPage() {
     const { data: articleData, isLoading: articleLoading } = useGetLessonArticle(
         activeLessonType === 'article' ? activeLessonId : null
     );
+    const { mutate: markLessonComplete } = useCompleteLesson(courseId!);
 
     // ================= Flat lessons for prev/next navigation =================
     const flatLessons = useMemo<FlatLesson[]>(() => {
         if (!courseContent?.sections) return [];
-        
-        return courseContent.sections.flatMap((section: any, sectionIndex: string|number) => {
+        return courseContent.sections.flatMap((section: any, sectionIndex: string | number) => {
             const lessonsArray = section.lessons || section.items || section.sectionItems || [];
-            
-            return lessonsArray.map((lesson: any, lessonIndex: string|number) => ({
+            return lessonsArray.map((lesson: any, lessonIndex: string | number) => ({
                 id: String(lesson.id),
                 title: lesson.title,
                 type: lesson.type,
@@ -72,20 +72,36 @@ export default function CoursePlayerPage() {
         });
     }, [courseContent]);
 
-    // ================= Sections=================
+    // ================= Sections with completed state =================
     const sectionsWithState = useMemo(() => {
         if (!courseContent?.sections) return [];
-        
         return courseContent.sections.map((section: any) => ({
             ...section,
             lessons: (section.lessons || section.items || []).map((lesson: any) => ({
                 ...lesson,
                 id: String(lesson.id),
                 isCompleted: completedLessons.has(String(lesson.id)),
-                type: lesson.type 
+                type: lesson.type,
             })),
         }));
     }, [courseContent, completedLessons]);
+
+    // ================= Init completedLessons from server data (runs once) =================
+    useEffect(() => {
+        if (courseContent?.sections && !serverInitialized) {
+            const serverCompleted = new Set<string>();
+            courseContent.sections.forEach((section: any) => {
+                const lessons = section.lessons || section.items || [];
+                lessons.forEach((lesson: any) => {
+                    if (lesson.isCompleted) {
+                        serverCompleted.add(String(lesson.id));
+                    }
+                });
+            });
+            setCompletedLessons(serverCompleted);
+            setServerInitialized(true);
+        }
+    }, [courseContent, serverInitialized]);
 
     // ================= Auto-select FIRST lesson on initial load =================
     useEffect(() => {
@@ -95,13 +111,11 @@ export default function CoursePlayerPage() {
             setActiveLessonTitle(first.title);
             setActiveLessonType(getLessonType(first.type));
         }
-        console.log('flatLessons:', flatLessons.map(l => ({ id: l.id, title: l.title, type: l.type })));
     }, [flatLessons, activeLessonId]);
 
     const currentFlatIndex = flatLessons.findIndex(l => l.id === activeLessonId);
 
     // ================= Lesson click handler =================
-    // Accept a lightweight lesson like object () CourseContentSidebar or flatLessons)
     const handleLessonSelect = useCallback((lesson: { id: string | number; title: string; type?: string | number | undefined }) => {
         setActiveLessonId(String(lesson.id));
         setActiveLessonTitle(lesson.title);
@@ -122,13 +136,40 @@ export default function CoursePlayerPage() {
         if (currentFlatIndex >= flatLessons.length - 1) return;
         if (activeLessonId) {
             setCompletedLessons(prev => new Set([...prev, activeLessonId]));
+            // Persist lesson completion to the server
+            markLessonComplete(activeLessonId);
         }
         const next = flatLessons[currentFlatIndex + 1];
         handleLessonSelect(next);
-    }, [currentFlatIndex, flatLessons, activeLessonId, handleLessonSelect]);
+    }, [currentFlatIndex, flatLessons, activeLessonId, handleLessonSelect, markLessonComplete]);
+
+    // ================= Toggle completion from sidebar checkbox =================
+    const handleLessonComplete = useCallback((lessonId: string, completed: boolean) => {
+        setCompletedLessons(prev => {
+            const next = new Set(prev);
+            if (completed) {
+                next.add(lessonId);
+            } else {
+                next.delete(lessonId);
+            }
+            return next;
+        });
+        // Always persist to server (the API call ignores uncomplete for now)
+        if (completed) {
+            markLessonComplete(lessonId);
+        }
+    }, [markLessonComplete]);
+
+    // ================= Mark active lesson complete (bottom bar button) =================
+    const isActiveLessonCompleted = activeLessonId ? completedLessons.has(activeLessonId) : false;
+    const handleMarkCurrentComplete = useCallback(() => {
+        if (!activeLessonId) return;
+        handleLessonComplete(activeLessonId, !isActiveLessonCompleted);
+    }, [activeLessonId, isActiveLessonCompleted, handleLessonComplete]);
 
     const totalLessons = flatLessons.length;
     const completedCount = completedLessons.size;
+    const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
     const courseTitle = courseMetadata?.title || t('common.loading');
 
     return (
@@ -140,6 +181,7 @@ export default function CoursePlayerPage() {
                 courseId={courseId!}
                 completedCount={completedCount}
                 totalCount={totalLessons}
+                progressPercent={progressPercent}
             />
 
             {/* ====== Main Body ====== */}
@@ -161,7 +203,7 @@ export default function CoursePlayerPage() {
                             />
                         )}
 
-                        {/* ARTICLE  */}
+                        {/* ARTICLE */}
                         {activeLessonType === 'article' && (
                             <ArticleLesson
                                 articleHtml={articleData?.htmlContent ?? null}
@@ -174,15 +216,15 @@ export default function CoursePlayerPage() {
                         {activeLessonType === 'quiz' && activeLessonId && (
                             <>
                                 {console.log('Quiz lessonId passed:', activeLessonId)}
-                                <QuizLesson 
-                                    key={activeLessonId} // ⭐ التعديل هنا لحل مشكلة الكود الـ Static
-                                    lessonId={activeLessonId} 
-                                    lessonTitle={activeLessonTitle} 
+                                <QuizLesson
+                                    key={activeLessonId}
+                                    lessonId={activeLessonId}
+                                    lessonTitle={activeLessonTitle}
                                 />
                             </>
                         )}
 
-                        {/* 4. LOADING STATE */}
+                        {/* LOADING STATE */}
                         {contentLoading && (
                             <div className="w-full aspect-video bg-black flex items-center justify-center animate-pulse">
                                 <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
@@ -192,20 +234,28 @@ export default function CoursePlayerPage() {
 
                     {/* ====== Bottom Control Bar ====== */}
                     <div className="flex items-center justify-between px-6 py-3 bg-white dark:bg-[#1A1A1A] border-t border-gray-200 dark:border-[#2a2a2e]">
-                        <div className="min-w-0">
-                            {activeLessonTitle ? (
-                                <>
-                                    {/* <h2 className="text-base font-bold text-gray-800 dark:text-[#E0E0E0] truncate">
-                                        {activeLessonTitle}
-                                    </h2>
-                                    <p className="text-xs text-gray-400 dark:text-[#d0d0E0] mt-0.5 truncate">
-                                        {courseTitle}
-                                    </p> */}
-                                </>
-                            ) : (
+                        <div className="min-w-0 flex items-center gap-3">
+                            {!activeLessonTitle && (
                                 <p className="text-gray-400 dark:text-[#d0d0E0] text-sm">
                                     {contentLoading ? t('courses.loadingCourse') : t('courses.selectLesson')}
                                 </p>
+                            )}
+
+                            {/* ✅ Mark as Complete / Incomplete button */}
+                            {activeLessonId && (
+                                <button
+                                    onClick={handleMarkCurrentComplete}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-95
+                                        ${ isActiveLessonCompleted
+                                            ? 'bg-purple-100 dark:bg-purple-500/20 text-[#a435f0] hover:bg-purple-200 dark:hover:bg-purple-500/30 border border-purple-300 dark:border-purple-500/40'
+                                            : 'bg-gray-100 dark:bg-[#2a2a2e] text-gray-600 dark:text-[#d0d0E0] hover:bg-purple-50 hover:text-[#a435f0] dark:hover:bg-purple-500/10 border border-gray-200 dark:border-[#3a3a3e]'
+                                        }`}
+                                >
+                                    {isActiveLessonCompleted
+                                        ? <><CheckSquare size={15} /> <span>{t('courses.completed', { defaultValue: 'Completed' })}</span></>
+                                        : <><Square size={15} /> <span>{t('courses.markComplete', { defaultValue: 'Mark as complete' })}</span></>
+                                    }
+                                </button>
                             )}
                         </div>
 
@@ -224,36 +274,37 @@ export default function CoursePlayerPage() {
                 {/* ====== Right: Course Content Sidebar ====== */}
                 {/* Mobile overlay */}
                 {isSidebarOpen && (
-                    <div 
-                        className="md:hidden absolute inset-0 bg-black/50 z-40 transition-opacity" 
+                    <div
+                        className="md:hidden absolute inset-0 bg-black/50 z-40 transition-opacity"
                         onClick={() => setIsSidebarOpen(false)}
                     />
                 )}
-                
+
                 <div className={`
                     absolute md:relative ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} top-0 bottom-0 z-50
                     w-[85vw] sm:w-[340px] shrink-0 flex-col border-gray-200 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden
                     transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none
                     ${isSidebarOpen ? 'translate-x-0 flex' : `${isRtl ? '-translate-x-full' : 'translate-x-full'} md:hidden`}
                 `}>
-                        {contentLoading ? (
-                            <div className="flex flex-col h-full bg-white dark:bg-[#1A1A1A] p-4 space-y-3">
-                                {[...Array(8)].map((_, i) => (
-                                    <div key={i} className="h-12 bg-gray-100 dark:bg-[#2a2a2e] rounded animate-pulse" />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="flex-1 overflow-y-auto">
-                                <CourseContentSidebar
-                                    sections={sectionsWithState}
-                                    activeLessonId={activeLessonId}
-                                    onLessonSelect={handleLessonSelect}
-                                    onClose={() => setIsSidebarOpen(false)}
-                                    courseTitle={courseTitle}
-                                />
-                            </div>
-                        )}
-                    </div>
+                    {contentLoading ? (
+                        <div className="flex flex-col h-full bg-white dark:bg-[#1A1A1A] p-4 space-y-3">
+                            {[...Array(8)].map((_, i) => (
+                                <div key={i} className="h-12 bg-gray-100 dark:bg-[#2a2a2e] rounded animate-pulse" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex-1 overflow-y-auto">
+                            <CourseContentSidebar
+                                sections={sectionsWithState}
+                                activeLessonId={activeLessonId}
+                                onLessonSelect={handleLessonSelect}
+                                onLessonComplete={handleLessonComplete}
+                                onClose={() => setIsSidebarOpen(false)}
+                                courseTitle={courseTitle}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
 
             <Footer />

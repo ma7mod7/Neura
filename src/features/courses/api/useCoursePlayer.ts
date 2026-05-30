@@ -5,6 +5,7 @@ import {
     getLessonVideoLink,
     getLessonArticle,
     completeCourse,
+    completeLesson,
 } from './coursePlayerApi';
 
 // ================= Course =================
@@ -53,6 +54,17 @@ export const useCompleteCourse = (courseId: string) => {
         mutationFn: () => completeCourse(courseId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['courseMetadata', courseId] });
+        },
+    });
+};
+
+export const useCompleteLesson = (courseId: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (lessonId: string) => completeLesson(lessonId),
+        onSuccess: () => {
+            // Refetch course content so lesson isCompleted flags are up-to-date
+            queryClient.invalidateQueries({ queryKey: ['courseContent', courseId] });
         },
     });
 };

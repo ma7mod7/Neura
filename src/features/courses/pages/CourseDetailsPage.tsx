@@ -15,7 +15,8 @@ import {
     X,
     Edit3,
     FileText,
-    Lock
+    Lock,
+    TrendingUp
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '../../../shared/components/Footer';
@@ -106,6 +107,14 @@ const CourseDetailsPage = () => {
         if (bookMarkPending) return;
         Bookmarked(courseId!);
     };
+
+    // --- Progress calculation (for enrolled users) ---
+    const allLessons = CourseContent?.sections?.flatMap((s: any) => s.lessons || []) || [];
+    const completedLessonsCount = allLessons.filter((l: any) => l.isCompleted).length;
+    const totalLessonsCount = allLessons.length;
+    const progressPercent = totalLessonsCount > 0
+        ? Math.round((completedLessonsCount / totalLessonsCount) * 100)
+        : 0;
 
     const toggleSection = (id: number) => {
         setOpenSection(openSection === id ? null : id);
@@ -208,6 +217,15 @@ const CourseDetailsPage = () => {
                                     <Clock size={18} />
                                     <span className="dark:text-[#d0d0E0]">{t('courseDetails.totalHours', { count: CourseContent?.totalHours || 0 })}</span>
                                 </div>
+                                {/* Progress badge for enrolled users */}
+                                {courseMetaData?.isEnrolled && totalLessonsCount > 0 && (
+                                    <div className="flex items-center gap-2 bg-purple-500/20 border border-purple-400/30 rounded-full px-3 py-1">
+                                        <TrendingUp size={14} className="text-purple-300" />
+                                        <span className="text-purple-200 font-semibold text-xs">
+                                            {progressPercent}% {t('courses.complete', { defaultValue: 'complete' })}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -398,22 +416,47 @@ const CourseDetailsPage = () => {
                                 </div>
 
                                 {courseMetaData?.isEnrolled ? (
-                                    <div className='flex justify-center items-center gap-4'>
-                                        <button onClick={() => navigate(`/courses/${courseId}/learn`)} className="w-full mt-8 bg-[#0061EF] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg dark:shadow-sm shadow-blue-200">
-                                            {t('courses.goToCourse')}
-                                        </button>
-                                        <button
-                                            onClick={handleAddBookmark}
-                                            className={`mt-6 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 ${courseMetaData.isBookmarked
-                                                ? 'bg-[#0066FF] text-white'
-                                                : 'bg-white/90 dark:bg-[#2a2a2e] backdrop-blur-sm text-slate-400 hover:text-[#0066FF]'
-                                                }`}
-                                        >
-                                            <Bookmark
-                                                size={16}
-                                                fill={courseMetaData.isBookmarked ? "currentColor" : "none"}
-                                            />
-                                        </button>
+                                    <div className='flex flex-col gap-3'>
+                                        {/* Progress Bar */}
+                                        {totalLessonsCount > 0 && (
+                                            <div className="mt-6">
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <span className="text-xs font-semibold text-slate-600 dark:text-[#d0d0E0] flex items-center gap-1">
+                                                        <TrendingUp size={13} className="text-purple-500" />
+                                                        {t('courses.yourProgress', { defaultValue: 'Your Progress' })}
+                                                    </span>
+                                                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
+                                                        {progressPercent}%
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-2 bg-slate-200 dark:bg-[#2a2a2e] rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-purple-500 to-purple-700 rounded-full transition-all duration-700"
+                                                        style={{ width: `${progressPercent}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                                                    {completedLessonsCount}/{totalLessonsCount} {t('courseDetails.lessons', { count: totalLessonsCount })}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className='flex justify-center items-center gap-4'>
+                                            <button onClick={() => navigate(`/courses/${courseId}/learn`)} className="w-full mt-2 bg-[#0061EF] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg dark:shadow-sm shadow-blue-200">
+                                                {t('courses.goToCourse')}
+                                            </button>
+                                            <button
+                                                onClick={handleAddBookmark}
+                                                className={`mt-2 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 ${courseMetaData.isBookmarked
+                                                    ? 'bg-[#0066FF] text-white'
+                                                    : 'bg-white/90 dark:bg-[#2a2a2e] backdrop-blur-sm text-slate-400 hover:text-[#0066FF]'
+                                                    }`}
+                                            >
+                                                <Bookmark
+                                                    size={16}
+                                                    fill={courseMetaData.isBookmarked ? "currentColor" : "none"}
+                                                />
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
                                     <button onClick={() => handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
@@ -421,7 +464,6 @@ const CourseDetailsPage = () => {
                                     </button>
                                 )}
                             </div>
-
                         </div>
                     </div>
                 </div>

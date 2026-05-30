@@ -1,4 +1,4 @@
-import { ArrowLeft, } from 'lucide-react';
+import { ArrowLeft, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -8,14 +8,22 @@ interface PlayerHeaderProps {
     rating?: number;
     completedCount: number;
     totalCount: number;
+    progressPercent: number;
 }
 
 export default function PlayerHeader({
     courseTitle,
-    
+    completedCount,
+    totalCount,
+    progressPercent,
 }: PlayerHeaderProps) {
     const navigate = useNavigate();
     const { t } = useTranslation();
+
+    // SVG ring constants
+    const radius = 11;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference * (1 - progressPercent / 100);
 
     return (
         <header className="h-14 flex items-center justify-between px-4 bg-[#1c1d1f] dark:bg-[#0e0e10] border-b border-[#3e4143] dark:border-[#2a2a2e] shrink-0 z-30">
@@ -37,39 +45,43 @@ export default function PlayerHeader({
                 </span>
             </div>
 
-            {/* ====== Right: Progress + Certificate ====== */}
+            {/* ====== Right: Progress Ring ====== */}
             <div className="flex items-center gap-3 shrink-0">
 
                 {/* Progress Ring + Label */}
-                {/* <div className="hidden sm:flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <div className="relative w-7 h-7">
                         <svg className="w-7 h-7 -rotate-90" viewBox="0 0 28 28">
-                            <circle cx="14" cy="14" r="11" fill="none" stroke="#3e4143" strokeWidth="2.5" />
+                            {/* Background track */}
                             <circle
-                                cx="14" cy="14" r="11"
+                                cx="14" cy="14" r={radius}
+                                fill="none"
+                                stroke="#3e4143"
+                                strokeWidth="2.5"
+                            />
+                            {/* Progress arc */}
+                            <circle
+                                cx="14" cy="14" r={radius}
                                 fill="none"
                                 stroke="#a435f0"
                                 strokeWidth="2.5"
-                                strokeDasharray={`${2 * Math.PI * 11}`}
-                                strokeDashoffset={`${2 * Math.PI * 11 * (1 - progressPercent / 100)}`}
+                                strokeDasharray={`${circumference}`}
+                                strokeDashoffset={`${strokeDashoffset}`}
                                 strokeLinecap="round"
                                 className="transition-all duration-500"
                             />
                         </svg>
                         <Trophy size={10} className="absolute inset-0 m-auto text-[#a435f0]" />
                     </div>
-                    <button className="flex items-center gap-1 text-xs font-medium text-white hover:text-gray-300 transition-colors">
-                        Your progress
-                        <ChevronDown size={13} />
-                    </button>
-                </div> */}
-
-                {/* Get Certificate */}
-                {/* <button className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-white border border-white px-3 py-1.5 rounded hover:bg-white hover:text-black transition-colors">
-                    <Trophy size={14} />
-                    Get course certificate
-                    <ChevronDown size={13} />
-                </button> */}
+                    <div className="flex flex-col leading-none">
+                        <span className="text-xs font-semibold text-white">
+                            {progressPercent}%
+                        </span>
+                        <span className="text-[10px] text-gray-400 hidden sm:inline">
+                            {completedCount}/{totalCount} {t('courses.lessonsLabel', { defaultValue: 'lessons' })}
+                        </span>
+                    </div>
+                </div>
             </div>
         </header>
     );

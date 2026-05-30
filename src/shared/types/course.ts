@@ -12,6 +12,7 @@ export interface CourseListItem {
     isEnrollmentOpen: boolean;
     isBookmarked: boolean;
     isEnrolled: boolean;
+    progressPercentage?: number;
     totalReviews: number;
     tags: Tag[];
     numberOfLessons: number;

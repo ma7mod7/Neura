@@ -19,13 +19,13 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
     const { mutate: Bookmarked, isPending: bookMarkPending } = useBookMark();
 
     const handleAddBookmark = (e: React.MouseEvent) => {
-        e.stopPropagation(); // يمنع النقر على الكارت من التداخل مع زر الـ Bookmark
+        e.stopPropagation();
         if (bookMarkPending) return;
         Bookmarked(course.keyId);
     };
 
     const handleEnroll = (e: React.MouseEvent) => {
-        e.stopPropagation(); // يمنع النقر على الكارت من التداخل مع زر الـ Enroll
+        e.stopPropagation();
         Enrollment(course.keyId);
     };
 
@@ -34,25 +34,42 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
     };
 
     return (
-        <div 
+        <div
             onClick={handleCardClick}
             className="bg-[#F6FAFF] dark:bg-[#1A1A1A] w-full rounded-[1rem] cursor-pointer overflow-hidden shadow-md border border-[#0061EF] dark:border-[#0061EF]/40 flex flex-col h-full transition-all duration-300 ease-in-out hover:scale-[1.03] hover:shadow-xl"
         >
-            <div className="relative aspect-video ">
-                <img src={course.imageUrl} alt={course.title} className="w-full h-full object-cover p-3 rounded-[1.5rem] " />
+            <div className="relative aspect-video">
+                <img src={course.imageUrl} alt={course.title} className="w-full h-full object-cover p-3 rounded-[1.5rem]" />
                 <button
                     onClick={handleAddBookmark}
                     disabled={bookMarkPending}
                     className={`absolute top-5 end-5 p-2 rounded-full shadow-md transition-all duration-300 active:scale-90 z-10 ${isBookmarked
-                        ? 'bg-[#0066FF] text-white' // Active state
-                        : 'bg-white/90 dark:bg-[#2a2a2e]/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]' // Inactive state
+                        ? 'bg-[#0066FF] text-white'
+                        : 'bg-white/90 dark:bg-[#2a2a2e]/90 backdrop-blur-sm text-slate-400 hover:text-[#0066FF]'
                         }`}
                 >
                     <Bookmark
                         size={16}
-                        fill={isBookmarked ? "currentColor" : "none"} // Fills the icon when active
+                        fill={isBookmarked ? "currentColor" : "none"}
                     />
                 </button>
+
+                {/* Progress bar overlay for enrolled courses */}
+                {isEnrolled && course.progressPercentage !== undefined && (
+                    <div className="absolute bottom-3 left-3 right-3 z-10">
+                        <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-[10px] font-semibold text-white drop-shadow">
+                                {course.progressPercentage}% complete
+                            </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden backdrop-blur-sm">
+                            <div
+                                className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-500"
+                                style={{ width: `${course.progressPercentage}%` }}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="p-5 flex flex-col flex-1">
@@ -91,18 +108,18 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({ course }: { course: 
                     </div>
                 </div>
 
-                <div className="lg:mt-auto flex items-center justify-between ">
+                <div className="lg:mt-auto flex items-center justify-between">
                     <div className="flex gap-2">
                         <span className="font-bold text-slate-900 dark:text-white">
                             {course.price === 0 ? t('common.free') : (course.isEnrolled ? t('courses.goToCourse') : t('courses.price', { price: course.price }))}
                         </span>
                         <span className="flex items-center">
-                            <ArrowUpRight size={24} className="bg-blue-600 rounded-full text-white p-1"/>
+                            <ArrowUpRight size={24} className="bg-blue-600 rounded-full text-white p-1" />
                         </span>
                     </div>
-                    <button 
-                        onClick={handleEnroll} 
-                        disabled={isPending || isEnrolled} 
+                    <button
+                        onClick={handleEnroll}
+                        disabled={isPending || isEnrolled}
                         className={`text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white transition-all z-10 ${isEnrolled ? 'cursor-not-allowed bg-green-500 text-white border-green-500 hover:bg-green-500' : 'cursor-pointer'}`}
                     >
                         {isPending

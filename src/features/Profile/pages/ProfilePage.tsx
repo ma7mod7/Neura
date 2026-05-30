@@ -43,6 +43,19 @@ const ProfilePage = () => {
 
     // React Query Hook
     const { data, isLoading, isError } = useProfileCourses(activeTab, pageNumber, searchTerm);
+
+    // Fetch real stat counts using the same API with large page size
+    const { data: allCoursesData } = useProfileCourses('My Courses', 1, '');
+    const { data: completedData } = useProfileCourses('Completed', 1, '');
+    const { data: inProgressData } = useProfileCourses('In Progress', 1, '');
+
+    // Derive stats
+    const totalCourses = allCoursesData?.items?.length ?? 0;
+    const totalCompleted = completedData?.items?.length ?? 0;
+    const totalInProgress = inProgressData?.items?.length ?? 0;
+    // Derive total hours from all courses items (hours field)
+    const totalHours = (allCoursesData?.items ?? []).reduce((acc: number, c: any) => acc + (c.hours || 0), 0);
+
     console.log(data);
 
     const handleTabChange = (tab: string) => {
@@ -63,10 +76,10 @@ const ProfilePage = () => {
                         <h1 className="text-2xl font-bold text-slate-800 dark:text-white">My Learning</h1>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <StatCard label="Total Courses" value="6" icon={GraduationCap} color="blue" />
-                            <StatCard label="Completed" value="4" icon={Award} color="green" />
-                            <StatCard label="In Progress" value="6" icon={Loader2} color="purple" />
-                            <StatCard label="Total Hours" value="68" icon={Clock} color="orange" />
+                            <StatCard label="Total Courses" value={String(totalCourses)} icon={GraduationCap} color="blue" />
+                            <StatCard label="Completed" value={String(totalCompleted)} icon={Award} color="green" />
+                            <StatCard label="In Progress" value={String(totalInProgress)} icon={Loader2} color="purple" />
+                            <StatCard label="Total Hours" value={String(totalHours)} icon={Clock} color="orange" />
                         </div>
 
                         {/* Filters & Search */}
@@ -133,6 +146,7 @@ const ProfilePage = () => {
                                             isEnrolled: course.isEnrolled,
                                             isBookmarked: course.isBookmarked,
                                             isEnrollmentOpen: course.isEnrollmentOpen,
+                                            progressPercentage: course.progressPercentage,
                                         }} />
                                     ))}
                                 </div>

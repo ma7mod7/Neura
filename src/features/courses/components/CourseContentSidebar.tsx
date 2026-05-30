@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
     ChevronDown, ChevronUp,
-    PlaySquare, 
+    PlaySquare,
     X, CheckSquare, Square,
     HelpCircle, FileText
 } from 'lucide-react';
@@ -28,6 +28,7 @@ interface CourseContentSidebarProps {
     sections: Section[];
     activeLessonId: string | null;
     onLessonSelect: (lesson: Lesson) => void;
+    onLessonComplete: (lessonId: string, completed: boolean) => void;
     onClose: () => void;
     courseTitle: string;
 }
@@ -44,22 +45,6 @@ function LessonIcon({ type }: { type: string | number | undefined }) {
     return <PlaySquare size={13} className="text-blue-500 shrink-0" />;
 }
 
-// ================= Duration formatter =================
-// function formatDuration(raw?: string): string {
-//     if (!raw) return '';
-//     if (raw.includes('min') || raw.includes('hr') || raw.includes('sec')) return raw;
-//     const parts = raw.split(':');
-//     if (parts.length === 3) {
-//         const hours = parseInt(parts[0], 10);
-//         const minutes = parseInt(parts[1], 10);
-//         const seconds = Math.floor(parseFloat(parts[2]));
-//         if (hours > 0) return `${hours}hr ${minutes}min`;
-//         if (minutes > 0) return `${minutes}min`;
-//         if (seconds > 0) return `${seconds}s`;
-//     }
-//     return raw;
-// }
-
 function formatTotalMinutes(minutes: number | undefined, t: TFunction): string {
     if (!minutes) return '';
     const h = Math.floor(minutes / 60);
@@ -73,17 +58,15 @@ export default function CourseContentSidebar({
     sections,
     activeLessonId,
     onLessonSelect,
+    onLessonComplete,
     onClose,
 }: CourseContentSidebarProps) {
     const [openSections, setOpenSections] = useState<Set<number>>(new Set([0]));
     const { t } = useTranslation();
-    
-    // ⭐ إضافة الـ Query Client للتحكم في الكاش
-    const queryClient = useQueryClient();
 
     // ⭐ إجبار الكومبوننت الأب إنه يعمل ريفريش للداتا من الباك إند أول ما السايد بار يفتح
+    const queryClient = useQueryClient();
     useEffect(() => {
-        // بيفضي الكاش بتاع محتوى الكورس عشان يجيب التعديلات الجديدة فوراً
         queryClient.invalidateQueries({ queryKey: ['course-content'] });
     }, [queryClient]);
 
@@ -149,40 +132,50 @@ export default function CourseContentSidebar({
                                     {section.lessons.map((lesson) => {
                                         const isActive = lesson.id === activeLessonId;
                                         return (
-                                            <button
+                                            <div
                                                 key={lesson.id}
-                                                onClick={() => onLessonSelect(lesson)}
                                                 className={`w-full flex items-start gap-3 px-4 py-3 text-start transition-colors border-b border-gray-100 dark:border-[#2a2a2e] last:border-0
                                                     ${isActive
                                                         ? 'bg-purple-50 dark:bg-purple-500/10 border-s-2 border-s-[#a435f0]'
                                                         : 'hover:bg-gray-50 dark:hover:bg-[#2a2a2e]'
                                                     }`}
                                             >
-                                                {/* Checkbox */}
-                                                <span className={`mt-0.5 shrink-0 ${lesson.isCompleted ? 'text-[#a435f0]' : 'text-gray-400 dark:text-[#d0d0E0]'}`}>
+                                                {/* ✅ Clickable Checkbox — toggling completion */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onLessonComplete(lesson.id, !lesson.isCompleted);
+                                                    }}
+                                                    title={lesson.isCompleted ? t('courses.markIncomplete', { defaultValue: 'Mark as incomplete' }) : t('courses.markComplete', { defaultValue: 'Mark as complete' })}
+                                                    className={`mt-0.5 shrink-0 transition-all duration-200 rounded hover:scale-110 active:scale-95 focus:outline-none
+                                                        ${lesson.isCompleted
+                                                            ? 'text-[#a435f0] hover:text-purple-700'
+                                                            : 'text-gray-400 dark:text-[#d0d0E0] hover:text-[#a435f0]'
+                                                        }`}
+                                                >
                                                     {lesson.isCompleted
-                                                        ? <CheckSquare size={15} />
-                                                        : <Square size={15} />}
-                                                </span>
+                                                        ? <CheckSquare size={16} />
+                                                        : <Square size={16} />}
+                                                </button>
 
-                                                {/* Info */}
-                                                <div className="flex  min-w-0">
-                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                        <LessonIcon type={lesson.type} />
-                                                        {lesson.duration && (
-                                                            <span className="text-xs text-gray-400 dark:text-[#d0d0E0]">
-                                                                
-                                                            </span>
-                                                        )}
+                                                {/* Lesson title — clicking navigates */}
+                                                <button
+                                                    onClick={() => onLessonSelect(lesson)}
+                                                    className="flex-1 flex min-w-0 text-start"
+                                                >
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                                            <LessonIcon type={lesson.type} />
+                                                        </div>
+                                                        <p className={`text-sm leading-snug ${isActive
+                                                            ? 'font-semibold text-[#a435f0]'
+                                                            : 'text-gray-700 dark:text-[#d0d0E0]'}`}
+                                                        >
+                                                            {lesson.title}
+                                                        </p>
                                                     </div>
-                                                    <p className={`text-sm leading-snug ${isActive
-                                                        ? 'font-semibold text-[#a435f0]'
-                                                        : 'text-gray-700 dark:text-[#d0d0E0]'}`}
-                                                    >
-                                                        {lesson.title}
-                                                    </p>
-                                                </div>
-                                            </button>
+                                                </button>
+                                            </div>
                                         );
                                     })}
                                 </div>
