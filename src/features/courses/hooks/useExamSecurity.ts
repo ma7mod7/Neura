@@ -12,6 +12,7 @@ export const useExamSecurity = ({
     attemptId,
 }: UseExamSecurityProps) => {
     const [violationCount, setViolationCount] = useState(0);
+    const [isBlurred, setIsBlurred] = useState(false);
     const examContainerRef = useRef<HTMLDivElement>(null);
 
     // Use refs for mutable values to avoid stale closure issues
@@ -30,6 +31,7 @@ export const useExamSecurity = ({
         if (!isActive) {
             violationCountRef.current = 0;
             setViolationCount(0);
+            setIsBlurred(false);
         }
     }, [isActive]);
 
@@ -73,11 +75,14 @@ export const useExamSecurity = ({
                 reportViolation(currentAttemptId, 'CopyPasteAttempt', `Keyboard: Ctrl+${e.key.toUpperCase()}`);
                 toast.error('🚫 Copy/paste is not allowed during the exam.', { duration: 3000 });
             }
-            if (e.key === 'PrintScreen') {
+            if (
+                e.key === 'PrintScreen' || 
+                (e.metaKey && e.shiftKey && ['s', '3', '4', '5'].includes(e.key.toLowerCase()))
+            ) {
                 e.preventDefault();
                 const currentAttemptId = attemptIdRef.current;
                 if (currentAttemptId) {
-                    reportViolation(currentAttemptId, 'CopyPasteAttempt', 'PrintScreen key');
+                    reportViolation(currentAttemptId, 'ScreenshotAttempt', 'Screenshot shortcut detected');
                     toast.error('🚫 Screenshots are not allowed during the exam.', { duration: 3000 });
                 }
             }
@@ -119,26 +124,35 @@ export const useExamSecurity = ({
         // Primary: visibilitychange — fires when tab becomes hidden
         const handleVisibilityChange = () => {
             if (document.hidden) {
+                setIsBlurred(true);
                 recordTabViolation('Tab became hidden (visibilitychange)');
+            } else {
+                setIsBlurred(false);
             }
         };
 
         // Backup: window blur — fires when browser window loses focus (alt-tab, new tab, etc.)
         const handleWindowBlur = () => {
-            // Only trigger if the document isn't already hidden (to avoid double-counting with visibilitychange)
+            setIsBlurred(true);
             if (!document.hidden) {
                 recordTabViolation('Window lost focus (blur)');
             }
         };
 
+        const handleWindowFocus = () => {
+            setIsBlurred(false);
+        };
+
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('blur', handleWindowBlur);
+        window.addEventListener('focus', handleWindowFocus);
 
         console.log('🛡️ Exam security: Tab switch detection ACTIVE (attemptId:', attemptIdRef.current, ')');
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('blur', handleWindowBlur);
+            window.removeEventListener('focus', handleWindowFocus);
             console.log('🛡️ Exam security: Tab switch detection DEACTIVATED');
         };
     }, [isActive]);
@@ -147,6 +161,7 @@ export const useExamSecurity = ({
 
     return {
         violationCount,
+        isBlurred,
         examContainerRef,
     };
 };

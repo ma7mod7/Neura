@@ -41,6 +41,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [acceptedRules, setAcceptedRules] = useState(false);
+    const [isCheckingCamera, setIsCheckingCamera] = useState(false);
     const {user}=useAuth()
     
     // Timer States
@@ -178,10 +179,23 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     });
 
     // ⭐ Anti-cheating: copy/paste prevention + tab switch detection (warn only, no auto-submit)
-    const { violationCount, examContainerRef } = useExamSecurity({
+    const { violationCount, isBlurred, examContainerRef } = useExamSecurity({
         isActive: started && !isSubmitting && !isRedirecting,
         attemptId: attemptId,
     });
+
+    const handleStartWithCameraCheck = async () => {
+        setIsCheckingCamera(true);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(track => track.stop());
+            setIsCheckingCamera(false);
+            startExam();
+        } catch (error) {
+            setIsCheckingCamera(false);
+            toast.error(t('quiz.cameraRequiredError', 'Camera access is required to take this exam. Please allow camera permissions.'));
+        }
+    };
 
     // --- Absolute Timer Tick Logic ---
     useEffect(() => {
@@ -302,15 +316,15 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
                             {t('quiz.goBack')}
                         </button>
                         <button
-                            onClick={() => startExam()}
-                            disabled={!acceptedRules || isStarting}
+                            onClick={handleStartWithCameraCheck}
+                            disabled={!acceptedRules || isStarting || isCheckingCamera}
                             className={`flex-1 px-6 py-3.5 font-bold rounded-xl text-white transition-all ${
-                                !acceptedRules || isStarting
+                                !acceptedRules || isStarting || isCheckingCamera
                                     ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
                                     : 'bg-[#0061EF] hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-500/25'
                             }`}
                         >
-                            {isStarting ? t('quiz.starting') : t('quiz.startExam')}
+                            {isStarting || isCheckingCamera ? t('quiz.starting') : t('quiz.startExam')}
                         </button>
                     </div>
                 </div>
@@ -369,7 +383,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
     return (
-        <div ref={examContainerRef} className="w-full bg-white dark:bg-[#1A1A1A] px-4 py-8" style={{ userSelect: 'none' }}>
+        <div ref={examContainerRef} className={`w-full bg-white dark:bg-[#1A1A1A] px-4 py-8 transition-all duration-300 ${isBlurred ? 'blur-md grayscale opacity-50 pointer-events-none select-none' : ''}`} style={{ userSelect: 'none' }}>
             <div className="max-w-3xl mx-auto mb-8 bg-slate-50 dark:bg-[#0e0e10] border border-slate-200 dark:border-[#2a2a2e] rounded-2xl p-5 sticky top-4 z-10 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                     <h3 className="font-bold text-slate-800 dark:text-[#E0E0E0]">{examInfo?.title || lessonTitle}</h3>
