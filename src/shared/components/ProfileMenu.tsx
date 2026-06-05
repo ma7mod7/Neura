@@ -5,6 +5,7 @@ import {
     Moon,
     Sun,
     Globe,
+    BarChart2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
@@ -40,6 +41,12 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             path: '/profile',
             isActive: false
         },
+        {
+        label: t('navigation.analysis', 'Analysis'),
+        icon: BarChart2,
+        path: '/analysis',
+        isActive: false
+       },
         ...(canSeeAdminDashboard ? [{
             label: t('navigation.adminDashboard'),
             icon: LayoutDashboard,

@@ -3,6 +3,7 @@ import {
     LogOut,
     Pencil,
     LayoutDashboard,
+    BarChart2,
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -77,6 +78,7 @@ const SideBar = () => {
                 <nav className="space-y-2 flex-1">
                     {/* استخدمنا checkIsActive ومررنا الـ link لكل واحدة عشان ترجع true أو false */}
                     <MenuItem icon={BookOpen} label={t('navigation.myLearning')} link='/profile' isActive={checkIsActive('/profile')} />
+                    <MenuItem icon={BarChart2} label={t('navigation.analysis', 'Analysis')} link='/analysis' isActive={checkIsActive('/analysis')} />
                     {canSeeAdminDashboard && (
                         <MenuItem icon={LayoutDashboard} label={t('navigation.adminDashboard')} link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
                     )}

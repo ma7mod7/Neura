@@ -16,7 +16,8 @@
     "adminDashboard": "Admin Dashboard",
     "theme": "Theme",
     "language": "Language",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "analysis": "Analysis"
   },
   "profile": {
     "editProfile": "Edit Profile"
@@ -235,5 +236,50 @@
     "courseList": "Course List",
     "backToCourses": "Back to Courses",
     "backToMainPlatform": "Back to Main Platform"
-  }
+  },
+  "analysis": {
+  "performanceOverview": "Your performance overview",
+  "hello": "Hello",
+  "classDashboard": "Class dashboard",
+  "welcomeBack": "Welcome back",
+  "selectExam": "Select exam",
+  "noExamsFound": "No exams found",
+  "noExamsStudent": "Enroll in a course that has exams to see your analytics here.",
+  "noExamsInstructor": "Create a course with quiz/exam lessons to see analytics here.",
+  "scoreOverAttempts": "Your score over attempts",
+  "examSummary": "Exam summary",
+  "yourAttempts": "Your attempts",
+  "scoreDistribution": "Score distribution",
+  "allStudentAttempts": "All student attempts",
+  "total": "total",
+  "analyticsComingSoon": "Analytics coming soon",
+  "analyticsComingSoonDesc": "Your exam data is recorded but the analytics view requires a backend update. Ask your instructor or check back later.",
+  "avgScore": "Avg score",
+  "totalAttempts": "Total attempts",
+  "passRate": "Pass rate",
+  "bestScore": "Best score",
+  "classAverage": "Class average",
+  "uniqueStudents": "Unique students",
+  "highestScore": "Highest score",
+  "exam": "Exam",
+  "lowestScore": "Lowest score",
+  "medianScore": "Median score",
+  "passed": "passed",
+  "failed": "failed",
+  "selectExamLabel": "Select exam",
+  "pickAnExam": "— pick an exam —",
+  "student": "Student",
+  "date": "Date",
+  "score": "Score",
+  "time": "Time",
+  "status": "Status",
+  "all": "All",
+  "review": "Review",
+  "noAttemptsMatch": "No attempts match this filter.",
+  "noAttemptsFound": "No attempts found.",
+  "noDataAvailable": "No data available.",
+  "students": "students",
+  "count": "Count",
+  "attempt": "Attempt"
+}
 }
