@@ -27,6 +27,7 @@ import  AuthCallback from './features/auth/components/AuthCallback';
 import ScrollToTop from './shared/components/ScrollToTop';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
+import { AnalysisPage } from './features/analysis';
 function App() {
   const { i18n } = useTranslation();
 
@@ -58,6 +59,7 @@ function App() {
           <Route path="/profile/edit" element={<ProfileEditPage />} />
           <Route path="/search-results" element={<SearchResultsPage />} />
           <Route path="/exam/:examId/results/:attemptId" element={<ExamResultsPage />} />
+          <Route path="/analysis" element={<AnalysisPage />} />
           { /* Admin Routes */}
           <Route element={<AdminRoute />}>
             <Route path="/admin/course-list" element={<CourseListDashboard />} />

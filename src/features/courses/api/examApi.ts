@@ -88,5 +88,5 @@ export const getAttemptAnalytics = async (lessonId: string, attemptId: string) =
 
 export const getScoreDistribution = async (lessonId: string) => {
     const res = await axiosInstance.get(`/api/exams/${lessonId}/analytics/score-distribution`);
-    return res.data;
+    return res.data?.buckets ?? res.data;
 };
