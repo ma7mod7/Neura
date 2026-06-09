@@ -1,5 +1,5 @@
 
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery, useQueries, type UseQueryResult } from '@tanstack/react-query';
 import {
   getEditableCourses,
   getEnrolledCourses,
@@ -12,7 +12,7 @@ const EXAM_LESSON_TYPE = 'Quiz';
 // ─── Helper
 function flattenExams(
   courses: { id: string; title: string }[],
-  contentResults: ReturnType<typeof useQueries>['0'][]
+  contentResults: UseQueryResult<unknown, unknown>[]
 ): ExamOption[] {
   const exams: ExamOption[] = [];
   contentResults.forEach((q, i) => {

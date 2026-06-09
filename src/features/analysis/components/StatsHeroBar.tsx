@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../auth/hooks/useAuth';
-import { useTranslation } from 'react-i18next';
+// import { useTranslation } from 'react-i18next';
 
 export interface StatItem { label: string; value: string; }
 
@@ -13,7 +13,7 @@ interface Props {
 
 export const StatsHeroBar: React.FC<Props> = ({ title, subtitle, stats, gradient = 'bg-[#0061EF]' }) => {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim()
     || user?.userName
     || '';

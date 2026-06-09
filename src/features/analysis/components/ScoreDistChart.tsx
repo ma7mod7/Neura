@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 const COLORS   = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#2563eb'];
 const BG_TINTS = ['#fef2f2', '#fff7ed', '#fffbeb', '#f0fdf4', '#eff6ff'];
-const DARK_TINTS = ['#7f1d1d', '#7c2d12', '#78350f', '#14532d', '#1e3a5f'];
+// const DARK_TINTS = ['#7f1d1d', '#7c2d12', '#78350f', '#14532d', '#1e3a5f'];
 
 interface Props { data: ScoreDistributionItem[]; loading?: boolean; }
 
