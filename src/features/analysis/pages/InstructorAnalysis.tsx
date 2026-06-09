@@ -126,7 +126,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
               <div className="flex items-center justify-between mb-1">
                 <SectionTitle>{t('analysis.allStudentAttempts')}</SectionTitle>
                 {!attemptsLoading && (
-                  <span className="text-sm text-gray-400 dark:text-gray-500 mb-4">${attempts.length} ${t('analysis.total')}</span>
+                  <span className="text-sm text-gray-400 dark:text-gray-500 mb-4">{attempts.length} {t('analysis.total')}</span>
                 )}
               </div>
               <AttemptsTable
