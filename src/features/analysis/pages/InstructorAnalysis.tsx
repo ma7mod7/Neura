@@ -58,9 +58,9 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
   const { data: attemptsApiRaw,  isLoading: attemptsLoading  } = useExamAttempts(selectedExamId);
   const { data: distributionRaw, isLoading: distLoading      } = useScoreDistribution(selectedExamId);
 
-  const attemptsRaw  = Array.isArray(attemptsApiRaw)  ? attemptsApiRaw  : (attemptsApiRaw  as any)?.attempts ?? (attemptsApiRaw  as any)?.items ?? attemptsApiRaw;
-  const attempts     = Array.isArray(attemptsRaw)     ? attemptsRaw     : [];
-  const distribution = Array.isArray(distributionRaw) ? distributionRaw : [];
+  const attemptsRaw = (attemptsApiRaw as any)?.attempts ?? [];
+  const attempts = Array.isArray(attemptsRaw) ? attemptsRaw : [];
+  const distribution = Array.isArray(distributionRaw)  ? distributionRaw : (distributionRaw as any)?.buckets ?? [];
 
   const heroStats = analytics
     ? [

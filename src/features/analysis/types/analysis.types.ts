@@ -26,26 +26,29 @@ export interface ExamAnalytics {
 }
 
 export interface ScoreDistributionItem {
-  range: string;
+  range: string | null;
   count: number;
+  percentage: number;
 }
 
 export interface AttemptSummary {
-  scorePercentage?: number;
-  timeTakenInSeconds?: number;
-  attemptId: string;
-  studentId: string;
-  studentName: string;
+  attemptId: number;
+  userId: string | null;
+  studentName: string | null;
+  studentEmail: string | null;
   score: number;
-  maxScore: number;
+  scorePercentage: number;
+  totalPoints: number;
   passed: boolean;
+  status: string | null;
   startedAt: string;
-  submittedAt: string;
-  timeTakenMinutes: number;
+  submittedAt: string | null;
+  durationInSeconds: number | null;
+  violationCount: number;
 }
 
 export interface EditableCourse {
   id: string;
   title: string;
-  role: 'Admin' | 'Instructor';
+  role: 'Owner' | 'CoInstructor';
 }

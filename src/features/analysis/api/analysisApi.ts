@@ -5,13 +5,16 @@ export { getCourseContent } from '../../courses/api/coursePlayerApi';
 
 // ─── Instruct
 export const getEditableCourses = async (): Promise<EditableCourse[]> => {
-  const res = await axiosInstance.get('/api/Courses/my/editable');
-  const raw: { keyId?: string; id?: string; title: string; role: string }[] =
-    res.data ?? [];
+  const res = await axiosInstance.get('/api/Courses/my/editable', {
+  params: { pageNumber: 1, pageSize: 100 }
+});
+  console.log('editable courses raw:', JSON.stringify(res.data, null, 2));
+  const raw: { keyId?: string; id?: string; title: string; roleName: string }[] =
+    res.data?.courses?.items ?? [];
   return raw.map((c) => ({
     id: c.keyId ?? c.id ?? '',
     title: c.title,
-    role: c.role as 'Admin' | 'Instructor',
+    role: c.roleName as 'Owner' | 'CoInstructor',
   }));
 };
 

@@ -4,8 +4,7 @@ import { getTokenRoles } from '../../../utils/jwt';
 import { StudentAnalysis }    from './StudentAnalysis';
 import { InstructorAnalysis } from './InstructorAnalysis';
 
-const INSTRUCTOR_ROLES = new Set(['instructor', 'admin', 'superadmin', 'super-admin', 'Instructor', 'Admin']);
-
+const INSTRUCTOR_ROLES = new Set(['instructor', 'admin', 'superadmin', 'super-admin', 'Instructor', 'Admin', 'SuperAdmin']);
 const AnalysisPage: React.FC = () => {
   const { user, token } = useAuth();
 
@@ -22,8 +21,10 @@ const AnalysisPage: React.FC = () => {
   }
 
   const roles = getTokenRoles(token);
+  console.log('JWT roles:', roles);
+  console.log('user:', user);
+  console.log('token:', token);
   const isInstructor = roles.some((r) => INSTRUCTOR_ROLES.has(r));
-
   const displayName =
     [user.firstName, user.lastName].filter(Boolean).join(' ').trim()
     || user.userName

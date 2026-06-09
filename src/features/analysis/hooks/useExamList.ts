@@ -9,7 +9,7 @@ import type { ExamOption } from '../types/analysis.types';
 
 const EXAM_LESSON_TYPE = 'Quiz'; 
 
-// ─── Helper: flatten content queries into ExamOption[] ───────────────────────
+// ─── Helper
 function flattenExams(
   courses: { id: string; title: string }[],
   contentResults: ReturnType<typeof useQueries>['0'][]
@@ -36,7 +36,7 @@ function flattenExams(
   return exams;
 }
 
-// ─── Instructor ──────────────────────────────
+// ─── Instructor 
 export function useInstructorExamList() {
   const coursesQuery = useQuery({
     queryKey: ['editableCourses'],
@@ -62,7 +62,7 @@ export function useInstructorExamList() {
   return { exams, isLoading, isError };
 }
 
-// ─── Student: courses they are enrolled in ───────────────────────────────────
+// ─── Student
 export function useStudentExamList() {
   const coursesQuery = useQuery({
     queryKey: ['enrolledCourses'],

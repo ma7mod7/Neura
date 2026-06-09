@@ -29,10 +29,17 @@ export function useExamAttempts(examId: string | null) {
 export function useScoreDistribution(examId: string | null) {
   return useQuery({
     queryKey: ['scoreDistribution', examId],
-    queryFn: () => getScoreDistribution(examId!),
+    queryFn: async () => {
+      try {
+        return await getScoreDistribution(examId!);
+      } catch (err: any) {
+        if (err?.response?.status === 404) return { buckets: [] };
+        throw err;
+      }
+    },
     enabled: !!examId,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
+    retry: false,
   });
 }
 

@@ -280,6 +280,8 @@
   "noDataAvailable": "No data available.",
   "students": "students",
   "count": "Count",
-  "attempt": "Attempt"
+  "attempt": "Attempt",
+  "noDistributionData": "No distribution data yet.",
+  "SearchStudentName": "Search student name..."
 }
 }

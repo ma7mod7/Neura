@@ -11,14 +11,10 @@ export const ScoreTrendChart: React.FC<Props> = ({ attempts = [], loading }) => 
   if (loading) return <div className="animate-pulse bg-gray-100 dark:bg-[#2a2a2e] rounded-xl h-56 w-full" />;
 
   const data: ChartPoint[] = [...attempts]
-    .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime())
+    .sort((a, b) => new Date(a.submittedAt ?? a.startedAt).getTime() - new Date(b.submittedAt ?? b.startedAt).getTime())
     .map((a, i) => ({
       label: `${t('analysis.attempt')} ${i + 1}`,
-      score: (a as any).scorePercentage != null
-      ? Math.round((a as any).scorePercentage)
-      : a.maxScore > 0
-        ? Math.round((a.score / a.maxScore) * 100)
-        : 0,
+     score: Math.round(a.scorePercentage ?? 0),
       passed: a.passed,
     }));
 

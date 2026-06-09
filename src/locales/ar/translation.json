@@ -284,6 +284,8 @@
   "noDataAvailable": "لا توجد بيانات متاحة.",
   "students": "طلاب",
   "count": "العدد",
-  "attempt": "محاولة"
+  "attempt": "محاولة",
+  "noDistributionData": "لا توجد بيانات توزيع بعد.",
+  "SearchStudentName": "ابحث عن اسم الطالب..."
   }
 }

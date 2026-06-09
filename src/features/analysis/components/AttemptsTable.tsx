@@ -64,7 +64,7 @@ export const AttemptsTable: React.FC<Props> = ({ attempts = [], loading, showStu
         {showStudent && (
           <input
             type="text"
-            placeholder="Search student name…"
+            placeholder={t('analysis.SearchStudentName')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-200 dark:border-[#2a2a2e] rounded-xl px-3 py-2 text-sm
@@ -95,28 +95,22 @@ export const AttemptsTable: React.FC<Props> = ({ attempts = [], loading, showStu
             </thead>
             <tbody>
               {filtered.map((a) => {
-                const pct = a.scorePercentage != null
-                    ? Math.round(a.scorePercentage)
-                    : a.maxScore > 0
-                      ? Math.round((a.score / a.maxScore) * 100)
-                      : 0;
+                const pct = Math.round(a.scorePercentage ?? 0);
                 return (
                   <tr key={a.attemptId} className="border-b border-gray-50 dark:border-[#2a2a2e] hover:bg-gray-50/60 dark:hover:bg-[#2a2a2e]/40 transition-colors">
                     {showStudent && (
                       <td className="py-3 pr-4 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{a.studentName}</td>
                     )}
                     <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {new Date(a.submittedAt).toLocaleDateString()}
+                      {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : '—'}
                     </td>
                     <td className="py-3 pr-4">
                       <span className={`font-bold ${pctColor(pct)}`}>{pct}%</span>
                     </td>
                     <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      {a.timeTakenMinutes
-                        ? `${a.timeTakenMinutes}m`
-                        : (a as any).timeTakenInSeconds
-                          ? `${Math.round((a as any).timeTakenInSeconds / 60)}m`
-                          : '—'}
+                      {a.durationInSeconds
+                        ? `${Math.round(a.durationInSeconds / 60)}m`
+                        : '—'}
                     </td>
                     <td className="py-3 pr-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
