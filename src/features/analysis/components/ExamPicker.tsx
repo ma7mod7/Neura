@@ -1,39 +1,42 @@
-import React from 'react';
-import type { ExamOption } from '../types/analysis.types';
 import { useTranslation } from 'react-i18next';
+import type { ExamOption } from '../types/analysis.types';
+import { ChevronDown } from 'lucide-react';
 
-interface Props {
+interface ExamPickerProps {
   exams: ExamOption[];
   selected: string | null;
   onChange: (examId: string) => void;
   loading?: boolean;
 }
 
-export const ExamPicker: React.FC<Props> = ({ exams, selected, onChange, loading }) => {
+export const ExamPicker: React.FC<ExamPickerProps> = ({ exams, selected, onChange, loading }) => {
   const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="flex items-center gap-3">
-        <div className="h-4 w-20 animate-pulse bg-gray-200 dark:bg-[#2a2a2e] rounded" />
-        <div className="h-10 w-72 animate-pulse bg-gray-100 dark:bg-[#2a2a2e] rounded-xl" />
+        <div className="h-4 w-24 animate-pulse bg-slate-200 dark:bg-[#2a2a2e] rounded-lg" />
+        <div className="h-11 w-72 animate-pulse bg-slate-100 dark:bg-[#2a2a2e] rounded-2xl" />
       </div>
     );
   }
 
-  if (!exams.length) return <p className="text-sm text-gray-400 dark:text-gray-500 italic">{t('analysis.noExamsFound')}</p>;
+  if (!exams.length) {
+    return <p className="text-sm text-slate-400 dark:text-slate-500 italic">{t('analysis.noExamsFound')}</p>;
+  }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      <label htmlFor="exam-select" className="text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
-        {t('analysis.selectExamLabel')}
-      </label>
+    <div className="relative w-full sm:w-auto sm:inline-block">
       <select
         id="exam-select"
         value={selected ?? ''}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-gray-200 dark:border-[#2a2a2e] rounded-xl px-3 py-2 text-sm
-                   bg-white dark:bg-[#0e0e10] text-gray-800 dark:text-gray-200
-                   focus:outline-none focus:ring-2 focus:ring-blue-300 min-w-[260px] cursor-pointer"
+        className="appearance-none w-full sm:min-w-[300px] pl-4 pr-10 py-3 text-sm rounded-2xl
+                   border border-slate-200 dark:border-[#2a2a2e]
+                   bg-white/80 dark:bg-[#111]/80 backdrop-blur-sm
+                   text-slate-800 dark:text-slate-200
+                   focus:outline-none focus:ring-2 focus:ring-[#0061EF]/30
+                   cursor-pointer transition-all font-medium shadow-sm"
       >
         <option value="" disabled>{t('analysis.pickAnExam')}</option>
         {exams.map((ex) => (
@@ -42,6 +45,7 @@ export const ExamPicker: React.FC<Props> = ({ exams, selected, onChange, loading
           </option>
         ))}
       </select>
+      <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
     </div>
   );
 };
