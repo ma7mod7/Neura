@@ -287,5 +287,66 @@
   "attempt": "محاولة",
   "noDistributionData": "لا توجد بيانات توزيع بعد.",
   "SearchStudentName": "ابحث عن اسم الطالب..."
+  },
+  "payment": {
+    "back": "رجوع",
+    "poweredByStripe": "مدعوم بـ Stripe",
+    "securePayment": "دفع آمن",
+    "completeEnrollment": "أكمل تسجيلك الآن",
+    "oneStepAway": "خطوة واحدة تفصلك عن بدء رحلتك التعليمية",
+
+    "free": "مجاني",
+    "by": "بواسطة",
+    "rating": "التقييم",
+    "hours": "ساعات",
+    "lessons": "دروس",
+
+    "securedByStripe": "مؤمَّن بـ Stripe",
+
+    "whatYouGet": "ماذا ستحصل عليه؟",
+    "perk1": "وصول مدى الحياة للمحتوى",
+    "perk2": "شهادة إتمام معتمدة",
+    "perk3": "دعم مباشر من المدرب",
+    "perk4": "تحديثات مستمرة للمحتوى",
+
+    "orderSummary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "tax": "ضريبة القيمة المضافة",
+    "total": "الإجمالي",
+    "vatIncluded": "شامل ضريبة القيمة المضافة",
+
+    "stripeDesc": "الدفع عبر Stripe — مشفّر وآمن بالكامل",
+    "stripeSecure": "بوابة Stripe الآمنة",
+    "stripeFullDesc": "جميع المعاملات مشفّرة. لا نحتفظ ببيانات بطاقتك.",
+
+    "proceedToCheckout": "الانتقال إلى الدفع",
+    "termsNote": "بالمتابعة، فأنت توافق على شروط الخدمة وسياسة الاسترداد.",
+
+    "trust1": "مدفوعات آمنة 100%",
+    "trust2": "تشفير SSL",
+    "trust3": "بوابة موثوقة",
+    "trust4": "دعم عالمي",
+
+    "paymentMethod": "طريقة الدفع",
+
+    "redirecting": "جارٍ التحويل إلى بوابة الدفع…",
+    "redirectingDesc": "سيتم تحويلك إلى صفحة الدفع الآمنة الخاصة بـ Stripe. لا تغلق هذه الصفحة.",
+
+    "verifying": "جارٍ التحقق من الدفع…",
+    "verifyingDesc": "نتحقق من عملية الدفع مع Stripe. يرجى الانتظار لحظة.",
+
+    "successTitle": "تم التسجيل بنجاح! 🎉",
+    "successDesc": "مبروك! لقد تم تسجيلك في الدورة:",
+    "startLearning": "ابدأ التعلم الآن",
+    "browseCourses": "تصفح الدورات",
+
+    "errorTitle": "فشلت عملية الدفع",
+    "tryAgain": "حاول مرة أخرى",
+
+    "courseNotFound": "لم يتم العثور على الدورة.",
+    "noSessionUrl": "لم يتم استلام رابط جلسة الدفع.",
+    "checkoutError": "حدث خطأ أثناء إنشاء جلسة الدفع.",
+    "verifyError": "حدث خطأ أثناء التحقق من الدفع.",
+    "students": "طلاب"
   }
 }

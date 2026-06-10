@@ -157,8 +157,15 @@ const CourseDetailsPage = () => {
         lastUpdated: t('courseDetails.lastUpdatedValue'),
     };
     const handleEnroll = (courseId: string) => {
-
+    const isFree = courseMetaData?.price === 0;
+    
+    if (isFree) {
+        // Free course — enroll immediately
         mutate(courseId);
+    } else {
+        // Paid course — go to payment page
+        navigate(`/courses/${courseId}/checkout`);
+    }
     };
 
     if (isContentLoading || isMetaDataLoading || isInstructorLoading) {
@@ -464,9 +471,16 @@ const CourseDetailsPage = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <button onClick={() => handleEnroll(courseId!)} className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]">
-                                        {t('courseDetails.enrollFor', { price: courseMetaData?.price === 0 ? t('common.free') : t('courses.price', { price: courseMetaData?.price }) })}
-                                    </button>
+                                   <button
+                                        onClick={() => handleEnroll(courseId!)}
+                                        className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl
+                                                    hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]"
+                                        >
+                                        {courseMetaData?.price === 0
+                                            ? t('courseDetails.enrollFree')          
+                                            : t('courseDetails.buyNow',             
+                                                { price: t('courses.price', { price: courseMetaData?.price }) })}
+                                        </button>
                                 )}
                             </div>
                         </div>
