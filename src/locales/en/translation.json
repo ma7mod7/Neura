@@ -330,6 +330,7 @@
     "checkoutError": "Failed to initiate checkout. Please try again.",
     "verifyError": "Failed to verify payment. Please contact support.",
     "noSessionUrl": "No checkout session URL returned.",
-    "students": "Students"
+    "students": "Students",
+    "pendingPayment": "You already have a pending payment for this course. Please complete it or try again in a few minutes."
   }
 }

@@ -76,8 +76,11 @@ export default function PaymentPage() {
         }
       },
       onError: (err: Error) => {
-        setErrorMsg(err.message || t('payment.checkoutError'));
-        setStep('error');
+       const msg = err.message.includes('409') || err.message.toLowerCase().includes('pending')
+        ? t('payment.pendingPayment')  
+        : err.message || t('payment.checkoutError');
+         setErrorMsg(msg);
+         setStep('error');
       },
     });
   };

@@ -188,15 +188,10 @@ export default function ExamResultsPage() {
                                     ?.map((opt: any) => opt.text)
                                     ?.join(' , ');
 
-                                const userAnswerText = q.options
-                                    ?.filter((opt: any) =>
-                                        opt.isSelected ||
-                                        q.selectedOptionIds?.includes(opt.optionId) ||
-                                        q.selectedOptionId === opt.optionId
-                                    )
+                               const userAnswerText = q.options
+                                    ?.filter((opt: any) => opt.wasSelected)
                                     ?.map((opt: any) => opt.text)
-                                    ?.join(' , ') || q.yourAnswerText;
-
+                                    ?.join(' , ');
                                 return (
                                     <div key={q.questionId ?? i} className={`p-4 md:p-5 rounded-2xl border-2 transition-colors hover:shadow-md ${q.isCorrect ? 'border-green-100 dark:border-green-500/20 bg-green-50/30 dark:bg-green-500/5' : 'border-red-100 dark:border-red-500/20 bg-red-50/30 dark:bg-red-500/5'}`}>
                                         <div className="flex items-start gap-4">
