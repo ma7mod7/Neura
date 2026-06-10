@@ -189,7 +189,7 @@ export default function ExamResultsPage() {
                                     ?.join(' , ');
 
                                const userAnswerText = q.options
-                                    ?.filter((opt: any) => opt.wasSelected)
+                                    ?.filter((opt: any) => opt.wasSelected === true)
                                     ?.map((opt: any) => opt.text)
                                     ?.join(' , ');
                                 return (
@@ -217,7 +217,7 @@ export default function ExamResultsPage() {
                                                     <div className="p-3 rounded-xl bg-white dark:bg-[#1A1A1A] border border-slate-100 dark:border-[#2a2a2e] shadow-sm">
                                                         <span className="text-[11px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">{t('examResults.yourAnswer')}</span>
                                                         <span className={`text-sm font-semibold ${q.isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-                                                            {userAnswerText || t('examResults.noAnswer')}
+                                                            {userAnswerText ?? t('examResults.noAnswer')}
                                                         </span>
                                                     </div>
 
