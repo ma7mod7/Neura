@@ -37,7 +37,6 @@ const CommentItem = ({
   comment, 
   postId, 
   onReplySuccess,
-  userPhoto,
   isReply = false 
 }: { 
   comment: AnnouncementComment; 
@@ -83,7 +82,7 @@ const CommentItem = ({
     <div className={`group mt-3 flex ${isReply ? 'gap-2' : 'gap-3'} animate-in fade-in slide-in-from-left-2`}>
       {/* تصغير صورة الرد */}
       <img 
-        src={userPhoto} 
+        src={ comment.createdByImageUrl || comment.imageUrl || '/default-avatar.png'} 
         className={`${isReply ? 'h-6 w-6 mt-1' : 'h-8 w-8'} rounded-full border border-slate-200 dark:border-slate-700`} 
         alt="avatar" 
       />
@@ -171,7 +170,7 @@ const CommentItem = ({
                     postId={postId} 
                     onReplySuccess={onReplySuccess} 
                     isReply={true} 
-                    userPhoto={comment.createdByImageUrl}              
+                    userPhoto={reply.createdByImageUrl}              
                   />
                 ))}
               </div>

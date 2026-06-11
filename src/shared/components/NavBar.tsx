@@ -1,9 +1,8 @@
 import { Menu, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import ProfileMenu from './ProfileMenu';
 import { useState } from 'react';
 import Logo from '../../assets/logo.png'
-
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
@@ -30,6 +29,7 @@ const NavBar = () => {
         if (isOpenProfileMenu) setIsOpenProfileMenu(false);
     }
     const navigate = useNavigate();
+    const location = useLocation();
     const navLinks = [
         { name: t('navigation.home'), path: '/', active: false, action: () => navigate('/announcements') },
         { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
@@ -49,15 +49,25 @@ const NavBar = () => {
                 {/* Desktop Navigation (Hidden on Mobile) */}
                 <div className="flex items-center gap-8">
                     <div className="hidden md:flex items-center gap-6 text-slate-600 dark:text-slate-300 font-medium text-sm">
-                        {navLinks.map((link, index) => (
-                            <button
-                                key={index}
-                                onClick={link.action}
-                                className={`hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-blue-600' `}
-                            >
-                                {link.name}
-                            </button>
-                        ))}
+                        {navLinks.map((link, index) => {
+                                const isActive =
+                                    (link.path === '/' && location.pathname === '/announcements') ||
+                                    (link.path !== '/' && location.pathname.startsWith(link.path));
+
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={link.action}
+                                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                                            isActive
+                                                ? 'bg-blue-50 text-[#0061EF] dark:bg-blue-500/10 dark:text-blue-400'
+                                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1c1c1f] hover:text-[#0061EF] dark:hover:text-blue-400'
+                                        }`}
+                                    >
+                                        {link.name}
+                                    </button>
+                                );
+                            })}
                     </div>
                 </div>
 
@@ -109,8 +119,11 @@ const NavBar = () => {
                                     setIsMobileMenuOpen(false);
                                 }}
                                 className={`text-start px-4 py-3 rounded-xl font-medium transition-all 
-                                        ${index === 0
-                                        ? 'bg-blue-50 dark:bg-[#1c1c1f] text-blue-600'
+                                       ${(
+                                                (link.path === '/' && location.pathname === '/announcements') ||
+                                                (link.path !== '/' && location.pathname.startsWith(link.path))
+                                        )
+                                            ? 'bg-blue-50 dark:bg-[#1c1c1f] text-blue-600'
                                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1c1c1f] hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >

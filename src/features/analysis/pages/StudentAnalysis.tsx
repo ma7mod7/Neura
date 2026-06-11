@@ -297,8 +297,8 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
         )}
 
         {/* Exam picker */}
-        <GlassCard className="p-5">
-          <div className="flex items-center gap-3 mb-3">
+        <GlassCard className="p-5 overflow-visible">
+           <div className="flex items-center gap-3 mb-3">
             <div className="w-7 h-7 rounded-xl bg-[#0061EF]/10 dark:bg-[#0061EF]/20 flex items-center justify-center">
               <BookOpen size={13} className="text-[#0061EF]" />
             </div>

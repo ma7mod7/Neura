@@ -8,6 +8,7 @@ import PlayerHeader from '../components/PlayerHeader';
 import VideoLesson from '../components/lesson-types/VideoLesson';
 import ArticleLesson from '../components/lesson-types/ArticleLesson';
 import QuizLesson from '../components/lesson-types/QuizLesson';
+import { LessonChatbot } from '../components/LessonChatbot';
 import { useTranslation } from 'react-i18next';
 
 // ====== Hooks ======
@@ -20,7 +21,6 @@ import {
 } from '../api/useCoursePlayer';
 
 // ================= Types =================
-
 interface FlatLesson {
     id: string;
     title: string;
@@ -109,7 +109,6 @@ export default function CoursePlayerPage() {
     useEffect(() => {
         if (activeLessonId === null && flatLessons.length > 0 && !isNextLessonLoading) {
             let initialLesson = flatLessons[0];
-            
             if (nextLessonData) {
                 const nextId = String(nextLessonData.lessonId || nextLessonData.id || nextLessonData);
                 const found = flatLessons.find(l => String(l.id) === nextId);
@@ -117,7 +116,6 @@ export default function CoursePlayerPage() {
                     initialLesson = found;
                 }
             }
-
             setActiveLessonId(String(initialLesson.id));
             setActiveLessonTitle(initialLesson.title);
             setActiveLessonType(getLessonType(initialLesson.type));
@@ -136,25 +134,20 @@ export default function CoursePlayerPage() {
         }
     }, []);
 
-    // ================= Prev / Next =================
     const handlePrev = useCallback(() => {
         if (currentFlatIndex <= 0) return;
-        const prev = flatLessons[currentFlatIndex - 1];
-        handleLessonSelect(prev);
+        handleLessonSelect(flatLessons[currentFlatIndex - 1]);
     }, [currentFlatIndex, flatLessons, handleLessonSelect]);
 
     const handleNext = useCallback(() => {
         if (currentFlatIndex >= flatLessons.length - 1) return;
         if (activeLessonId) {
             setCompletedLessons(prev => new Set([...prev, activeLessonId]));
-            // Persist lesson completion to the server
             markLessonComplete(activeLessonId);
         }
-        const next = flatLessons[currentFlatIndex + 1];
-        handleLessonSelect(next);
+        handleLessonSelect(flatLessons[currentFlatIndex + 1]);
     }, [currentFlatIndex, flatLessons, activeLessonId, handleLessonSelect, markLessonComplete]);
 
-    // ================= Toggle completion from sidebar checkbox =================
     const handleLessonComplete = useCallback((lessonId: string, completed: boolean) => {
         setCompletedLessons(prev => {
             const next = new Set(prev);
@@ -165,13 +158,9 @@ export default function CoursePlayerPage() {
             }
             return next;
         });
-        // Always persist to server (the API call ignores uncomplete for now)
-        if (completed) {
-            markLessonComplete(lessonId);
-        }
+        if (completed) markLessonComplete(lessonId);
     }, [markLessonComplete]);
 
-    // ================= Mark active lesson complete (bottom bar button) =================
     const isActiveLessonCompleted = activeLessonId ? completedLessons.has(activeLessonId) : false;
     const handleMarkCurrentComplete = useCallback(() => {
         if (!activeLessonId) return;
@@ -182,6 +171,14 @@ export default function CoursePlayerPage() {
     const completedCount = completedLessons.size;
     const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
     const courseTitle = courseMetadata?.title || t('common.loading');
+
+    //  Chatbot IDs 
+    // const numericCourseId = courseContent?.numericId
+    // ?? courseContent?.id
+    // ?? courseMetadata?.numericId
+    // ?? courseMetadata?.id
+    // ?? null;
+    const showChatbot = activeLessonType !== 'quiz' && !!activeLessonId && !!courseId;
 
     return (
         <div className="flex flex-col min-h-screen bg-[#F7F9FA] dark:bg-[#0e0e10] font-sans">
@@ -198,11 +195,10 @@ export default function CoursePlayerPage() {
             {/* ====== Main Body ====== */}
             <div className="flex flex-1 overflow-hidden relative">
 
-                {/* ====== Left: Lesson Content Area ====== */}
+                {/* ====== Left: Lesson Content ====== */}
                 <div className="flex flex-col min-w-0 transition-all duration-300 flex-1 w-full">
-
                     <div className="flex-1 overflow-y-auto bg-white dark:bg-[#1A1A1A]">
-                        {/* VIDEO */}
+
                         {activeLessonType === 'video' && activeLessonId && (
                             <VideoLesson
                                 lessonId={activeLessonId}
@@ -214,7 +210,6 @@ export default function CoursePlayerPage() {
                             />
                         )}
 
-                        {/* ARTICLE */}
                         {activeLessonType === 'article' && (
                             <ArticleLesson
                                 articleHtml={articleData?.htmlContent ?? null}
@@ -223,19 +218,14 @@ export default function CoursePlayerPage() {
                             />
                         )}
 
-                        {/* QUIZ */}
                         {activeLessonType === 'quiz' && activeLessonId && (
-                            <>
-                                {console.log('Quiz lessonId passed:', activeLessonId)}
                                 <QuizLesson
                                     key={activeLessonId}
                                     lessonId={activeLessonId}
                                     lessonTitle={activeLessonTitle}
                                 />
-                            </>
                         )}
 
-                        {/* LOADING STATE */}
                         {contentLoading && (
                             <div className="w-full aspect-video bg-black flex items-center justify-center animate-pulse">
                                 <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
@@ -251,8 +241,6 @@ export default function CoursePlayerPage() {
                                     {contentLoading ? t('courses.loadingCourse') : t('courses.selectLesson')}
                                 </p>
                             )}
-
-                            {/* ✅ Mark as Complete / Incomplete button */}
                             {activeLessonId && (
                                 <button
                                     onClick={handleMarkCurrentComplete}
@@ -263,13 +251,12 @@ export default function CoursePlayerPage() {
                                         }`}
                                 >
                                     {isActiveLessonCompleted
-                                        ? <><CheckSquare size={15} /> <span>{t('courses.completed', { defaultValue: 'Completed' })}</span></>
-                                        : <><Square size={15} /> <span>{t('courses.markComplete', { defaultValue: 'Mark as complete' })}</span></>
+                                        ? <><CheckSquare size={15} /><span>{t('courses.completed', { defaultValue: 'Completed' })}</span></>
+                                        : <><Square size={15} /><span>{t('courses.markComplete', { defaultValue: 'Mark as complete' })}</span></>
                                     }
                                 </button>
                             )}
                         </div>
-
                         <button
                             onClick={() => setIsSidebarOpen(prev => !prev)}
                             className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-[#d0d0E0] hover:text-gray-800 dark:hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2e] shrink-0 ms-3"
@@ -282,15 +269,11 @@ export default function CoursePlayerPage() {
                     </div>
                 </div>
 
-                {/* ====== Right: Course Content Sidebar ====== */}
-                {/* Mobile overlay */}
+                {/* ====== Right: Sidebar ====== */}
                 {isSidebarOpen && (
-                    <div
-                        className="md:hidden absolute inset-0 bg-black/50 z-40 transition-opacity"
-                        onClick={() => setIsSidebarOpen(false)}
-                    />
+                    <div className="md:hidden absolute inset-0 bg-black/50 z-40 transition-opacity"
+                        onClick={() => setIsSidebarOpen(false)} />
                 )}
-
                 <div className={`
                     absolute md:relative ${isRtl ? 'left-0 border-r' : 'right-0 border-l'} top-0 bottom-0 z-50
                     w-[85vw] sm:w-[340px] shrink-0 flex-col border-gray-200 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden
@@ -319,6 +302,16 @@ export default function CoursePlayerPage() {
             </div>
 
             <Footer />
+
+            {/* ====== AI Chatbot  ====== */}
+            {showChatbot && (
+                <LessonChatbot
+                    courseId={courseId ?? ''}
+                    lessonId={Number(activeLessonId)}
+                    lessonTitle={activeLessonTitle}
+                />
+            )}
+
         </div>
     );
 }
