@@ -85,7 +85,7 @@ export const SearchBar = () => {
                     <div className="flex items-center gap-8 shrink-0">
                         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/announcements')}>
                             <img src={Logo} alt="Neura Logo" className="h-12 rounded-full w-auto object-contain" />
-                            <span className="text-xl font-bold tracking-tight text-[#0061EF] hidden sm:block">NEURA</span>
+                            <span className="text-xl font-black tracking-tight text-[#0061EF] hidden sm:block">Neura</span>
                         </div>
 
                         {/* ⭐ عرض الروابط في الشاشات الكبيرة */}

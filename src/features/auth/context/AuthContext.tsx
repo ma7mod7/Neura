@@ -51,19 +51,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const login = (authData: AuthResponse) => {
-        const { token, refreshToken, expiresin, ...userData } = authData;
-    
-        const expirationTime = new Date().getTime() + (expiresin * 1000); 
+    const { token, refreshToken, expiresin, ...userData } = authData;
 
-        setToken(token);
-        setUser(userData as User);
+    const normalizedUser: User = {
+        ...userData,
+        userName: (userData as any).username ?? userData.userName,
+    };
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('tokenExpiration', expirationTime.toString()); 
+    const expirationTime = new Date().getTime() + (expiresin * 1000);
 
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setToken(token);
+    setUser(normalizedUser);  
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    localStorage.setItem('tokenExpiration', expirationTime.toString());
+
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
 
     // 2. بناء دالة updateUser لتحديث الـ State والـ localStorage معاً
@@ -112,8 +117,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             try {
                 const parsedUser = JSON.parse(storedUser);
+                const normalizedUser: User = {
+                    ...parsedUser,
+                    userName: parsedUser.username ?? parsedUser.userName, 
+                };
                 setToken(storedToken);
-                setUser(parsedUser);
+                setUser(normalizedUser);
                 axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             } catch (error) {
                 console.error("Error parsing user from storage", error);

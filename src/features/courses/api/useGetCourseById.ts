@@ -6,7 +6,8 @@ export interface Tag {
     name: string;
 }
 export interface CourseMetaData {
-
+    id?: number;      
+    keyId?: string; 
     title: string;
     description: string;
     imageUrl: string;
@@ -59,6 +60,7 @@ export interface sectionDetails {
 
 }
 export interface CourseContent {
+    id?: number;
     hours: number;
     keyId: string|null;
     sections: sectionDetails[];

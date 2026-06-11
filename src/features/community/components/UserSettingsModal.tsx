@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { X, User, Palette, Bell, Shield, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/hooks/useAuth';
+import ThemeToggle from '../../../shared/components/ThemeToggle';
+
+interface UserSettingsModalProps {
+    onClose: () => void;
+    currentUserName: string;
+    currentUserAvatar?: string;
+}
+
+const TABS = [
+    { id: 'account', label: 'My Account', icon: User },
+    { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'privacy', label: 'Privacy & Safety', icon: Shield },
+];
+
+export default function UserSettingsModal({ onClose, currentUserName, currentUserAvatar }: UserSettingsModalProps) {
+    const [activeTab, setActiveTab] = useState('account');
+    const { user, logout } = useAuth();   
+    const navigate = useNavigate();
+    const location = useLocation();
+    console.log('user object:', user);
+    const handleLogout = () => {
+    logout();
+    navigate(location.state?.from ?? '/', { replace: true });
+};
+
+    return (
+        <div className="fixed inset-0 z-50 flex bg-black/60 backdrop-blur-sm" onClick={onClose}>
+            <div className="flex w-full h-full" onClick={e => e.stopPropagation()}>
+                {/* Tabs sidebar */}
+                <div className="w-60 bg-slate-100 dark:bg-[#1c1c1f] flex flex-col py-12 px-3 ml-auto">
+                    <p className="text-xs font-bold uppercase text-slate-400 px-3 mb-2">User Settings</p>
+                    {TABS.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium mb-1 transition-colors ${
+                                    activeTab === tab.id
+                                        ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#2a2a2e]'
+                                }`}
+                            >
+                                <Icon size={16} /> {tab.label}
+                            </button>
+                        );
+                    })}
+                    <div className="mt-auto border-t border-slate-200 dark:border-[#2a2a2e] pt-3">
+                       <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 w-full">
+                            <LogOut size={16} /> Log Out
+                        </button>
+                    </div>
+                </div>
+
+                {/* Content panel */}
+                <div className="flex-1 max-w-2xl bg-white dark:bg-[#2a2a2e] py-12 px-10 relative">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-12 right-10 text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-full p-1.5"
+                    >
+                        <X size={18} />
+                    </button>
+
+                    {activeTab === 'account' && (
+                            <div>
+                                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">My Account</h2>
+                                <div className="bg-slate-50 dark:bg-[#1c1c1f] rounded-lg overflow-hidden">
+                                    <div className="h-20 bg-blue-600" />
+                                    <div className="px-4 pb-4">
+                                        <img
+                                            src={currentUserAvatar}
+                                            alt="avatar"
+                                            className="w-20 h-20 rounded-full border-4 border-white dark:border-[#1c1c1f] -mt-10"
+                                        />
+                                        <p className="font-bold text-lg text-slate-900 dark:text-white mt-2">{currentUserName}</p>
+
+                                        <div className="mt-4 space-y-3">
+                                            <div className="flex justify-between items-center bg-white dark:bg-[#2a2a2e] rounded-md px-4 py-3">
+                                                <div>
+                                                    <p className="text-xs text-slate-400 uppercase font-bold">Username</p>
+                                                    <p className="text-sm text-slate-900 dark:text-white">{user?.userName}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center bg-white dark:bg-[#2a2a2e] rounded-md px-4 py-3">
+                                                <div>
+                                                    <p className="text-xs text-slate-400 uppercase font-bold">Email</p>
+                                                    <p className="text-sm text-slate-900 dark:text-white">{user?.email}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center bg-white dark:bg-[#2a2a2e] rounded-md px-4 py-3">
+                                                <div>
+                                                    <p className="text-xs text-slate-400 uppercase font-bold">Discord Handle</p>
+                                                    <p className="text-sm text-slate-900 dark:text-white">
+                                                        {user?.discordHandle || <span className="text-slate-400 italic">Not set</span>}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    )}
+
+                    {activeTab === 'appearance' && (
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Appearance</h2>
+                            <div className="flex items-center justify-between bg-slate-50 dark:bg-[#1c1c1f] rounded-md px-4 py-3">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white">Theme</p>
+                                    <p className="text-xs text-slate-400">Switch between light and dark mode</p>
+                                </div>
+                                <ThemeToggle />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Notifications</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Notification settings coming soon.</p>
+                        </div>
+                    )}
+
+                    {activeTab === 'privacy' && (
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Privacy & Safety</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Privacy settings coming soon.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

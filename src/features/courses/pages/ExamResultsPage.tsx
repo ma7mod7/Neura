@@ -46,7 +46,9 @@ export default function ExamResultsPage() {
     const score = Math.round(results.scorePercentage ?? results.score ?? 0);
     const correctCount = results.questions?.filter((q: any) => q.isCorrect).length ?? 0;
     const totalCount = results.questions?.length ?? 0;
-    const timeTaken = results.timeTakenInSeconds ?? results.durationSeconds ?? null;
+    const timeTaken = results.startedAt && results.submittedAt
+    ? Math.round((new Date(results.submittedAt).getTime() - new Date(results.startedAt).getTime()) / 1000)
+    : results.timeTakenInSeconds ?? results.durationSeconds ?? null;
 
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60);
