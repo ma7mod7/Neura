@@ -2,6 +2,29 @@ import { useState, useEffect, useCallback } from 'react';
 import { getMessages, editMessage, deleteMessage } from '../api/messagesApi';
 import type { MessageDto } from '../types/communityTypes';
 
+type MessageCache = {
+    messages: MessageDto[];
+    hasMore: boolean;
+    nextCursor: number | null;
+};
+
+const CACHE_PREFIX = 'msg_cache_';
+
+function readCache(channelId: number): MessageCache | null {
+    try {
+        const raw = localStorage.getItem(CACHE_PREFIX + channelId);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeCache(channelId: number, data: MessageCache) {
+    try {
+        localStorage.setItem(CACHE_PREFIX + channelId, JSON.stringify(data));
+    } catch {}
+}
+
 export function useMessages(channelId: number | null) {
     const [messages, setMessages] = useState<MessageDto[]>([]);
     const [loading, setLoading] = useState(false);
@@ -10,9 +33,17 @@ export function useMessages(channelId: number | null) {
     const [nextCursor, setNextCursor] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Load initial messages 
     useEffect(() => {
         if (!channelId) return;
+
+        const cached = readCache(channelId);
+        if (cached) {
+            setMessages(cached.messages);
+            setHasMore(cached.hasMore);
+            setNextCursor(cached.nextCursor);
+            return;
+        }
+
         setMessages([]);
         setNextCursor(null);
         setHasMore(false);
@@ -21,21 +52,35 @@ export function useMessages(channelId: number | null) {
 
         getMessages(channelId, { pageSize: 50 })
             .then(data => {
-                setMessages(data.messages ?? []);
+                const msgs = data.messages ?? [];
+                setMessages(msgs);
                 setHasMore(data.hasMore);
                 setNextCursor(data.nextCursor);
+                writeCache(channelId, {
+                    messages: msgs,
+                    hasMore: data.hasMore,
+                    nextCursor: data.nextCursor,
+                });
             })
             .catch(() => setError('Failed to load messages'))
             .finally(() => setLoading(false));
     }, [channelId]);
 
-    // Load older messages
     const loadMore = useCallback(async () => {
         if (!channelId || !hasMore || loadingMore || !nextCursor) return;
         setLoadingMore(true);
         try {
             const data = await getMessages(channelId, { before: nextCursor, pageSize: 50 });
-            setMessages(prev => [...(data.messages ?? []), ...prev]);
+            const older = data.messages ?? [];
+            setMessages(prev => {
+                const merged = [...older, ...prev];
+                writeCache(channelId, {
+                    messages: merged,
+                    hasMore: data.hasMore,
+                    nextCursor: data.nextCursor,
+                });
+                return merged;
+            });
             setHasMore(data.hasMore);
             setNextCursor(data.nextCursor);
         } catch {
@@ -45,25 +90,45 @@ export function useMessages(channelId: number | null) {
         }
     }, [channelId, hasMore, loadingMore, nextCursor]);
 
-    // Called when a new message arrives
     const appendMessage = useCallback((msg: MessageDto) => {
-        setMessages(prev => [...prev, msg]);
-    }, []);
+        setMessages(prev => {
+            const updated = [...prev, msg];
+            if (channelId) {
+                const cached = readCache(channelId);
+                writeCache(channelId, {
+                    messages: updated,
+                    hasMore: cached?.hasMore ?? false,
+                    nextCursor: cached?.nextCursor ?? null,
+                });
+            }
+            return updated;
+        });
+    }, [channelId]);
 
     const updateMessage = useCallback((messageId: number, newContent: string) => {
-        setMessages(prev =>
-            prev.map(m => m.id === messageId
+        setMessages(prev => {
+            const updated = prev.map(m => m.id === messageId
                 ? { ...m, content: newContent, editedAt: new Date().toISOString() }
                 : m
-            )
-        );
-    }, []);
+            );
+            if (channelId) {
+                const cached = readCache(channelId);
+                writeCache(channelId, { ...cached!, messages: updated });
+            }
+            return updated;
+        });
+    }, [channelId]);
 
     const removeMessage = useCallback((messageId: number) => {
-        setMessages(prev =>
-            prev.map(m => m.id === messageId ? { ...m, isDeleted: true, content: '' } : m)
-        );
-    }, []);
+        setMessages(prev => {
+            const updated = prev.map(m => m.id === messageId ? { ...m, isDeleted: true, content: '' } : m);
+            if (channelId) {
+                const cached = readCache(channelId);
+                writeCache(channelId, { ...cached!, messages: updated });
+            }
+            return updated;
+        });
+    }, [channelId]);
 
     const handleEdit = async (messageId: number, newContent: string) => {
         const result = await editMessage(messageId, newContent);
