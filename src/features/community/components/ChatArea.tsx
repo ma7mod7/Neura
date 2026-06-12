@@ -8,9 +8,11 @@ import MessageItem from './MessageItem';
 interface ChatAreaProps {
     courseId: string | null;
     channel: CommunityChannel | null;
+    currentUserAvatar?: string;
     currentUserId: string;
     currentUserName: string;
     onToggleMembers: () => void;
+    onOpenSettings?: () => void;
     showMembers: boolean;
 }
 
@@ -21,7 +23,9 @@ export default function ChatArea({
     courseId,
     currentUserId,
     onToggleMembers,
+    currentUserAvatar,
     showMembers,
+    onOpenSettings,
 }: ChatAreaProps) {
     const [messageText, setMessageText] = useState('');
     const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
@@ -195,9 +199,11 @@ const handleSend = async () => {
                         key={msg.id}
                         message={msg}
                         isOwnMessage={msg.senderId === currentUserId}
+                        currentUserAvatar={currentUserAvatar}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                         onReply={setReplyTo}
+                        onOpenSettings={onOpenSettings}
                     />
                 ))}
 

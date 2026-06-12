@@ -40,10 +40,14 @@ export default function CommunityApp() {
 
     // Auto-select first channel
     useEffect(() => {
-        if (channels.length > 0 && !channels.find(c => String(c.id) === activeChannelId)) {
-            setActiveChannelId(String(channels[0].id));
-        }
-    }, [channels, activeChannelId]);
+    if (channelsLoading) return;
+    if (channels.length > 0 && !channels.find(c => String(c.id) === activeChannelId)) {
+        setActiveChannelId(String(channels[0].id));
+    }
+    if (channels.length === 0) {
+        setActiveChannelId('');
+    }
+    }, [channels, activeChannelId, channelsLoading]);
 
     // Map ChannelDto to CommunityChannel for ChatArea
     const activeChannel: CommunityChannel | null = (() => {
@@ -112,8 +116,10 @@ export default function CommunityApp() {
                 courseId={courseId}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
+                currentUserAvatar={currentUserAvatar}
                 onToggleMembers={() => setShowMembers(v => !v)}
                 showMembers={showMembers}
+                onOpenSettings={() => setShowSettings(true)} 
             />
 
             {showMembers && (
