@@ -6,6 +6,7 @@ import { useSignalR } from '../hooks/useSignalR';
 import MessageItem from './MessageItem';
 
 interface ChatAreaProps {
+    courseId: string | null;
     channel: CommunityChannel | null;
     currentUserId: string;
     currentUserName: string;
@@ -17,6 +18,7 @@ const EMOJIS = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😢', '🙏'
 
 export default function ChatArea({
     channel,
+    courseId,
     currentUserId,
     onToggleMembers,
     showMembers,
@@ -38,6 +40,7 @@ export default function ChatArea({
     } = useMessages(channelId);
 
     const { sendMessage, connectionState } = useSignalR({
+        courseId,
         channelId,
         onMessageReceived: appendMessage,
     });
@@ -68,23 +71,24 @@ export default function ChatArea({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showEmoji]);
 
-    const handleSend = async () => {
-        const content = messageText.trim();
-        if ((!content && !attachedFile) || !channel) return;
+const handleSend = async () => {
+    const content = messageText.trim();
+    if ((!content && !attachedFile) || !channel) return;
 
+    if (attachedFile) {
+        console.log('TODO: upload attachment', attachedFile);
         // TODO upload endpoint
-        
-        if (attachedFile) {
-            console.log('TODO: upload attachment', attachedFile);
-        }
+    }
 
+    try {
+        await sendMessage(content, replyTo?.id);
         setMessageText('');
         setReplyTo(null);
         setAttachedFile(null);
-
-        // ReceiveMessage
-        await sendMessage(content, replyTo?.id);
-    };
+    } catch (err) {
+        console.error('Failed to send message:', err);
+    }
+};
 
     const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

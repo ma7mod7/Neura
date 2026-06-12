@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/hooks/useAuth';
 import type { MessageDto } from '../types/communityTypes';
 
 interface UseSignalROptions {
+    courseId: string | null;     
     channelId: number | null;
     onMessageReceived?: (msg: MessageDto) => void;
     onMessageEdited?: (messageId: number, newContent: string) => void;
@@ -15,6 +16,7 @@ export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'rec
 const HUB_URL = 'https://neura-lms.runasp.net/hubs/community';
 
 export function useSignalR({
+    courseId,
     channelId,
     onMessageReceived,
     onMessageEdited,
@@ -25,11 +27,13 @@ export function useSignalR({
     const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
 
     useEffect(() => {
-        if (!channelId || !token) return;
+        if (!courseId || !channelId || !token) return;
+
+        const url = `${HUB_URL}?courseId=${encodeURIComponent(courseId)}`;
 
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl(HUB_URL, {
-                accessTokenFactory: () => token,   
+            .withUrl(url, {
+                accessTokenFactory: () => token,
             })
             .withAutomaticReconnect()
             .configureLogging(signalR.LogLevel.Warning)
@@ -45,6 +49,15 @@ export function useSignalR({
         });
         connection.on('MessageDeleted', (messageId: number) => {
             onMessageDeleted?.(messageId);
+        });
+        connection.on('PresenceChanged', (data: unknown) => {
+            console.log('PresenceChanged:', data);
+        });
+        connection.on('UnreadNotification', (data: unknown) => {
+            console.log('UnreadNotification:', data);
+        });
+        connection.on('InitialPresenceSync', (data: unknown) => {
+            console.log('InitialPresenceSync:', data);
         });
 
         connection.onreconnecting(() => setConnectionState('reconnecting'));
@@ -70,7 +83,7 @@ export function useSignalR({
             connection.invoke('LeaveChannel', channelId).catch(() => {});
             connection.stop();
         };
-    }, [channelId, onMessageDeleted, onMessageEdited, onMessageReceived, token]);
+    }, [courseId, channelId, onMessageDeleted, onMessageEdited, onMessageReceived, token]);
 
     const sendMessage = useCallback(
         async (content: string, replyToMessageId?: number) => {

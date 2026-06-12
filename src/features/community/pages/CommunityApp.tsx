@@ -109,6 +109,7 @@ export default function CommunityApp() {
             
             <ChatArea
                 channel={activeChannel}
+                courseId={courseId}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
                 onToggleMembers={() => setShowMembers(v => !v)}
