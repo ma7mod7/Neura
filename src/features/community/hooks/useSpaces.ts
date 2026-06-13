@@ -10,7 +10,10 @@ export function useSpaces() {
     useEffect(() => {
         setLoading(true);
         getEnrolledSpaces()
-            .then(setSpaces)
+            .then(data => {
+        console.log('SPACES:', JSON.stringify(data)); 
+        setSpaces(data);
+    })
             .catch(() => setError('Failed to load courses'))
             .finally(() => setLoading(false));
     }, []);
