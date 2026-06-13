@@ -51,7 +51,11 @@ export function useSignalR({
     const channelIdsKey = channelIds.join(',');
 
     useEffect(() => {
-        if (!courseId || channelIds.length === 0 || !token) return;
+         console.log(' SignalR effect ran - courseId:', courseId, 'channelIds:', channelIds, 'token:', !!token);
+         if (!courseId || channelIds.length === 0 || !token) {
+        console.log(' SignalR blocked - courseId:', !!courseId, 'channels:', channelIds.length, 'token:', !!token);
+        return;
+    }
 
         let cancelled = false;
 
@@ -138,8 +142,12 @@ export function useSignalR({
 
     // Join any new channels on an existing connection
     useEffect(() => {
+        console.log(' Join effect ran - channelIdsKey:', channelIdsKey);
         const connection = connectionRef.current;
-        if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
+        if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+            console.log('Join skipped - no connection or not connected');
+            return;
+     }
         if (channelIds.length === 0) return;
 
         for (const id of channelIds) {
