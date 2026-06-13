@@ -105,6 +105,7 @@ export function useMessages(channelId: number | null) {
     }, [channelId, hasMore, loadingMore, nextCursor]);
 
     const appendMessage = useCallback((msg: MessageDto) => {
+        if (channelId && msg.channelId !== channelId) return;
         setMessages(prev => {
             // Already in list 
             if (prev.some(m => m.id === msg.id)) return prev;
