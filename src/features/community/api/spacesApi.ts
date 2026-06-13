@@ -2,6 +2,7 @@ import axiosInstance from '../../../shared/api/axiosInstance';
 import type { CommunitySpace } from '../types/communityTypes';
 
 interface EnrolledCourse {
+    id: number;
     keyId: string;
     title: string;
     imageUrl: string | null;
@@ -35,6 +36,7 @@ export async function getEnrolledSpaces(): Promise<CommunitySpace[]> {
         .filter(c => c.isEnrolled || c.isOwner)
         .map((c): CommunitySpace => ({
             id: c.keyId,
+            numericId: c.id,
             name: c.title,
             imageUrl: c.imageUrl
                 ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(c.title)}&background=0D8ABC&color=fff`,

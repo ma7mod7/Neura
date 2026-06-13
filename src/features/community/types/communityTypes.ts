@@ -23,7 +23,8 @@ export interface CommunityChannel {
 }
 
 export interface CommunitySpace {
-    id: string;         
+    id: string;        // keyId - used for API calls
+    numericId: number;
     name: string;
     imageUrl?: string;
     isPrivate: boolean;
