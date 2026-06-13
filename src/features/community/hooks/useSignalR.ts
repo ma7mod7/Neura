@@ -48,98 +48,104 @@ export function useSignalR({
     useEffect(() => { onUnreadIncrementRef.current = onUnreadIncrement; }, [onUnreadIncrement]);
     useEffect(() => { activeChannelIdRef.current = activeChannelId; }, [activeChannelId]);
 
-useEffect(() => {
-    if (!courseId || channelIds.length === 0 || !token) return;
+    const channelIdsKey = channelIds.join(',');
 
-    let cancelled = false; 
+    useEffect(() => {
+        if (!courseId || channelIds.length === 0 || !token) return;
 
-    const url = `${HUB_URL}?courseId=${encodeURIComponent(courseId)}`;
-console.log('Connecting with courseId:', courseId, 'channelIds:', channelIds);
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl(url, { accessTokenFactory: () => token })
-        .withAutomaticReconnect()
-        .configureLogging(signalR.LogLevel.Warning)
-        .build();
+        let cancelled = false;
 
-    connectionRef.current = connection;
+        const url = `${HUB_URL}?courseId=${encodeURIComponent(courseId)}`;
+        console.log('Connecting with courseId:', courseId, 'channelIds:', channelIds);
 
-    connection.on('ReceiveMessage', (msg: MessageDto) => {
-        onMessageReceivedRef.current?.(msg);
-        if (msg.channelId !== activeChannelIdRef.current) {
-            onUnreadIncrementRef.current?.(msg.channelId);
-        }
-    });
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(url, { accessTokenFactory: () => token })
+            .withAutomaticReconnect([0, 2000, 5000, 10000]) // retry intervals in ms
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
 
-    connection.on('MessageEdited', (messageId: number, newContent: string) => {
-        onMessageEditedRef.current?.(messageId, newContent);
-    });
+        connectionRef.current = connection;
 
-    connection.on('MessageDeleted', (messageId: number) => {
-        onMessageDeletedRef.current?.(messageId);
-    });
-
-    connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
-    connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
-    connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
-
-    connection.onreconnecting(() => setConnectionState('reconnecting'));
-    connection.onreconnected(async () => {
-        setConnectionState('connected');
-        for (const id of channelIdsRef.current) {
-            await connection.invoke('JoinChannel', id).catch(console.error);
-        }
-    });
-    connection.onclose((err) => {
-    console.warn('SignalR closed:', err);
-    setConnectionState('disconnected');
-});
-
-    setConnectionState('connecting');
-
-        connection.start()
-    .then(async () => {
-        if (cancelled) {
-            connection.stop();
-            return;
-        }
-        setConnectionState('connected');
-        console.log('✅ SignalR connected, joining channels:', channelIdsRef.current);
-        
-        for (const id of channelIdsRef.current) {
-            if (connection.state !== signalR.HubConnectionState.Connected) {
-                console.warn('Connection dropped before joining channel', id);
-                break;
-            }
-            try {
-                await connection.invoke('JoinChannel', id);
-                console.log('Joined channel', id);
-            } catch (err) {
-                console.error(' JoinChannel failed for', id, err);
-            }
-        }
-    })
-        .catch(err => {
-            if (!cancelled) {
-                console.error('SignalR connection failed:', err);
-                setConnectionState('disconnected');
+        connection.on('ReceiveMessage', (msg: MessageDto) => {
+            onMessageReceivedRef.current?.(msg);
+            if (msg.channelId !== activeChannelIdRef.current) {
+                onUnreadIncrementRef.current?.(msg.channelId);
             }
         });
 
-    return () => {
-        cancelled = true;             
-        connectionRef.current = null;
-        setConnectionState('disconnected');
-        connection.stop().catch(() => {});
-    };
-}, [courseId, token, channelIds.length]);
+        connection.on('MessageEdited', (messageId: number, newContent: string) => {
+            onMessageEditedRef.current?.(messageId, newContent);
+        });
 
-//     useEffect(() => {
-//     const connection = connectionRef.current;
-//     if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
-//     for (const id of channelIds) {
-//         connection.invoke('JoinChannel', id).catch(console.error);
-//     }
-//  }, [channelIds.join(',')]);
+        connection.on('MessageDeleted', (messageId: number) => {
+            onMessageDeletedRef.current?.(messageId);
+        });
+
+        connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
+        connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
+        connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
+
+        connection.onreconnecting(() => setConnectionState('reconnecting'));
+        connection.onreconnected(async () => {
+            setConnectionState('connected');
+            for (const id of channelIdsRef.current) {
+                await connection.invoke('JoinChannel', id).catch(console.error);
+            }
+        });
+        connection.onclose((err) => {
+            console.warn('SignalR closed:', err);
+            if (!cancelled) setConnectionState('disconnected');
+        });
+
+        setConnectionState('connecting');
+
+        connection.start()
+            .then(async () => {
+                if (cancelled) {
+                    connection.stop();
+                    return;
+                }
+                setConnectionState('connected');
+                console.log('✅ SignalR connected, joining channels:', channelIdsRef.current);
+
+                for (const id of channelIdsRef.current) {
+                    if (connection.state !== signalR.HubConnectionState.Connected) {
+                        console.warn('Connection dropped before joining channel', id);
+                        break;
+                    }
+                    try {
+                        await connection.invoke('JoinChannel', id);
+                        console.log('Joined channel', id);
+                    } catch (err) {
+                        console.error('JoinChannel failed for', id, err);
+                    }
+                }
+            })
+            .catch(err => {
+                if (!cancelled) {
+                    console.error('SignalR connection failed:', err);
+                    setConnectionState('disconnected');
+                }
+            });
+
+        return () => {
+            cancelled = true;
+            connectionRef.current = null;
+            setConnectionState('disconnected');
+            connection.stop().catch(() => {});
+        };
+    }, [courseId, token]); 
+
+    // Join any new channels on an existing connection
+    useEffect(() => {
+        const connection = connectionRef.current;
+        if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
+        if (channelIds.length === 0) return;
+
+        for (const id of channelIds) {
+            connection.invoke('JoinChannel', id).catch(console.error);
+        }
+    }, [channelIdsKey]); // uses the joined string key
 
     const sendMessage = useCallback(
     async (content: string, replyToMessageId?: number) => {
