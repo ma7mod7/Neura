@@ -33,39 +33,41 @@ export default function CommunityApp() {
         setUnreadCounts(prev => ({ ...prev, [channelId]: (prev[channelId] ?? 0) + 1 }));
     };
 
-const handleSetActiveChannel = (id: string) => {
-    // Save last seen for channel being left
-    if (activeChannelId) {
-        const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
-        const lastMsg = cached?.messages?.[cached.messages.length - 1];
-        if (lastMsg) {
-            localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
-        }
-        setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
-    }
-    // Also initialize last_seen for the channel being entered (if never seen before)
-    if (!localStorage.getItem(`last_seen_${id}`)) {
-        const cached = JSON.parse(localStorage.getItem(`msg_cache_${id}`) ?? 'null');
-        const lastMsg = cached?.messages?.[cached.messages.length - 1];
-        if (lastMsg) {
-            localStorage.setItem(`last_seen_${id}`, String(lastMsg.id));
-        }
-    }
-    setActiveChannelId(id);
-};
+    // const markChannelRead = (channelId: string) => {
+    //     const cached = JSON.parse(localStorage.getItem(`msg_cache_${channelId}`) ?? 'null');
+    //     const lastMsg = cached?.messages?.[cached.messages.length - 1];
+    //     if (lastMsg) {
+    //         localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+    //     }
+    //     setUnreadCounts(prev => ({ ...prev, [Number(channelId)]: 0 }));
+    // };
 
-//     const markChannelRead = (channelId: string) => {
-//     const cached = JSON.parse(localStorage.getItem(`msg_cache_${channelId}`) ?? 'null');
-//     const lastMsg = cached?.messages?.[cached.messages.length - 1];
-//     if (lastMsg) {
-//         localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
-//     }
-//     setUnreadCounts(prev => ({ ...prev, [Number(channelId)]: 0 }));
-//  };
-//  const handleSetActiveChannel = (id: string) => {
-//     if (activeChannelId) markChannelRead(activeChannelId);
-//     setActiveChannelId(id);
-// };
+    const handleSetActiveChannel = (id: string) => {
+        if (activeChannelId && activeChannelId !== id) {
+            // Write last_seen SYNCHRONOUSLY before switching so the
+            // recalculation effect sees it already updated
+            const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
+            const lastMsg = cached?.messages?.[cached.messages.length - 1];
+            if (lastMsg) {
+                localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
+            }
+            setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
+        }
+        setActiveChannelId(id);
+    };
+
+    const handleSetActiveSpace = (id: string) => {
+        if (activeChannelId) {
+            const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
+            const lastMsg = cached?.messages?.[cached.messages.length - 1];
+            if (lastMsg) {
+                localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
+            }
+            setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
+        }
+        setActiveSpaceId(id);
+        setActiveChannelId('');
+    };
 
     useEffect(() => {
         if (spaces.length > 0 && !activeSpaceId) {
@@ -82,99 +84,97 @@ const handleSetActiveChannel = (id: string) => {
     const { members, loading: membersLoading } = useMembers(courseId);
 
     // Auto-select first channel
- useEffect(() => {
-    if (channelsLoading) return;
-    if (channels.length > 0 && !channels.find(c => String(c.id) === activeChannelId)) {
-        const firstId = String(channels[0].id);
-        setActiveChannelId(firstId);
-        if (!localStorage.getItem(`last_seen_${firstId}`)) {
-            const cached = JSON.parse(localStorage.getItem(`msg_cache_${firstId}`) ?? 'null');
-            const lastMsg = cached?.messages?.[cached.messages.length - 1];
-            if (lastMsg) {
-                localStorage.setItem(`last_seen_${firstId}`, String(lastMsg.id));
-            }
+    useEffect(() => {
+        if (channelsLoading) return;
+        if (channels.length > 0 && !channels.find(c => String(c.id) === activeChannelId)) {
+            setActiveChannelId(String(channels[0].id));
         }
-    }
-    if (channels.length === 0) setActiveChannelId('');
-}, [channels, activeChannelId, channelsLoading]);
+        if (channels.length === 0) setActiveChannelId('');
+    }, [channels, activeChannelId, channelsLoading]);
 
-    // Initialize cache for all channels once
-useEffect(() => {
-    if (channelsLoading || channels.length === 0 || !currentUserId || initialized) return;
+    // Initialize cache for all channels once per space
+    useEffect(() => {
+        if (channelsLoading || channels.length === 0 || !currentUserId || initialized) return;
 
-  const init = async () => {
-    const { getMessages } = await import('../api/messagesApi');
-    for (const c of channels) {
-        const existing = localStorage.getItem(`msg_cache_${c.id}`);
-        
-        if (existing) {
-            // Set last seen baseline from existing cache if not set
-            if (!localStorage.getItem(`last_seen_${c.id}`)) {
-                const parsed = JSON.parse(existing);
-                const lastMsg = parsed?.messages?.[parsed.messages.length - 1];
-                if (lastMsg) {
-                    localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
+        const init = async () => {
+            const { getMessages } = await import('../api/messagesApi');
+            for (const c of channels) {
+                const existing = localStorage.getItem(`msg_cache_${c.id}`);
+
+                if (existing) {
+                    if (!localStorage.getItem(`last_seen_${c.id}`)) {
+                        const parsed = JSON.parse(existing);
+                        const lastMsg = parsed?.messages?.[parsed.messages.length - 1];
+                        if (lastMsg) {
+                            localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
+                        }
+                    }
+                    try {
+                        const data = await getMessages(c.id, { pageSize: 50 });
+                        const fresh = data.messages ?? [];
+                        const parsed = JSON.parse(existing);
+                        const lastCachedId = parsed?.messages?.[parsed.messages.length - 1]?.id ?? 0;
+                        const newOnes = fresh.filter((m: any) => m.id > lastCachedId);
+                        if (newOnes.length > 0) {
+                            const merged = [...parsed.messages, ...newOnes];
+                            localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
+                                messages: merged,
+                                hasMore: data.hasMore,
+                                nextCursor: data.nextCursor,
+                            }));
+                        }
+                    } catch {}
+                    continue;
                 }
+
+                try {
+                    const data = await getMessages(c.id, { pageSize: 50 });
+                    const msgs = data.messages ?? [];
+                    if (msgs.length > 0) {
+                        localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
+                            messages: msgs,
+                            hasMore: data.hasMore,
+                            nextCursor: data.nextCursor,
+                        }));
+                        if (!localStorage.getItem(`last_seen_${c.id}`)) {
+                            const lastMsg = msgs[msgs.length - 1];
+                            localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
+                        }
+                    }
+                } catch {}
             }
-            // Now fetch fresh messages — anything newer than last seen will show as unread
-            try {
-                const data = await getMessages(c.id, { pageSize: 50 });
-                const fresh = data.messages ?? [];
-                const parsed = JSON.parse(existing);
-                const lastCachedId = parsed?.messages?.[parsed.messages.length - 1]?.id ?? 0;
-                const newOnes = fresh.filter((m: any) => m.id > lastCachedId);
-                if (newOnes.length > 0) {
-                    const merged = [...parsed.messages, ...newOnes];
-                    localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
-                        messages: merged,
-                        hasMore: data.hasMore,
-                        nextCursor: data.nextCursor,
-                    }));
-                }
-            } catch {}
-            continue;
-        }
+            setInitialized(true);
+        };
 
-        // No cache at all — fetch and set last seen to latest
-        try {
-            const data = await getMessages(c.id, { pageSize: 50 });
-            const msgs = data.messages ?? [];
-            if (msgs.length > 0) {
-                localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
-                    messages: msgs,
-                    hasMore: data.hasMore,
-                    nextCursor: data.nextCursor,
-                }));
-                if (!localStorage.getItem(`last_seen_${c.id}`)) {
-                    const lastMsg = msgs[msgs.length - 1];
-                    localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
-                }
-            }
-        } catch {}
-    }
-    setInitialized(true);
-};
-
-    init();
-}, [channelsLoading, channels.length, currentUserId, initialized]);
+        init();
+    }, [channelsLoading, channels.length, currentUserId, initialized]);
 
     // Calculate unread counts from cache
-useEffect(() => {
-    if (!initialized || channels.length === 0 || !currentUserId) return;
-    const newCounts: Record<number, number> = {};
-    channels.forEach(c => {
-        if (String(c.id) === activeChannelId) return;
-        const lastSeen = Number(localStorage.getItem(`last_seen_${c.id}`) ?? 0);
-        if (lastSeen === 0) return; 
-        const cached = JSON.parse(localStorage.getItem(`msg_cache_${c.id}`) ?? 'null');
-        if (!cached?.messages?.length) return;
-        const unread = cached.messages.filter(
-            (m: any) => m.id > lastSeen && m.senderId !== currentUserId
-        ).length;
-        if (unread > 0) newCounts[c.id] = unread;
-    });
-    setUnreadCounts(newCounts);
-}, [initialized, currentUserId]);
+    useEffect(() => {
+        if (!initialized || channels.length === 0 || !currentUserId) return;
+        setUnreadCounts(prev => {
+            const newCounts = { ...prev };
+            channels.forEach(c => {
+                // Never recalculate for active channel
+                if (String(c.id) === activeChannelId) {
+                    newCounts[c.id] = 0;
+                    return;
+                }
+                // If already zero
+                if (prev[c.id] === 0) return;
+
+                const lastSeen = Number(localStorage.getItem(`last_seen_${c.id}`) ?? 0);
+                if (lastSeen === 0) return;
+                const cached = JSON.parse(localStorage.getItem(`msg_cache_${c.id}`) ?? 'null');
+                if (!cached?.messages?.length) return;
+                const unread = cached.messages.filter(
+                    (m: any) => m.id > lastSeen && m.senderId !== currentUserId
+                ).length;
+                newCounts[c.id] = unread;
+            });
+            return newCounts;
+        });
+    }, [initialized, activeChannelId, channels.length, currentUserId]);
 
     const activeChannel: CommunityChannel | null = (() => {
         const ch = channels.find(c => String(c.id) === activeChannelId);
@@ -214,7 +214,7 @@ useEffect(() => {
             <CommunitySidebar
                 spaces={spaces}
                 activeSpaceId={activeSpaceId}
-                setActiveSpaceId={id => { setActiveSpaceId(id); setActiveChannelId(''); }}
+                setActiveSpaceId={handleSetActiveSpace}
                 activeChannelId={activeChannelId}
                 setActiveChannelId={handleSetActiveChannel}
                 channels={channels.map(c => ({

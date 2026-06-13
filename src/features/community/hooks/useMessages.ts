@@ -106,24 +106,22 @@ export function useMessages(channelId: number | null) {
 
     const appendMessage = useCallback((msg: MessageDto) => {
         setMessages(prev => {
+            // Already in list 
             if (prev.some(m => m.id === msg.id)) return prev;
-        
-            const isRealMessage = msg.id < 1700000000000;
+
+            const isRealMessage = msg.id < 1_700_000_000_000;
+
             let filtered = prev;
             if (isRealMessage) {
+                
+                let removedOne = false;
                 filtered = prev.filter(m => {
-                    const isTemp = m.id > 1700000000000;
-                    const sameContent = m.content === msg.content;
-                    const sameSender = m.senderId === msg.senderId;
-                    return !(isTemp && sameContent && sameSender);
+                    if (!removedOne && m.id > 1_700_000_000_000 && m.content === msg.content && m.senderId === msg.senderId) {
+                        removedOne = true;
+                        return false; 
+                    }
+                    return true;
                 });
-                const removedCount = prev.length - filtered.length;
-                if (removedCount > 1) {
-                    const extras = prev
-                        .filter(m => m.id > 1700000000000 && m.content === msg.content && m.senderId === msg.senderId)
-                        .slice(1); 
-                    filtered = [...filtered, ...extras];
-                }
             }
 
             const updated = [...filtered, msg];
