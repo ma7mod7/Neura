@@ -97,22 +97,12 @@ export function useSignalR({
 
         setConnectionState('connecting');
         connection.start()
-            .then(async () => {
+           .then(async () => {
                 if (cancelled) { connection.stop(); return; }
                 setConnectionState('connected');
                 console.log('SignalR connected, will join channels when available');
-                // Join any channels already loaded
-                for (const id of channelIdsRef.current) {
-                    if (connection.state !== signalR.HubConnectionState.Connected) break;
-                    try {
-                        await connection.invoke('JoinChannel', id);
-                        joinedChannelsRef.current.add(id);
-                        console.log('Joined channel', id);
-                    } catch (err) {
-                        console.error('JoinChannel failed for', id, err);
-                    }
-                }
-            })
+                // REMOVE the join loop 
+                })
             .catch(err => {
                 if (!cancelled) {
                     console.error('SignalR connection failed:', err);
