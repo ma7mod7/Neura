@@ -41,6 +41,20 @@ export function useMessages(channelId: number | null) {
             setMessages(cached.messages);
             setHasMore(cached.hasMore);
             setNextCursor(cached.nextCursor);
+            const lastId = cached.messages[cached.messages.length - 1]?.id;
+            getMessages(channelId, { pageSize: 50 })
+                .then(data => {
+                    const fresh = data.messages ?? [];
+                    const newOnes = fresh.filter(m => m.id > (lastId ?? 0));
+                    if (newOnes.length > 0) {
+                        setMessages(prev => {
+                            const merged = [...prev, ...newOnes];
+                            writeCache(channelId, { messages: merged, hasMore: data.hasMore, nextCursor: data.nextCursor });
+                            return merged;
+                        });
+                    }
+                })
+                .catch(() => {});
             return;
         }
 
@@ -92,7 +106,27 @@ export function useMessages(channelId: number | null) {
 
     const appendMessage = useCallback((msg: MessageDto) => {
         setMessages(prev => {
-            const updated = [...prev, msg];
+            if (prev.some(m => m.id === msg.id)) return prev;
+        
+            const isRealMessage = msg.id < 1700000000000;
+            let filtered = prev;
+            if (isRealMessage) {
+                filtered = prev.filter(m => {
+                    const isTemp = m.id > 1700000000000;
+                    const sameContent = m.content === msg.content;
+                    const sameSender = m.senderId === msg.senderId;
+                    return !(isTemp && sameContent && sameSender);
+                });
+                const removedCount = prev.length - filtered.length;
+                if (removedCount > 1) {
+                    const extras = prev
+                        .filter(m => m.id > 1700000000000 && m.content === msg.content && m.senderId === msg.senderId)
+                        .slice(1); 
+                    filtered = [...filtered, ...extras];
+                }
+            }
+
+            const updated = [...filtered, msg];
             if (channelId) {
                 const cached = readCache(channelId);
                 writeCache(channelId, {

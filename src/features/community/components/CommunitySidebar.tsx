@@ -187,6 +187,7 @@ function ChannelRow({ channel, isActive, onClick }: {
     isActive: boolean;
     onClick: () => void;
 }) {
+    const hasUnread = !!channel.unreadCount && channel.unreadCount > 0 && !isActive;
     return (
         <div
             onClick={onClick}
@@ -198,12 +199,12 @@ function ChannelRow({ channel, isActive, onClick }: {
         >
             <div className="flex items-center gap-2 truncate">
                 {channelIcon(channel.type)}
-                <span className="font-medium text-sm truncate">{channel.name}</span>
+                <span className={`text-sm truncate ${hasUnread ? 'font-bold text-slate-900 dark:text-white' : 'font-medium'}`}>
+                    {channel.name}
+                </span>
             </div>
-            {channel.unreadCount && channel.unreadCount > 0 && !isActive && (
-                <div className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0">
-                    {channel.unreadCount}
-                </div>
+            {hasUnread && (
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0" />
             )}
         </div>
     );

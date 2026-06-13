@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Hash, Search, Users, Smile, Paperclip, Send, Plus, X, FileText } from 'lucide-react';
-import type { CommunityChannel, MessageDto } from '../types/communityTypes';
+import type { CommunityChannel, MessageDto ,CourseMemberDto} from '../types/communityTypes';
 import { useMessages } from '../hooks/useMessages';
 import { useSignalR } from '../hooks/useSignalR';
 import MessageItem from './MessageItem';
@@ -8,12 +8,16 @@ import MessageItem from './MessageItem';
 interface ChatAreaProps {
     courseId: string | null;
     channel: CommunityChannel | null;
+    channelIds?: number[];
     currentUserAvatar?: string;
     currentUserId: string;
     currentUserName: string;
     onToggleMembers: () => void;
     onOpenSettings?: () => void;
+    onUnreadIncrement?: (channelId: number) => void;
     showMembers: boolean;
+    members?: CourseMemberDto[];
+    unreadCount?: number;
 }
 
 const EMOJIS = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😢', '🙏', '😎', '👏'];
@@ -26,6 +30,10 @@ export default function ChatArea({
     currentUserAvatar,
     showMembers,
     onOpenSettings,
+    channelIds,
+    onUnreadIncrement,
+    currentUserName,
+    members, 
 }: ChatAreaProps) {
     const [messageText, setMessageText] = useState('');
     const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
@@ -35,24 +43,48 @@ export default function ChatArea({
     const topSentinelRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
-
     const channelId = channel ? Number(channel.id) : null;
+    const channelIdRef = useRef(channelId);
+    const [firstUnreadId, setFirstUnreadId] = useState<number | null>(null);
 
-    const {
-        messages, loading, loadingMore, hasMore,
-        loadMore, appendMessage, handleEdit, handleDelete,
-    } = useMessages(channelId);
+    useEffect(() => { channelIdRef.current = channelId; }, [channelId]);  
 
+     const {
+    messages, loading, loadingMore, hasMore,
+    loadMore, appendMessage, handleEdit, handleDelete,
+     } = useMessages(channelId);
+    const enrichedMessages = messages.map(msg => {
+        const member = members?.find(m => m.userId === msg.senderId);
+        const isCurrentUser = msg.senderId === currentUserId;
+        return {
+            ...msg,
+            senderName: msg.senderName && !msg.senderName.includes('-')
+                ? msg.senderName
+                : (member?.displayName ?? (isCurrentUser ? currentUserName : msg.senderName)),
+            senderAvatarUrl: msg.senderAvatarUrl
+                || (isCurrentUser ? currentUserAvatar : null)
+                || member?.avatarUrl
+                || null,
+        };
+    });
+    
     const { sendMessage, connectionState } = useSignalR({
         courseId,
-        channelId,
-        onMessageReceived: appendMessage,
+        channelIds: channelIds ?? (channelId ? [channelId] : []),
+        activeChannelId: channelId,
+        onMessageReceived: (msg) => {
+            appendMessage(msg);
+        },
+        onUnreadIncrement,
     });
-
     // Auto scroll to bottom on new message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages.length]);
+
+    useEffect(() => {
+    setFirstUnreadId(null);
+}, [channelId]);
 
     // Infinite scroll --> load older messages when scrolling to top
     useEffect(() => {
@@ -62,6 +94,49 @@ export default function ChatArea({
         if (topSentinelRef.current) observer.observe(topSentinelRef.current);
         return () => observer.disconnect();
     }, [hasMore, loadMore]);
+
+useEffect(() => {
+    if (!channelId || messages.length === 0) {
+        setFirstUnreadId(null);
+        return;
+    }
+    const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
+    if (lastSeenId === 0) {
+        setFirstUnreadId(null);
+        return;
+    }
+    const firstUnread = messages.find(m => 
+        m.id > lastSeenId && m.senderId !== currentUserId
+    );
+    setFirstUnreadId(firstUnread?.id ?? null);
+}, [channelId, messages.length]);
+
+useEffect(() => {
+    return () => {
+        setFirstUnreadId(null);
+        if (!channelId || messages.length === 0) return;
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg) {
+            localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+        }
+    };
+}, [channelId, messages]);
+
+useEffect(() => {
+    if (!firstUnreadId) return;
+    const timer = setTimeout(() => setFirstUnreadId(null), 3000);
+    return () => clearTimeout(timer);
+}, [firstUnreadId]);;
+
+    // useEffect(() => {
+    // if (!channelId || loading || messages.length === 0) return;
+    // if (!unreadCount || unreadCount === 0) {
+    //     const lastMsg = messages[messages.length - 1];
+    //     if (lastMsg) {
+    //         localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+    //     }
+    // }
+    // }, [channelId, loading, messages.length, unreadCount]);
 
     // Close emoji picker
     useEffect(() => {
@@ -75,25 +150,44 @@ export default function ChatArea({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showEmoji]);
 
+    useEffect(() => {
+    setFirstUnreadId(null);
+}, [channelId]);
+
 const handleSend = async () => {
     const content = messageText.trim();
     if ((!content && !attachedFile) || !channel) return;
-
-    if (attachedFile) {
-        console.log('TODO: upload attachment', attachedFile);
-        // TODO upload endpoint
-    }
+    
+    const tempId = Date.now();
+    const optimisticMsg: MessageDto = {
+        id: tempId,
+        channelId: Number(channel.id),
+        senderId: currentUserId,
+        senderName: currentUserName,
+        senderAvatarUrl: currentUserAvatar ?? null,
+        content,
+        sentAt: new Date().toISOString(),
+        editedAt: null,
+        isDeleted: false,
+        replyToMessageId: replyTo?.id ?? null,
+        replyPreview: replyTo ? {
+            id: replyTo.id,
+            senderName: replyTo.senderName,
+            contentPreview: replyTo.content,
+        } : null,
+    };
+    setFirstUnreadId(null);
+    appendMessage(optimisticMsg);
+    setMessageText('');
+    setReplyTo(null);
+    setAttachedFile(null);
 
     try {
         await sendMessage(content, replyTo?.id);
-        setMessageText('');
-        setReplyTo(null);
-        setAttachedFile(null);
     } catch (err) {
         console.error('Failed to send message:', err);
     }
 };
-
     const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -194,17 +288,27 @@ const handleSend = async () => {
                     </div>
                 )}
 
-                {messages.map(msg => (
-                    <MessageItem
-                        key={msg.id}
-                        message={msg}
-                        isOwnMessage={msg.senderId === currentUserId}
-                        currentUserAvatar={currentUserAvatar}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onReply={setReplyTo}
-                        onOpenSettings={onOpenSettings}
-                    />
+                {enrichedMessages.map(msg => (
+                    <div key={msg.id}>
+                        {msg.id === firstUnreadId && (
+                            <div className="relative flex items-center py-2 my-2">
+                                <div className="flex-1 border-t border-red-400 dark:border-red-500" />
+                                <span className="px-3 text-xs font-semibold text-red-400 dark:text-red-500 bg-white dark:bg-[#1a1a1a]">
+                                    New Messages
+                                </span>
+                                <div className="flex-1 border-t border-red-400 dark:border-red-500" />
+                            </div>
+                        )}
+                        <MessageItem
+                            message={msg}
+                            isOwnMessage={msg.senderId === currentUserId}
+                            currentUserAvatar={currentUserAvatar}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onReply={setReplyTo}
+                            onOpenSettings={onOpenSettings}
+                        />
+                    </div>
                 ))}
 
                 <div ref={messagesEndRef} />
