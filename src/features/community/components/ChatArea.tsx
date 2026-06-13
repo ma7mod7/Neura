@@ -73,9 +73,8 @@ export default function ChatArea({
         channelIds: channelIds ?? (channelId ? [channelId] : []),
         activeChannelId: channelId,
         onMessageReceived: (msg) => {
-            if (msg.channelId === channelIdRef.current) {  
-                appendMessage(msg);
-            }
+            console.log('📨 ReceiveMessage fired, channelId:', msg.channelId, 'current:', channelIdRef.current);
+            appendMessage(msg);  
         },
         onUnreadIncrement,
     });
