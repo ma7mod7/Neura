@@ -126,20 +126,20 @@ console.log('Connecting with courseId:', courseId, 'channelIds:', channelIds);
         });
 
     return () => {
-        cancelled = true;             //  cancelled first
+        cancelled = true;             
         connectionRef.current = null;
         setConnectionState('disconnected');
         connection.stop().catch(() => {});
     };
 }, [courseId, token, channelIds.length]);
 
-    useEffect(() => {
-    const connection = connectionRef.current;
-    if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
-    for (const id of channelIds) {
-        connection.invoke('JoinChannel', id).catch(console.error);
-    }
- }, [channelIds.join(',')]);
+//     useEffect(() => {
+//     const connection = connectionRef.current;
+//     if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
+//     for (const id of channelIds) {
+//         connection.invoke('JoinChannel', id).catch(console.error);
+//     }
+//  }, [channelIds.join(',')]);
 
     const sendMessage = useCallback(
     async (content: string, replyToMessageId?: number) => {

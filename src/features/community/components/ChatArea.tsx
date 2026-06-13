@@ -73,18 +73,17 @@ export default function ChatArea({
         channelIds: channelIds ?? (channelId ? [channelId] : []),
         activeChannelId: channelId,
         onMessageReceived: (msg) => {
-            appendMessage(msg);
+            if (msg.channelId === channelIdRef.current) {  
+                appendMessage(msg);
+            }
         },
         onUnreadIncrement,
     });
+
     // Auto scroll to bottom on new message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages.length]);
-
-    useEffect(() => {
-    setFirstUnreadId(null);
-}, [channelId]);
 
     // Infinite scroll --> load older messages when scrolling to top
     useEffect(() => {
@@ -95,48 +94,35 @@ export default function ChatArea({
         return () => observer.disconnect();
     }, [hasMore, loadMore]);
 
-useEffect(() => {
-    if (!channelId || messages.length === 0) {
-        setFirstUnreadId(null);
-        return;
-    }
-    const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
-    if (lastSeenId === 0) {
-        setFirstUnreadId(null);
-        return;
-    }
-    const firstUnread = messages.find(m => 
-        m.id > lastSeenId && m.senderId !== currentUserId
-    );
-    setFirstUnreadId(firstUnread?.id ?? null);
-}, [channelId, messages.length]);
-
-useEffect(() => {
-    return () => {
-        setFirstUnreadId(null);
-        if (!channelId || messages.length === 0) return;
-        const lastMsg = messages[messages.length - 1];
-        if (lastMsg) {
-            localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+    // Compute the "New Messages"
+    useEffect(() => {
+        if (!channelId || messages.length === 0) {
+            setFirstUnreadId(null);
+            return;
         }
-    };
-}, [channelId, messages]);
+        const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
+        if (lastSeenId === 0) {
+            setFirstUnreadId(null);
+            return;
+        }
+        const firstUnread = messages.find(m =>
+            m.id > lastSeenId && m.senderId !== currentUserId
+        );
+        setFirstUnreadId(firstUnread?.id ?? null);
+    }, [channelId, messages.length]);
 
-useEffect(() => {
-    if (!firstUnreadId) return;
-    const timer = setTimeout(() => setFirstUnreadId(null), 3000);
-    return () => clearTimeout(timer);
-}, [firstUnreadId]);;
-
-    // useEffect(() => {
-    // if (!channelId || loading || messages.length === 0) return;
-    // if (!unreadCount || unreadCount === 0) {
-    //     const lastMsg = messages[messages.length - 1];
-    //     if (lastMsg) {
-    //         localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
-    //     }
-    // }
-    // }, [channelId, loading, messages.length, unreadCount]);
+    // Persist last-seen position after a short delay
+    // (covers refreshing the page without switching channels)
+    useEffect(() => {
+        if (!channelId || messages.length === 0) return;
+        const timer = setTimeout(() => {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg) {
+                localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+            }
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [channelId, messages.length]);
 
     // Close emoji picker
     useEffect(() => {
@@ -150,9 +136,17 @@ useEffect(() => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showEmoji]);
 
+    // Always sync last_seen to the live message list when leaving this channel
+    // avoids a race with the async cache merge in useMessages
     useEffect(() => {
-    setFirstUnreadId(null);
-}, [channelId]);
+        return () => {
+            if (!channelId || messages.length === 0) return;
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg) {
+                localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+            }
+        };
+    }, [channelId, messages]);
 
 const handleSend = async () => {
     const content = messageText.trim();
