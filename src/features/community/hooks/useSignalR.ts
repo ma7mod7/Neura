@@ -64,6 +64,7 @@ export function useSignalR({
         connectionRef.current = connection;
 
         connection.on('ReceiveMessage', (msg: MessageDto) => {
+            console.log('📨 ReceiveMessage fired:', msg, 'active channel:', activeChannelIdRef.current);
             onMessageReceivedRef.current?.(msg);
             if (msg.channelId !== activeChannelIdRef.current) {
                 onUnreadIncrementRef.current?.(msg.channelId);
@@ -78,7 +79,9 @@ export function useSignalR({
         connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
         connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
         connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
-
+        connection.on('Error', (message: string) => {
+            console.error(' Hub Error:', message);
+        });
         connection.onreconnecting(() => setConnectionState('reconnecting'));
         connection.onreconnected(async () => {
             setConnectionState('connected');
@@ -104,9 +107,14 @@ export function useSignalR({
                 // Join all currently known channels immediately after connecting
                 const currentChannelIds = channelIdsRef.current;
                 for (const id of currentChannelIds) {
-                    await connection.invoke('JoinChannel', id).catch(console.error);
+                try {
+                    await connection.invoke('JoinChannel', id);
                     joinedChannelsRef.current.add(id);
+                    console.log(' Successfully joined channel:', id);
+                } catch (err) {
+                    console.error(' Failed to join channel:', id, err);
                 }
+            }
             })
             .catch(err => {
                 if (!cancelled) {
@@ -152,12 +160,15 @@ useEffect(() => {
     const newChannels = channelIds.filter(id => !joinedChannelsRef.current.has(id));
     if (newChannels.length === 0) return;
 
-    console.log('🔗 Joining channels:', newChannels);
+    console.log('🔗 Joining NEW channels:', newChannels);
     Promise.all(
         newChannels.map(id =>
             connection.invoke('JoinChannel', id)
-                .then(() => { joinedChannelsRef.current.add(id); })
-                .catch(console.error)
+                .then(() => {
+                    joinedChannelsRef.current.add(id);
+                    console.log('Joined channel:', id);
+                })
+                .catch(err => console.error(' JoinChannel failed:', id, err))
         )
     );
 }, [channelIds.join(','), connectionState]);
