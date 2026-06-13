@@ -28,8 +28,8 @@ export default function CommunityApp() {
     const [initialized, setInitialized] = useState(false);
     const [showCreateChannel, setShowCreateChannel] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const activeSpace = spaces.find(s => s.id === activeSpaceId);
-    const numericCourseId = activeSpace?.numericId ?? null;
+    // const activeSpace = spaces.find(s => s.id === activeSpaceId);
+    // const numericCourseId = activeSpace?.numericId ?? null;
 
     const handleUnreadIncrement = (channelId: number) => {
         setUnreadCounts(prev => ({ ...prev, [channelId]: (prev[channelId] ?? 0) + 1 }));
@@ -237,7 +237,7 @@ export default function CommunityApp() {
 
             <ChatArea
                 channel={activeChannel}
-                courseId={numericCourseId ? String(numericCourseId) : null}
+                courseId={activeSpaceId || null}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
                 currentUserAvatar={currentUserAvatar}
