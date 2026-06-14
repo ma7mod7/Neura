@@ -62,6 +62,7 @@ export function useSignalR({
             .build();
 
         connectionRef.current = connection;
+        (window as any).__signalRConnection = connection;
 
         connection.on('ReceiveMessage', (msg: MessageDto) => {
             console.log('📨 ReceiveMessage:', msg, '| activeChannel:', activeChannelIdRef.current);
