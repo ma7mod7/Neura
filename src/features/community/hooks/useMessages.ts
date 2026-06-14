@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getMessages, editMessage, deleteMessage } from '../api/messagesApi';
 import type { MessageDto } from '../types/communityTypes';
 
@@ -25,6 +25,18 @@ function writeCache(channelId: number, data: MessageCache) {
     } catch {}
 }
 
+function dedupe(msgs: MessageDto[]): MessageDto[] {
+    const seen = new Set<number>();
+    const result: MessageDto[] = [];
+    for (const m of msgs) {
+        if (!seen.has(m.id)) {
+            seen.add(m.id);
+            result.push(m);
+        }
+    }
+    return result.sort((a, b) => a.id - b.id);
+}
+
 export function useMessages(channelId: number | null) {
     const [messages, setMessages] = useState<MessageDto[]>([]);
     const [loading, setLoading] = useState(false);
@@ -33,31 +45,54 @@ export function useMessages(channelId: number | null) {
     const [nextCursor, setNextCursor] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Track all real message IDs we've seen for this channel
+    const seenIdsRef = useRef<Set<number>>(new Set());
+
     useEffect(() => {
-        if (!channelId) return;
+        if (!channelId) {
+            setMessages([]);
+            setHasMore(false);
+            setNextCursor(null);
+            seenIdsRef.current = new Set();
+            return;
+        }
+
+        // Reset seen IDs when channel changes
+        seenIdsRef.current = new Set();
 
         const cached = readCache(channelId);
         if (cached) {
-            setMessages(cached.messages);
+            const sorted = dedupe(cached.messages ?? []);
+            sorted.forEach(m => seenIdsRef.current.add(m.id));
+            setMessages(sorted);
             setHasMore(cached.hasMore);
             setNextCursor(cached.nextCursor);
-            const lastId = cached.messages[cached.messages.length - 1]?.id;
+
+            // Background refresh
             getMessages(channelId, { pageSize: 50 })
                 .then(data => {
-                    const fresh = data.messages ?? [];
-                    const newOnes = fresh.filter(m => m.id > (lastId ?? 0));
-                    if (newOnes.length > 0) {
-                        setMessages(prev => {
-                            const merged = [...prev, ...newOnes];
-                            writeCache(channelId, { messages: merged, hasMore: data.hasMore, nextCursor: data.nextCursor });
-                            return merged;
+                    const fresh = dedupe(data.messages ?? []);
+                    setMessages(prev => {
+                        const prevIds = new Set(prev.map(m => m.id));
+                        const newOnes = fresh.filter(m => !prevIds.has(m.id));
+                        if (newOnes.length === 0) return prev;
+                        newOnes.forEach(m => seenIdsRef.current.add(m.id));
+                        const merged = dedupe([...prev, ...newOnes]);
+                        writeCache(channelId, {
+                            messages: merged,
+                            hasMore: data.hasMore,
+                            nextCursor: data.nextCursor,
                         });
-                    }
+                        return merged;
+                    });
+                    setHasMore(data.hasMore);
+                    setNextCursor(data.nextCursor);
                 })
                 .catch(() => {});
             return;
         }
 
+        // No cache — fetch fresh
         setMessages([]);
         setNextCursor(null);
         setHasMore(false);
@@ -66,7 +101,8 @@ export function useMessages(channelId: number | null) {
 
         getMessages(channelId, { pageSize: 50 })
             .then(data => {
-                const msgs = data.messages ?? [];
+                const msgs = dedupe(data.messages ?? []);
+                msgs.forEach(m => seenIdsRef.current.add(m.id));
                 setMessages(msgs);
                 setHasMore(data.hasMore);
                 setNextCursor(data.nextCursor);
@@ -85,9 +121,12 @@ export function useMessages(channelId: number | null) {
         setLoadingMore(true);
         try {
             const data = await getMessages(channelId, { before: nextCursor, pageSize: 50 });
-            const older = data.messages ?? [];
+            const older = dedupe(data.messages ?? []);
             setMessages(prev => {
-                const merged = [...older, ...prev];
+                const prevIds = new Set(prev.map(m => m.id));
+                const newOnes = older.filter(m => !prevIds.has(m.id));
+                newOnes.forEach(m => seenIdsRef.current.add(m.id));
+                const merged = dedupe([...newOnes, ...prev]);
                 writeCache(channelId, {
                     messages: merged,
                     hasMore: data.hasMore,
@@ -106,26 +145,37 @@ export function useMessages(channelId: number | null) {
 
     const appendMessage = useCallback((msg: MessageDto) => {
         if (channelId && msg.channelId !== channelId) return;
+
+        const isReal = msg.id < 1_700_000_000_000;
+
+        // If it's a real message and we've already seen it, skip entirely
+        if (isReal && seenIdsRef.current.has(msg.id)) return;
+
         setMessages(prev => {
-            // Already in list 
+            // Double-check in state too
             if (prev.some(m => m.id === msg.id)) return prev;
 
-            const isRealMessage = msg.id < 1_700_000_000_000;
-
             let filtered = prev;
-            if (isRealMessage) {
-                
+            if (isReal) {
+                // Remove matching optimistic message
                 let removedOne = false;
                 filtered = prev.filter(m => {
-                    if (!removedOne && m.id > 1_700_000_000_000 && m.content === msg.content && m.senderId === msg.senderId) {
+                    if (
+                        !removedOne &&
+                        m.id > 1_700_000_000_000 &&
+                        m.content === msg.content &&
+                        m.senderId === msg.senderId
+                    ) {
                         removedOne = true;
-                        return false; 
+                        return false;
                     }
                     return true;
                 });
+                seenIdsRef.current.add(msg.id);
             }
 
-            const updated = [...filtered, msg];
+            const updated = dedupe([...filtered, msg]);
+
             if (channelId) {
                 const cached = readCache(channelId);
                 writeCache(channelId, {
@@ -140,9 +190,10 @@ export function useMessages(channelId: number | null) {
 
     const updateMessage = useCallback((messageId: number, newContent: string) => {
         setMessages(prev => {
-            const updated = prev.map(m => m.id === messageId
-                ? { ...m, content: newContent, editedAt: new Date().toISOString() }
-                : m
+            const updated = prev.map(m =>
+                m.id === messageId
+                    ? { ...m, content: newContent, editedAt: new Date().toISOString() }
+                    : m
             );
             if (channelId) {
                 const cached = readCache(channelId);
@@ -154,7 +205,9 @@ export function useMessages(channelId: number | null) {
 
     const removeMessage = useCallback((messageId: number) => {
         setMessages(prev => {
-            const updated = prev.map(m => m.id === messageId ? { ...m, isDeleted: true, content: '' } : m);
+            const updated = prev.map(m =>
+                m.id === messageId ? { ...m, isDeleted: true, content: '' } : m
+            );
             if (channelId) {
                 const cached = readCache(channelId);
                 writeCache(channelId, { ...cached!, messages: updated });

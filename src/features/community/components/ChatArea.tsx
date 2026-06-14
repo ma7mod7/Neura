@@ -17,7 +17,8 @@ interface ChatAreaProps {
     unreadCount?: number;
     sendMessage: (content: string, replyToMessageId?: number) => Promise<void>;
     connectionState: ConnectionState;
-    onRegisterMessageHandler: (handler: (msg: MessageDto) => void) => void;
+    // onRegisterMessageHandler: (handler: (msg: MessageDto) => void) => void;
+    lastReceivedMessage?: MessageDto | null;
 }
 
 const EMOJIS = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😢', '🙏', '😎', '👏'];
@@ -33,7 +34,8 @@ export default function ChatArea({
     currentUserName,
     sendMessage,
     connectionState,
-    onRegisterMessageHandler,
+    // onRegisterMessageHandler,
+    lastReceivedMessage,
 }: ChatAreaProps) {
     const [messageText, setMessageText] = useState('');
     const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
@@ -52,13 +54,20 @@ export default function ChatArea({
     } = useMessages(channelId);
 
     // Register appendMessage handler with parent so SignalR messages flow in
-    useEffect(() => {
-        onRegisterMessageHandler((msg: MessageDto) => {
-            if (msg.channelId === channelId) {
-                appendMessage(msg);
-            }
-        });
-    }, [channelId, appendMessage]);
+    // useEffect(() => {
+    //     onRegisterMessageHandler((msg: MessageDto) => {
+    //         if (msg.channelId === channelId) {
+    //             appendMessage(msg);
+    //         }
+    //     });
+    // }, [channelId, appendMessage]);
+
+        useEffect(() => {
+        if (!lastReceivedMessage) return;
+        if (lastReceivedMessage.channelId === channelId) {
+            appendMessage(lastReceivedMessage);
+        }
+    }, [lastReceivedMessage]);
 
     const enrichedMessages = messages.map(msg => {
         const member = members?.find(m => m.userId === msg.senderId);
