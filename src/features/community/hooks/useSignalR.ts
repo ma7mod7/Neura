@@ -93,13 +93,15 @@ export function useSignalR({
         connection.onreconnected(async () => {
             setConnectionState('connected');
             joinedChannelsRef.current = new Set();
-            for (const id of channelIdsRef.current) {
+            // Only rejoin the active channel — the server supports one at a time
+            const activeId = activeChannelIdRef.current;
+            if (activeId) {
                 try {
-                    await connection.invoke('JoinChannel', id);
-                    joinedChannelsRef.current.add(id);
-                    console.log(' Rejoined channel after reconnect:', id);
+                    await connection.invoke('JoinChannel', activeId);
+                    joinedChannelsRef.current = new Set([activeId]);
+                    console.log(' Rejoined active channel after reconnect:', activeId);
                 } catch (err) {
-                    console.error(' Failed to rejoin channel:', id, err);
+                    console.error(' Failed to rejoin channel:', activeId, err);
                 }
             }
         });
@@ -136,10 +138,12 @@ export function useSignalR({
     const joinChannel = useCallback(async (channelId: number) => {
         const connection = connectionRef.current;
         if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
-        if (joinedChannelsRef.current.has(channelId)) return;
+        // Skip only if this channel is already the sole active channel
+        if (joinedChannelsRef.current.size === 1 && joinedChannelsRef.current.has(channelId)) return;
         try {
             await connection.invoke('JoinChannel', channelId);
-            joinedChannelsRef.current.add(channelId);
+            // Server replaces group membership, so track only this one
+            joinedChannelsRef.current = new Set([channelId]);
             console.log(' Joined channel:', channelId);
         } catch (err) {
             console.error(' JoinChannel failed:', channelId, err);

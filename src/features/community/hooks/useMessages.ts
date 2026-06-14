@@ -57,18 +57,16 @@ export function useMessages(channelId: number | null) {
             return;
         }
 
-        // Reset seen IDs when channel changes
-        seenIdsRef.current = new Set();
+        seenIdsRef.current = new Set(); // reset on channel change
 
         const cached = readCache(channelId);
         if (cached) {
             const sorted = dedupe(cached.messages ?? []);
-            sorted.forEach(m => seenIdsRef.current.add(m.id));
+            //  real-time messages go in seenIdsRef
             setMessages(sorted);
             setHasMore(cached.hasMore);
             setNextCursor(cached.nextCursor);
 
-            // Background refresh
             getMessages(channelId, { pageSize: 50 })
                 .then(data => {
                     const fresh = dedupe(data.messages ?? []);
@@ -76,7 +74,6 @@ export function useMessages(channelId: number | null) {
                         const prevIds = new Set(prev.map(m => m.id));
                         const newOnes = fresh.filter(m => !prevIds.has(m.id));
                         if (newOnes.length === 0) return prev;
-                        newOnes.forEach(m => seenIdsRef.current.add(m.id));
                         const merged = dedupe([...prev, ...newOnes]);
                         writeCache(channelId, {
                             messages: merged,
@@ -92,7 +89,6 @@ export function useMessages(channelId: number | null) {
             return;
         }
 
-        // No cache — fetch fresh
         setMessages([]);
         setNextCursor(null);
         setHasMore(false);
@@ -102,7 +98,6 @@ export function useMessages(channelId: number | null) {
         getMessages(channelId, { pageSize: 50 })
             .then(data => {
                 const msgs = dedupe(data.messages ?? []);
-                msgs.forEach(m => seenIdsRef.current.add(m.id));
                 setMessages(msgs);
                 setHasMore(data.hasMore);
                 setNextCursor(data.nextCursor);
@@ -146,16 +141,13 @@ export function useMessages(channelId: number | null) {
     const appendMessage = useCallback((msg: MessageDto) => {
         if (channelId && msg.channelId !== channelId) return;
 
-        const isReal = msg.id < 1_700_000_000_000;
-
-        // If it's a real message and we've already seen it, skip entirely
-        if (isReal && seenIdsRef.current.has(msg.id)) return;
-
         setMessages(prev => {
-            // Double-check in state too
+            // State-based dedup — reliable, no race condition
             if (prev.some(m => m.id === msg.id)) return prev;
 
+            const isReal = msg.id < 1_700_000_000_000;
             let filtered = prev;
+            
             if (isReal) {
                 // Remove matching optimistic message
                 let removedOne = false;
@@ -171,7 +163,6 @@ export function useMessages(channelId: number | null) {
                     }
                     return true;
                 });
-                seenIdsRef.current.add(msg.id);
             }
 
             const updated = dedupe([...filtered, msg]);

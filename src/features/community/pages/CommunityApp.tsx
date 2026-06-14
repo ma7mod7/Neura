@@ -44,6 +44,8 @@ export default function CommunityApp() {
             setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
         }
         setActiveChannelId(id);
+        // Clear unread for the channel we're entering (removes the green dot)
+        if (id) setUnreadCounts(prev => ({ ...prev, [Number(id)]: 0 }));
     };
 
     const handleSetActiveSpace = (id: string) => {
@@ -78,6 +80,7 @@ export default function CommunityApp() {
     activeChannelNumericRef.current = activeChannelNumeric;
 
     const [lastReceivedMessage, setLastReceivedMessage] = useState<any>(null);
+    const msgSeqRef = useRef(0);
     
     // const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
 
@@ -102,31 +105,31 @@ export default function CommunityApp() {
         courseId,
         channelIds,
         activeChannelId: activeChannelNumeric,
-        onMessageReceived: (msg) => {
-            console.log('CommunityApp got message:', msg, '| activeChannel:', activeChannelNumericRef.current);
-            
-            // Always update cache for this channel
-            const cacheKey = `msg_cache_${msg.channelId}`;
-            try {
-                const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
-                if (cached?.messages) {
-                    const alreadyExists = cached.messages.some((m: any) => m.id === msg.id);
-                    if (!alreadyExists) {
-                        cached.messages = [...cached.messages, msg]
-                            .sort((a: any, b: any) => a.id - b.id);
-                        localStorage.setItem(cacheKey, JSON.stringify(cached));
-                    }
+    onMessageReceived: (msg) => {
+        console.log(' CommunityApp got message:', msg);
+        
+        // Update cache
+        const cacheKey = `msg_cache_${msg.channelId}`;
+        try {
+            const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
+            if (cached?.messages) {
+                const alreadyExists = cached.messages.some((m: any) => m.id === msg.id);
+                if (!alreadyExists) {
+                    cached.messages = [...cached.messages, msg].sort((a: any, b: any) => a.id - b.id);
+                    localStorage.setItem(cacheKey, JSON.stringify(cached));
                 }
-            } catch {}
-
-            const currentActive = activeChannelNumericRef.current;
-
-            if (msg.channelId === currentActive) {
-                setLastReceivedMessage(msg);
-            } else {
-                handleUnreadIncrement(msg.channelId);
             }
-        },
+        } catch {}
+
+        // Always send to ChatArea for ALL channels
+        msgSeqRef.current += 1;
+        setLastReceivedMessage({ msg, seq: msgSeqRef.current });
+
+        // Unread badge for non-active channels
+        if (msg.channelId !== activeChannelNumericRef.current) {
+            handleUnreadIncrement(msg.channelId);
+        }
+    },
         onUnreadIncrement: handleUnreadIncrement,
     });
 
@@ -141,12 +144,12 @@ export default function CommunityApp() {
         if (channels.length === 0) setActiveChannelId('');
     }, [channels, activeChannelId, channelsLoading]);
 
-    // Join channels when connected and channels are ready
+    // Join ONLY the active channel — server replaces group membership on each JoinChannel call
     useEffect(() => {
         if (connectionState !== 'connected') return;
-        if (channelIds.length === 0) return;
-        channelIds.forEach(id => joinChannel(id));
-    }, [connectionState, channelIds.join(',')]);
+        if (!activeChannelNumeric) return;
+        joinChannel(activeChannelNumeric);
+    }, [connectionState, activeChannelNumeric]);
 
     useEffect(() => {
         console.log('Channel map:', channels.map(c => ({ id: c.id, name: c.name })));

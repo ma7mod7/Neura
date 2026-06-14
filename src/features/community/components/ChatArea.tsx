@@ -18,7 +18,7 @@ interface ChatAreaProps {
     sendMessage: (content: string, replyToMessageId?: number) => Promise<void>;
     connectionState: ConnectionState;
     // onRegisterMessageHandler: (handler: (msg: MessageDto) => void) => void;
-    lastReceivedMessage?: MessageDto | null;
+    lastReceivedMessage?: { msg: MessageDto; seq: number } | null;
 }
 
 const EMOJIS = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😢', '🙏', '😎', '👏'];
@@ -47,6 +47,7 @@ export default function ChatArea({
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const channelId = channel ? Number(channel.id) : null;
     const [firstUnreadId, setFirstUnreadId] = useState<number | null>(null);
+    const hasCalculatedUnreadRef = useRef(false);
 
     const {
         messages, loading, loadingMore, hasMore,
@@ -62,12 +63,28 @@ export default function ChatArea({
     //     });
     // }, [channelId, appendMessage]);
 
-        useEffect(() => {
-        if (!lastReceivedMessage) return;
-        if (lastReceivedMessage.channelId === channelId) {
-            appendMessage(lastReceivedMessage);
-        }
-    }, [lastReceivedMessage]);
+    // useEffect(() => {
+    //     if (!lastReceivedMessage) return;
+    //     if (lastReceivedMessage.msg.channelId === channelId) {
+    //         appendMessage(lastReceivedMessage.msg);
+    //     }
+    // }, [lastReceivedMessage?.seq]);
+const appendMessageRef = useRef(appendMessage);
+useEffect(() => { 
+    appendMessageRef.current = appendMessage; 
+}, [appendMessage]);
+
+// Keep a ref so the effect below always reads the CURRENT channelId
+// even though its dependency array only tracks `seq`.
+const channelIdRef = useRef(channelId);
+useEffect(() => { channelIdRef.current = channelId; }, [channelId]);
+
+useEffect(() => {
+    if (!lastReceivedMessage) return;
+    if (lastReceivedMessage.msg.channelId === channelIdRef.current) {
+        appendMessageRef.current(lastReceivedMessage.msg);
+    }
+}, [lastReceivedMessage?.seq]);
 
     const enrichedMessages = messages.map(msg => {
         const member = members?.find(m => m.userId === msg.senderId);
@@ -96,19 +113,31 @@ export default function ChatArea({
         return () => observer.disconnect();
     }, [hasMore, loadMore]);
 
+    // Reset the unread flag when channel changes
     useEffect(() => {
-        if (!channelId || messages.length === 0) { setFirstUnreadId(null); return; }
+        hasCalculatedUnreadRef.current = false;
+        setFirstUnreadId(null);
+    }, [channelId]);
+
+    // Calculate firstUnreadId only ONCE when entering a channel (not on every new message)
+    useEffect(() => {
+        if (!channelId || messages.length === 0 || hasCalculatedUnreadRef.current) return;
+        hasCalculatedUnreadRef.current = true;
         const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
-        if (lastSeenId === 0) { setFirstUnreadId(null); return; }
+        if (lastSeenId === 0) return;
         const firstUnread = messages.find(m => m.id > lastSeenId && m.senderId !== currentUserId);
         setFirstUnreadId(firstUnread?.id ?? null);
     }, [channelId, messages.length]);
 
+    // After 2 seconds of viewing, mark all messages as read and clear the red line
     useEffect(() => {
         if (!channelId || messages.length === 0) return;
         const timer = setTimeout(() => {
             const lastMsg = messages[messages.length - 1];
-            if (lastMsg) localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+            if (lastMsg) {
+                localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+                setFirstUnreadId(null); // clear the red "New Messages" line
+            }
         }, 2000);
         return () => clearTimeout(timer);
     }, [channelId, messages.length]);
