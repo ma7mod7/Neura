@@ -19,7 +19,7 @@ export default function CommunityApp() {
         ? `${user.firstName} ${user.lastName}`
         : user?.userName ?? 'You';
     const currentUserAvatar = user?.imageUrl
-        ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}`;
+        || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}`;
 
     const { spaces, loading: spacesLoading } = useSpaces();
     const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
@@ -39,7 +39,8 @@ export default function CommunityApp() {
     const handleSetActiveChannel = (id: string) => {
         if (activeChannelId && activeChannelId !== id) {
             const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
-            const lastMsg = cached?.messages?.[cached.messages.length - 1];
+            const realMessages = (cached?.messages ?? []).filter((m: any) => m.id < 100_000_000);
+            const lastMsg = realMessages[realMessages.length - 1];
             if (lastMsg) localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
             setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
         }
@@ -51,7 +52,8 @@ export default function CommunityApp() {
     const handleSetActiveSpace = (id: string) => {
         if (activeChannelId) {
             const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
-            const lastMsg = cached?.messages?.[cached.messages.length - 1];
+            const realMessages = (cached?.messages ?? []).filter((m: any) => m.id < 100_000_000);
+            const lastMsg = realMessages[realMessages.length - 1];
             if (lastMsg) localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
             setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
         }
@@ -105,31 +107,44 @@ export default function CommunityApp() {
         courseId,
         channelIds,
         activeChannelId: activeChannelNumeric,
-    onMessageReceived: (msg) => {
-        console.log(' CommunityApp got message:', msg);
+    // onMessageReceived: (msg) => {
+    //     console.log(' CommunityApp got message:', msg);
         
-        // Update cache
-        const cacheKey = `msg_cache_${msg.channelId}`;
-        try {
-            const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
-            if (cached?.messages) {
-                const alreadyExists = cached.messages.some((m: any) => m.id === msg.id);
-                if (!alreadyExists) {
-                    cached.messages = [...cached.messages, msg].sort((a: any, b: any) => a.id - b.id);
-                    localStorage.setItem(cacheKey, JSON.stringify(cached));
-                }
-            }
-        } catch {}
+    //     // Update cache
+    //     const cacheKey = `msg_cache_${msg.channelId}`;
+    //     try {
+    //         const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
+    //         if (cached?.messages) {
+    //             const alreadyExists = cached.messages.some((m: any) => m.id === msg.id);
+    //             if (!alreadyExists) {
+    //                 cached.messages = [...cached.messages, msg].sort((a: any, b: any) => a.id - b.id);
+    //                 localStorage.setItem(cacheKey, JSON.stringify(cached));
+    //             }
+    //         }
+    //     } catch {}
 
-        // Always send to ChatArea for ALL channels
-        msgSeqRef.current += 1;
-        setLastReceivedMessage({ msg, seq: msgSeqRef.current });
+    //     // Always send to ChatArea for ALL channels
+    //     msgSeqRef.current += 1;
+    //     setLastReceivedMessage({ msg, seq: msgSeqRef.current });
 
-        // Unread badge for non-active channels
-        if (msg.channelId !== activeChannelNumericRef.current) {
-            handleUnreadIncrement(msg.channelId);
-        }
-    },
+    //     // Unread badge for non-active channels
+    //     if (msg.channelId !== activeChannelNumericRef.current) {
+    //         handleUnreadIncrement(msg.channelId);
+    //     }
+    // },
+
+    onMessageReceived: (msg) => {
+    console.log('🎯 CommunityApp got message:', msg);
+
+    // Always send to ChatArea
+    msgSeqRef.current += 1;
+    setLastReceivedMessage({ msg, seq: msgSeqRef.current });
+
+    // Unread badge for non-active channels
+    if (msg.channelId !== activeChannelNumericRef.current) {
+        handleUnreadIncrement(msg.channelId);
+    }
+},
         onUnreadIncrement: handleUnreadIncrement,
     });
 
@@ -168,11 +183,11 @@ export default function CommunityApp() {
             for (const c of channels) {
                 const existing = localStorage.getItem(`msg_cache_${c.id}`);
                 if (existing) {
-                    if (!localStorage.getItem(`last_seen_${c.id}`)) {
-                        const parsed = JSON.parse(existing);
-                        const lastMsg = parsed?.messages?.[parsed.messages.length - 1];
-                        if (lastMsg) localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
-                    }
+                    // if (!localStorage.getItem(`last_seen_${c.id}`)) {
+                    //     const parsed = JSON.parse(existing);
+                    //     const lastMsg = parsed?.messages?.[parsed.messages.length - 1];
+                    //     if (lastMsg) localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
+                    // }
                     try {
                         const data = await getMessages(c.id, { pageSize: 50 });
                         const fresh = data.messages ?? [];
@@ -195,9 +210,9 @@ export default function CommunityApp() {
                         localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
                             messages: msgs, hasMore: data.hasMore, nextCursor: data.nextCursor,
                         }));
-                        if (!localStorage.getItem(`last_seen_${c.id}`)) {
-                            localStorage.setItem(`last_seen_${c.id}`, String(msgs[msgs.length - 1].id));
-                        }
+                        // if (!localStorage.getItem(`last_seen_${c.id}`)) {
+                        //     localStorage.setItem(`last_seen_${c.id}`, String(msgs[msgs.length - 1].id));
+                        // }
                     }
                 } catch {}
             }

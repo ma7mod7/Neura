@@ -159,9 +159,12 @@ export default function CommunitySidebar({
                     <div className="flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-[#2a2a2e] p-1.5 rounded-md cursor-pointer transition-colors flex-1 overflow-hidden">
                         <div className="relative">
                             <img
-                                src={currentUserAvatar ?? `https://ui-avatars.com/api/?name=${currentUserName}`}
-                                className="w-8 h-8 rounded-full"
+                                src={currentUserAvatar || `https://ui-avatars.com/api/?name=${currentUserName}`}
+                                className="w-8 h-8 rounded-full object-cover"
                                 alt="me"
+                                onError={e => {
+                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=0D8ABC&color=fff`;
+                                }}
                             />
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-slate-100 dark:border-[#161619] rounded-full" />
                         </div>
@@ -204,7 +207,10 @@ function ChannelRow({ channel, isActive, onClick }: {
                 </span>
             </div>
             {hasUnread && (
-                <div className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0" />
+                <div className="relative flex-shrink-0">
+                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
+                    <div className="absolute inset-0 w-2.5 h-2.5 bg-green-400 rounded-full animate-ping opacity-75" />
+                </div>
             )}
         </div>
     );

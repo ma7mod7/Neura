@@ -47,8 +47,8 @@ export default function ChatArea({
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const channelId = channel ? Number(channel.id) : null;
     const [firstUnreadId, setFirstUnreadId] = useState<number | null>(null);
-    const hasCalculatedUnreadRef = useRef(false);
-
+    // const hasCalculatedUnreadRef = useRef(false);
+    const calculatedForChannelRef = useRef<number | null>(null);
     const {
         messages, loading, loadingMore, hasMore,
         loadMore, appendMessage, handleEdit, handleDelete,
@@ -86,20 +86,28 @@ useEffect(() => {
     }
 }, [lastReceivedMessage?.seq]);
 
+const BASE_URL = 'https://neura-lms.runasp.net/';
+
+const toFullUrl = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return BASE_URL + url;
+};
     const enrichedMessages = messages.map(msg => {
-        const member = members?.find(m => m.userId === msg.senderId);
-        const isCurrentUser = msg.senderId === currentUserId;
-        return {
-            ...msg,
-            senderName: msg.senderName && !msg.senderName.includes('-')
-                ? msg.senderName
-                : (member?.displayName ?? (isCurrentUser ? currentUserName : msg.senderName)),
-            senderAvatarUrl: msg.senderAvatarUrl
-                || (isCurrentUser ? currentUserAvatar : null)
-                || member?.avatarUrl
-                || null,
-        };
-    });
+    const member = members?.find(m => m.userId === msg.senderId);
+    const isCurrentUser = msg.senderId === currentUserId;
+    return {
+        ...msg,
+        senderName: msg.senderName && !msg.senderName.includes('-')
+            ? msg.senderName
+            : (member?.displayName ?? (isCurrentUser ? currentUserName : msg.senderName)),
+        senderAvatarUrl:
+            toFullUrl(msg.senderAvatarUrl)
+            || (isCurrentUser ? currentUserAvatar : null)
+            || toFullUrl(member?.avatarUrl)
+            || null,
+    };
+});
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -114,33 +122,62 @@ useEffect(() => {
     }, [hasMore, loadMore]);
 
     // Reset the unread flag when channel changes
-    useEffect(() => {
-        hasCalculatedUnreadRef.current = false;
-        setFirstUnreadId(null);
-    }, [channelId]);
+    // useEffect(() => {
+    //     hasCalculatedUnreadRef.current = false;
+    //     setFirstUnreadId(null);
+    // }, [channelId]);
 
     // Calculate firstUnreadId only ONCE when entering a channel (not on every new message)
-    useEffect(() => {
-        if (!channelId || messages.length === 0 || hasCalculatedUnreadRef.current) return;
-        hasCalculatedUnreadRef.current = true;
-        const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
-        if (lastSeenId === 0) return;
-        const firstUnread = messages.find(m => m.id > lastSeenId && m.senderId !== currentUserId);
-        setFirstUnreadId(firstUnread?.id ?? null);
-    }, [channelId, messages.length]);
+    // useEffect(() => {
+    //     if (!channelId || messages.length === 0 || hasCalculatedUnreadRef.current) return;
+    //     hasCalculatedUnreadRef.current = true;
+    //     const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
+    //     // if (lastSeenId === 0) return;
+    //     const firstUnread = messages.find(m => m.id > lastSeenId && m.senderId !== currentUserId);
+    //      console.log('🔍 Unread calc:', {
+    //     channelId,
+    //     lastSeenId,
+    //     messagesCount: messages.length,
+    //     firstUnread: firstUnread?.id ?? null,
+    //     allIds: messages.map(m => m.id),
+    //     currentUserId,
+    // });
+    
+    //     setFirstUnreadId(firstUnread?.id ?? null);
+    // }, [channelId, messages.length]);
+
+useEffect(() => {
+    // Reset when channel changes
+    setFirstUnreadId(null);
+    calculatedForChannelRef.current = null; // ← also reset the tracker
+
+    if (!channelId || messages.length === 0) return;
+    if (calculatedForChannelRef.current === channelId) return;
+    calculatedForChannelRef.current = channelId;
+
+    const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
+    const firstUnread = messages.find(m => 
+        m.id > lastSeenId && 
+        m.senderId !== currentUserId &&
+        m.id < 100_000_000  // skip optimistic messages
+    );
+
+    console.log('🔍 Unread calc:', { channelId, lastSeenId, firstUnread: firstUnread?.id ?? null });
+    setFirstUnreadId(firstUnread?.id ?? null);
+}, [channelId, messages.length]);
 
     // After 2 seconds of viewing, mark all messages as read and clear the red line
-    useEffect(() => {
-        if (!channelId || messages.length === 0) return;
-        const timer = setTimeout(() => {
-            const lastMsg = messages[messages.length - 1];
-            if (lastMsg) {
-                localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
-                setFirstUnreadId(null); // clear the red "New Messages" line
-            }
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, [channelId, messages.length]);
+    // useEffect(() => {
+    //     if (!channelId || messages.length === 0) return;
+    //     const timer = setTimeout(() => {
+    //         const lastMsg = messages[messages.length - 1];
+    //         if (lastMsg) {
+    //             localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
+    //             // setFirstUnreadId(null); // clear the red "New Messages" line
+    //         }
+    //     }, 2000);
+    //     return () => clearTimeout(timer);
+    // }, [channelId, messages.length]);
 
     useEffect(() => {
         if (!showEmoji) return;
@@ -156,7 +193,8 @@ useEffect(() => {
     useEffect(() => {
         return () => {
             if (!channelId || messages.length === 0) return;
-            const lastMsg = messages[messages.length - 1];
+            const realMessages = messages.filter(m => m.id < 100_000_000);
+            const lastMsg = realMessages[realMessages.length - 1];
             if (lastMsg) localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
         };
     }, [channelId, messages]);
