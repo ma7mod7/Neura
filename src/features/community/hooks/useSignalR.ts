@@ -66,9 +66,9 @@ export function useSignalR({
         connection.on('ReceiveMessage', (msg: MessageDto) => {
             console.log(' ReceiveMessage:', msg, '| activeChannel:', activeChannelIdRef.current);
             onMessageReceivedRef.current?.(msg);
-            if (msg.channelId !== activeChannelIdRef.current) {
-                onUnreadIncrementRef.current?.(msg.channelId);
-            }
+            // if (msg.channelId !== activeChannelIdRef.current) {
+            //     onUnreadIncrementRef.current?.(msg.channelId);
+            // }
         });
 
         connection.on('MessageEdited', (messageId: number, newContent: string) => {
@@ -84,9 +84,11 @@ export function useSignalR({
         });
 
         connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
-        connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
+        // connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
         connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
-
+        connection.on('UnreadNotification', (_data: unknown) => {
+            // Server sends this handled via ReceiveMessage instead
+        });
         connection.onreconnecting(() => setConnectionState('reconnecting'));
         connection.onreconnected(async () => {
             setConnectionState('connected');
@@ -144,17 +146,24 @@ export function useSignalR({
         }
     }, []);
 
-    const sendMessage = useCallback(
-        async (content: string, replyToMessageId?: number) => {
-            if (!connectionRef.current || connectionState !== 'connected') return;
-            await connectionRef.current.invoke('SendMessage', {
-                channelId: activeChannelId,
-                content,
-                replyToMessageId: replyToMessageId ?? null,
-            }).catch(err => console.error('SendMessage error:', err));
-        },
-        [activeChannelId, connectionState]
-    );
+const sendMessage = useCallback(
+    async (content: string, replyToMessageId?: number) => {
+        const connection = connectionRef.current;
+        if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
+        
+        const channelId = activeChannelIdRef.current; // ← use ref, never stale
+        if (!channelId) return;
+        
+        console.log('Sending to channelId:', channelId); // debug
+        
+        await connection.invoke('SendMessage', {
+            channelId,
+            content,
+            replyToMessageId: replyToMessageId ?? null,
+        }).catch(err => console.error('SendMessage error:', err));
+    },
+    [] // no deps needed — everything via refs
+);
 
     return { sendMessage, connectionState, joinChannel };
 }

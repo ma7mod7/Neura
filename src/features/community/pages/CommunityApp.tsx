@@ -73,20 +73,57 @@ export default function CommunityApp() {
 
     const activeChannelNumeric = activeChannelId ? Number(activeChannelId) : null;
     const channelIds = channels.map(c => c.id);
+    // Sync update on every render
+    const activeChannelNumericRef = useRef<number | null>(activeChannelNumeric);
+    activeChannelNumericRef.current = activeChannelNumeric;
 
-    // ── SignalR lives HERE at the top level, not inside ChatArea ──
-    const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
+    const [lastReceivedMessage, setLastReceivedMessage] = useState<any>(null);
+    
+    // const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
+
+    // const { sendMessage, connectionState, joinChannel } = useSignalR({
+    //     courseId,
+    //     channelIds,
+    //     activeChannelId: activeChannelNumeric,
+    //     onMessageReceived: (msg) => {
+    //         // ChatArea will handle appending via its own ref callback
+    //         if (onMessageReceivedRef.current) {
+    //             onMessageReceivedRef.current(msg);
+    //         }
+    //         if (msg.channelId !== activeChannelNumeric) {
+    //             handleUnreadIncrement(msg.channelId);
+    //         }
+    //     },
+    //     onUnreadIncrement: handleUnreadIncrement,
+    // });
+
 
     const { sendMessage, connectionState, joinChannel } = useSignalR({
         courseId,
         channelIds,
         activeChannelId: activeChannelNumeric,
         onMessageReceived: (msg) => {
-            // ChatArea will handle appending via its own ref callback
-            if (onMessageReceivedRef.current) {
-                onMessageReceivedRef.current(msg);
-            }
-            if (msg.channelId !== activeChannelNumeric) {
+            console.log('CommunityApp got message:', msg, '| activeChannel:', activeChannelNumericRef.current);
+            
+            // Always update cache for this channel
+            const cacheKey = `msg_cache_${msg.channelId}`;
+            try {
+                const cached = JSON.parse(localStorage.getItem(cacheKey) ?? 'null');
+                if (cached?.messages) {
+                    const alreadyExists = cached.messages.some((m: any) => m.id === msg.id);
+                    if (!alreadyExists) {
+                        cached.messages = [...cached.messages, msg]
+                            .sort((a: any, b: any) => a.id - b.id);
+                        localStorage.setItem(cacheKey, JSON.stringify(cached));
+                    }
+                }
+            } catch {}
+
+            const currentActive = activeChannelNumericRef.current;
+
+            if (msg.channelId === currentActive) {
+                setLastReceivedMessage(msg);
+            } else {
                 handleUnreadIncrement(msg.channelId);
             }
         },
@@ -110,6 +147,14 @@ export default function CommunityApp() {
         if (channelIds.length === 0) return;
         channelIds.forEach(id => joinChannel(id));
     }, [connectionState, channelIds.join(',')]);
+
+    useEffect(() => {
+        console.log('Channel map:', channels.map(c => ({ id: c.id, name: c.name })));
+    }, [channels]);
+
+//     useEffect(() => {
+//     activeChannelNumericRef.current = activeChannelNumeric;
+// }, [activeChannelNumeric]);
 
     // Initialize cache for all channels once per space
     useEffect(() => {
@@ -249,7 +294,8 @@ export default function CommunityApp() {
                 unreadCount={unreadCounts[Number(activeChannelId)] ?? 0}
                 sendMessage={sendMessage}
                 connectionState={connectionState}
-                onRegisterMessageHandler={(handler) => { onMessageReceivedRef.current = handler; }}
+                // onRegisterMessageHandler={(handler) => { onMessageReceivedRef.current = handler; }}
+                lastReceivedMessage={lastReceivedMessage}
             />
 
             {showMembers && (
