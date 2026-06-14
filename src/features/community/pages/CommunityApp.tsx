@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CommunitySidebar from '../components/CommunitySidebar';
 import ChatArea from '../components/ChatArea';
 import MembersList from '../components/MembersList';
@@ -6,6 +6,7 @@ import { useChannels } from '../hooks/useChannels';
 import { useMembers } from '../hooks/useMembers';
 import { useSpaces } from '../hooks/useSpaces';
 import { useAuth } from '../../auth/hooks/useAuth';
+import { useSignalR } from '../hooks/useSignalR';
 import type { CommunityChannel } from '../types/communityTypes';
 import { Loader2 } from 'lucide-react';
 import CreateChannelModal from '../components/CreateChannelModal';
@@ -28,31 +29,18 @@ export default function CommunityApp() {
     const [initialized, setInitialized] = useState(false);
     const [showCreateChannel, setShowCreateChannel] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+
     // const activeSpace = spaces.find(s => s.id === activeSpaceId);
-    // const numericCourseId = activeSpace?.numericId ?? null;
 
     const handleUnreadIncrement = (channelId: number) => {
         setUnreadCounts(prev => ({ ...prev, [channelId]: (prev[channelId] ?? 0) + 1 }));
     };
 
-    // const markChannelRead = (channelId: string) => {
-    //     const cached = JSON.parse(localStorage.getItem(`msg_cache_${channelId}`) ?? 'null');
-    //     const lastMsg = cached?.messages?.[cached.messages.length - 1];
-    //     if (lastMsg) {
-    //         localStorage.setItem(`last_seen_${channelId}`, String(lastMsg.id));
-    //     }
-    //     setUnreadCounts(prev => ({ ...prev, [Number(channelId)]: 0 }));
-    // };
-
     const handleSetActiveChannel = (id: string) => {
         if (activeChannelId && activeChannelId !== id) {
-            // Write last_seen SYNCHRONOUSLY before switching so the
-            // recalculation effect sees it already updated
             const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
             const lastMsg = cached?.messages?.[cached.messages.length - 1];
-            if (lastMsg) {
-                localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
-            }
+            if (lastMsg) localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
             setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
         }
         setActiveChannelId(id);
@@ -62,9 +50,7 @@ export default function CommunityApp() {
         if (activeChannelId) {
             const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
             const lastMsg = cached?.messages?.[cached.messages.length - 1];
-            if (lastMsg) {
-                localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
-            }
+            if (lastMsg) localStorage.setItem(`last_seen_${activeChannelId}`, String(lastMsg.id));
             setUnreadCounts(prev => ({ ...prev, [Number(activeChannelId)]: 0 }));
         }
         setActiveSpaceId(id);
@@ -85,6 +71,29 @@ export default function CommunityApp() {
     const { channels, loading: channelsLoading, addChannel } = useChannels(courseId);
     const { members, loading: membersLoading } = useMembers(courseId);
 
+    const activeChannelNumeric = activeChannelId ? Number(activeChannelId) : null;
+    const channelIds = channels.map(c => c.id);
+
+    // ── SignalR lives HERE at the top level, not inside ChatArea ──
+    const { sendMessage, connectionState, joinChannel } = useSignalR({
+        courseId,
+        channelIds,
+        activeChannelId: activeChannelNumeric,
+        onMessageReceived: (msg) => {
+            // ChatArea will handle appending via its own ref callback
+            if (onMessageReceivedRef.current) {
+                onMessageReceivedRef.current(msg);
+            }
+            if (msg.channelId !== activeChannelNumeric) {
+                handleUnreadIncrement(msg.channelId);
+            }
+        },
+        onUnreadIncrement: handleUnreadIncrement,
+    });
+
+    // Ref so ChatArea can register its appendMessage handler
+    const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
+
     // Auto-select first channel
     useEffect(() => {
         if (channelsLoading) return;
@@ -94,6 +103,13 @@ export default function CommunityApp() {
         if (channels.length === 0) setActiveChannelId('');
     }, [channels, activeChannelId, channelsLoading]);
 
+    // Join channels when connected and channels are ready
+    useEffect(() => {
+        if (connectionState !== 'connected') return;
+        if (channelIds.length === 0) return;
+        channelIds.forEach(id => joinChannel(id));
+    }, [connectionState, channelIds.join(',')]);
+
     // Initialize cache for all channels once per space
     useEffect(() => {
         if (channelsLoading || channels.length === 0 || !currentUserId || initialized) return;
@@ -102,14 +118,11 @@ export default function CommunityApp() {
             const { getMessages } = await import('../api/messagesApi');
             for (const c of channels) {
                 const existing = localStorage.getItem(`msg_cache_${c.id}`);
-
                 if (existing) {
                     if (!localStorage.getItem(`last_seen_${c.id}`)) {
                         const parsed = JSON.parse(existing);
                         const lastMsg = parsed?.messages?.[parsed.messages.length - 1];
-                        if (lastMsg) {
-                            localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
-                        }
+                        if (lastMsg) localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
                     }
                     try {
                         const data = await getMessages(c.id, { pageSize: 50 });
@@ -120,27 +133,21 @@ export default function CommunityApp() {
                         if (newOnes.length > 0) {
                             const merged = [...parsed.messages, ...newOnes];
                             localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
-                                messages: merged,
-                                hasMore: data.hasMore,
-                                nextCursor: data.nextCursor,
+                                messages: merged, hasMore: data.hasMore, nextCursor: data.nextCursor,
                             }));
                         }
                     } catch {}
                     continue;
                 }
-
                 try {
                     const data = await getMessages(c.id, { pageSize: 50 });
                     const msgs = data.messages ?? [];
                     if (msgs.length > 0) {
                         localStorage.setItem(`msg_cache_${c.id}`, JSON.stringify({
-                            messages: msgs,
-                            hasMore: data.hasMore,
-                            nextCursor: data.nextCursor,
+                            messages: msgs, hasMore: data.hasMore, nextCursor: data.nextCursor,
                         }));
                         if (!localStorage.getItem(`last_seen_${c.id}`)) {
-                            const lastMsg = msgs[msgs.length - 1];
-                            localStorage.setItem(`last_seen_${c.id}`, String(lastMsg.id));
+                            localStorage.setItem(`last_seen_${c.id}`, String(msgs[msgs.length - 1].id));
                         }
                     }
                 } catch {}
@@ -157,14 +164,8 @@ export default function CommunityApp() {
         setUnreadCounts(prev => {
             const newCounts = { ...prev };
             channels.forEach(c => {
-                // Never recalculate for active channel
-                if (String(c.id) === activeChannelId) {
-                    newCounts[c.id] = 0;
-                    return;
-                }
-                // If already zero
+                if (String(c.id) === activeChannelId) { newCounts[c.id] = 0; return; }
                 if (prev[c.id] === 0) return;
-
                 const lastSeen = Number(localStorage.getItem(`last_seen_${c.id}`) ?? 0);
                 if (lastSeen === 0) return;
                 const cached = JSON.parse(localStorage.getItem(`msg_cache_${c.id}`) ?? 'null');
@@ -237,17 +238,17 @@ export default function CommunityApp() {
 
             <ChatArea
                 channel={activeChannel}
-                courseId={activeSpaceId || null}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
                 currentUserAvatar={currentUserAvatar}
                 onToggleMembers={() => setShowMembers(v => !v)}
                 showMembers={showMembers}
                 onOpenSettings={() => setShowSettings(true)}
-                channelIds={channels.map(c => c.id)}
-                onUnreadIncrement={handleUnreadIncrement}
                 members={members}
                 unreadCount={unreadCounts[Number(activeChannelId)] ?? 0}
+                sendMessage={sendMessage}
+                connectionState={connectionState}
+                onRegisterMessageHandler={(handler) => { onMessageReceivedRef.current = handler; }}
             />
 
             {showMembers && (
