@@ -75,6 +75,8 @@ export default function CommunityApp() {
     const channelIds = channels.map(c => c.id);
 
     // ── SignalR lives HERE at the top level, not inside ChatArea ──
+    const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
+
     const { sendMessage, connectionState, joinChannel } = useSignalR({
         courseId,
         channelIds,
@@ -92,7 +94,6 @@ export default function CommunityApp() {
     });
 
     // Ref so ChatArea can register its appendMessage handler
-    const onMessageReceivedRef = useRef<((msg: any) => void) | null>(null);
 
     // Auto-select first channel
     useEffect(() => {
