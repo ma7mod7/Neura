@@ -134,7 +134,7 @@ export default function CommunityApp() {
     // },
 
     onMessageReceived: (msg) => {
-    console.log('🎯 CommunityApp got message:', msg);
+    console.log(' CommunityApp got message:', msg);
 
     // Always send to ChatArea
     msgSeqRef.current += 1;

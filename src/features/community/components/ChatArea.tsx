@@ -134,7 +134,7 @@ const toFullUrl = (url: string | null | undefined): string | null => {
     //     const lastSeenId = Number(localStorage.getItem(`last_seen_${channelId}`) ?? 0);
     //     // if (lastSeenId === 0) return;
     //     const firstUnread = messages.find(m => m.id > lastSeenId && m.senderId !== currentUserId);
-    //      console.log('🔍 Unread calc:', {
+    //      console.log(' Unread calc:', {
     //     channelId,
     //     lastSeenId,
     //     messagesCount: messages.length,
@@ -162,7 +162,7 @@ useEffect(() => {
         m.id < 100_000_000  // skip optimistic messages
     );
 
-    console.log('🔍 Unread calc:', { channelId, lastSeenId, firstUnread: firstUnread?.id ?? null });
+    console.log(' Unread calc:', { channelId, lastSeenId, firstUnread: firstUnread?.id ?? null });
     setFirstUnreadId(firstUnread?.id ?? null);
 }, [channelId, messages.length]);
 
