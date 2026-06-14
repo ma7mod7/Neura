@@ -83,12 +83,17 @@ export function useSignalR({
             console.error(' Hub Error:', message);
         });
 
-        connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
-        // connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
-        connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
-        connection.on('UnreadNotification', (_data: unknown) => {
-            // Server sends this handled via ReceiveMessage instead
-        });
+    connection.on('PresenceChanged', (data: unknown) => console.log('PresenceChanged:', data));
+    // connection.on('UnreadNotification', (data: unknown) => console.log('UnreadNotification:', data));
+    connection.on('InitialPresenceSync', (data: unknown) => console.log('InitialPresenceSync:', data));
+    connection.on('UnreadNotification', (data: unknown) => {
+        // Server sends this handled via ReceiveMessage instead
+        const d = data as { channelId?: number };
+        if (d.channelId && d.channelId !== activeChannelIdRef.current) {
+            console.log('Incrementing unread for channel:', d.channelId);
+            onUnreadIncrementRef.current?.(d.channelId);
+        }
+    });
         connection.onreconnecting(() => setConnectionState('reconnecting'));
         connection.onreconnected(async () => {
             setConnectionState('connected');

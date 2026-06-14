@@ -66,17 +66,15 @@ export default function MessageItem({
       {/* Avatar */}
       <img
         src={
-          isOwnMessage && !message.senderAvatarUrl
-            ? (currentUserAvatar ??
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(message.senderName ?? "User")}&background=0D8ABC&color=fff`)
-            : message.senderAvatarUrl ||
-              `https://ui-avatars.com/api/?name=${encodeURIComponent(message.senderName ?? "User")}&background=0D8ABC&color=fff`
+          message.senderAvatarUrl
+            || (isOwnMessage ? currentUserAvatar : null)
+            || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.senderName ?? "User")}&background=0D8ABC&color=fff`
         }
         alt={message.senderName ?? "User"}
         onError={(e) => {
           e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(message.senderName ?? "User")}&background=0D8ABC&color=fff`;
         }}
-        className="w-10 h-10 rounded-full mt-0.5 cursor-pointer hover:opacity-80 border border-slate-200 dark:border-slate-700 flex-shrink-0"
+        className="w-10 h-10 rounded-full mt-0.5 cursor-pointer hover:opacity-80 border border-slate-200 dark:border-slate-700 flex-shrink-0 object-cover"
       />
 
       <div className="flex-1 min-w-0">
