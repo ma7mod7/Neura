@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Hash, Search, Users, Smile, Paperclip, Send, Plus, X, FileText } from 'lucide-react';
-import type { CommunityChannel, MessageDto ,CourseMemberDto} from '../types/communityTypes';
+import type { CommunityChannel, MessageDto, CourseMemberDto } from '../types/communityTypes';
 import { useMessages } from '../hooks/useMessages';
 import { useSignalR } from '../hooks/useSignalR';
 import MessageItem from './MessageItem';
@@ -33,7 +33,7 @@ export default function ChatArea({
     channelIds,
     onUnreadIncrement,
     currentUserName,
-    members, 
+    members,
 }: ChatAreaProps) {
     const [messageText, setMessageText] = useState('');
     const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
@@ -47,12 +47,13 @@ export default function ChatArea({
     const channelIdRef = useRef(channelId);
     const [firstUnreadId, setFirstUnreadId] = useState<number | null>(null);
 
-    useEffect(() => { channelIdRef.current = channelId; }, [channelId]);  
+    useEffect(() => { channelIdRef.current = channelId; }, [channelId]);
 
-     const {
-    messages, loading, loadingMore, hasMore,
-    loadMore, appendMessage, handleEdit, handleDelete,
-     } = useMessages(channelId);
+    const {
+        messages, loading, loadingMore, hasMore,
+        loadMore, appendMessage, handleEdit, handleDelete,
+    } = useMessages(channelId);
+
     const enrichedMessages = messages.map(msg => {
         const member = members?.find(m => m.userId === msg.senderId);
         const isCurrentUser = msg.senderId === currentUserId;
@@ -67,24 +68,31 @@ export default function ChatArea({
                 || null,
         };
     });
-    
-    const { sendMessage, connectionState } = useSignalR({
+
+    const { sendMessage, connectionState, joinChannel } = useSignalR({
         courseId,
         channelIds: channelIds ?? (channelId ? [channelId] : []),
         activeChannelId: channelId,
         onMessageReceived: (msg) => {
             console.log('📨 ReceiveMessage fired, channelId:', msg.channelId, 'current:', channelIdRef.current);
-            appendMessage(msg);  
+            appendMessage(msg);
         },
         onUnreadIncrement,
     });
+
+    // Join all channels as soon as connection is ready AND channelIds are available
+    useEffect(() => {
+        if (connectionState !== 'connected') return;
+        if (!channelIds || channelIds.length === 0) return;
+        channelIds.forEach(id => joinChannel(id));
+    }, [connectionState, channelIds?.join(',')]);
 
     // Auto scroll to bottom on new message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages.length]);
 
-    // Infinite scroll --> load older messages when scrolling to top
+    // Infinite scroll
     useEffect(() => {
         const observer = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) loadMore();
@@ -93,7 +101,7 @@ export default function ChatArea({
         return () => observer.disconnect();
     }, [hasMore, loadMore]);
 
-    // Compute the "New Messages"
+    // Compute "New Messages" divider
     useEffect(() => {
         if (!channelId || messages.length === 0) {
             setFirstUnreadId(null);
@@ -110,8 +118,7 @@ export default function ChatArea({
         setFirstUnreadId(firstUnread?.id ?? null);
     }, [channelId, messages.length]);
 
-    // Persist last-seen position after a short delay
-    // (covers refreshing the page without switching channels)
+    // Persist last-seen after delay
     useEffect(() => {
         if (!channelId || messages.length === 0) return;
         const timer = setTimeout(() => {
@@ -123,7 +130,7 @@ export default function ChatArea({
         return () => clearTimeout(timer);
     }, [channelId, messages.length]);
 
-    // Close emoji picker
+    // Close emoji picker on outside click
     useEffect(() => {
         if (!showEmoji) return;
         const handleClickOutside = (e: MouseEvent) => {
@@ -135,8 +142,7 @@ export default function ChatArea({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showEmoji]);
 
-    // Always sync last_seen to the live message list when leaving this channel
-    // avoids a race with the async cache merge in useMessages
+    // Sync last_seen on channel leave
     useEffect(() => {
         return () => {
             if (!channelId || messages.length === 0) return;
@@ -147,40 +153,41 @@ export default function ChatArea({
         };
     }, [channelId, messages]);
 
-const handleSend = async () => {
-    const content = messageText.trim();
-    if ((!content && !attachedFile) || !channel) return;
-    
-    const tempId = Date.now();
-    const optimisticMsg: MessageDto = {
-        id: tempId,
-        channelId: Number(channel.id),
-        senderId: currentUserId,
-        senderName: currentUserName,
-        senderAvatarUrl: currentUserAvatar ?? null,
-        content,
-        sentAt: new Date().toISOString(),
-        editedAt: null,
-        isDeleted: false,
-        replyToMessageId: replyTo?.id ?? null,
-        replyPreview: replyTo ? {
-            id: replyTo.id,
-            senderName: replyTo.senderName,
-            contentPreview: replyTo.content,
-        } : null,
-    };
-    setFirstUnreadId(null);
-    appendMessage(optimisticMsg);
-    setMessageText('');
-    setReplyTo(null);
-    setAttachedFile(null);
+    const handleSend = async () => {
+        const content = messageText.trim();
+        if ((!content && !attachedFile) || !channel) return;
 
-    try {
-        await sendMessage(content, replyTo?.id);
-    } catch (err) {
-        console.error('Failed to send message:', err);
-    }
-};
+        const tempId = Date.now();
+        const optimisticMsg: MessageDto = {
+            id: tempId,
+            channelId: Number(channel.id),
+            senderId: currentUserId,
+            senderName: currentUserName,
+            senderAvatarUrl: currentUserAvatar ?? null,
+            content,
+            sentAt: new Date().toISOString(),
+            editedAt: null,
+            isDeleted: false,
+            replyToMessageId: replyTo?.id ?? null,
+            replyPreview: replyTo ? {
+                id: replyTo.id,
+                senderName: replyTo.senderName,
+                contentPreview: replyTo.content,
+            } : null,
+        };
+        setFirstUnreadId(null);
+        appendMessage(optimisticMsg);
+        setMessageText('');
+        setReplyTo(null);
+        setAttachedFile(null);
+
+        try {
+            await sendMessage(content, replyTo?.id);
+        } catch (err) {
+            console.error('Failed to send message:', err);
+        }
+    };
+
     const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -208,7 +215,6 @@ const handleSend = async () => {
                 </div>
 
                 <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
-                    {/* Connection indicator */}
                     <div className="flex items-center gap-1.5">
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : connectionState === 'reconnecting' ? 'bg-yellow-500 animate-pulse' : 'bg-slate-400'}`} />
                         <span className="text-xs hidden md:block text-slate-400">
@@ -243,7 +249,6 @@ const handleSend = async () => {
                     </div>
                 )}
 
-                {/* Channel welcome header */}
                 {!loading && !hasMore && (
                     <div className="mt-8 mb-8">
                         <div className="w-16 h-16 bg-slate-200 dark:bg-[#2a2a2e] rounded-full flex items-center justify-center mb-4">
@@ -272,7 +277,6 @@ const handleSend = async () => {
                     </div>
                 )}
 
-                {/* Date separator  */}
                 {!loading && messages.length > 0 && (
                     <div className="relative flex items-center py-2">
                         <div className="flex-1 border-t border-slate-200 dark:border-[#2a2a2e]" />
@@ -341,7 +345,6 @@ const handleSend = async () => {
 
             {/* Input Area */}
             <div className={`p-4 flex-shrink-0 ${(replyTo || attachedFile) ? 'pt-0' : ''}`}>
-
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -366,7 +369,6 @@ const handleSend = async () => {
                         className="flex-1 bg-transparent outline-none px-2 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                     <div className="flex items-center gap-2">
-                        {/* Emoji picker */}
                         <div className="relative" ref={emojiPickerRef}>
                             <button
                                 type="button"
@@ -375,7 +377,7 @@ const handleSend = async () => {
                             >
                                 <Smile size={20} />
                             </button>
-                           {showEmoji && (
+                            {showEmoji && (
                                 <div className="absolute bottom-12 right-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-20 w-56">
                                     {EMOJIS.map(emoji => (
                                         <button
