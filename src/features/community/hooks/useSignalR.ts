@@ -45,6 +45,7 @@ export function useSignalR({
     useEffect(() => { onMessageDeletedRef.current = onMessageDeleted; }, [onMessageDeleted]);
     useEffect(() => { onUnreadIncrementRef.current = onUnreadIncrement; }, [onUnreadIncrement]);
 
+    // Main connection — only recreated when courseId or token changes
     useEffect(() => {
         if (!courseId || !token) return;
 
@@ -62,7 +63,6 @@ export function useSignalR({
 
         connectionRef.current = connection;
 
-        //  SINGLE ReceiveMessage handler
         connection.on('ReceiveMessage', (msg: MessageDto) => {
             console.log('📨 ReceiveMessage:', msg, '| activeChannel:', activeChannelIdRef.current);
             onMessageReceivedRef.current?.(msg);
@@ -90,12 +90,19 @@ export function useSignalR({
         connection.onreconnecting(() => setConnectionState('reconnecting'));
         connection.onreconnected(async () => {
             setConnectionState('connected');
+            // Rejoin all channels after reconnect
             joinedChannelsRef.current = new Set();
             for (const id of channelIdsRef.current) {
-                await connection.invoke('JoinChannel', id).catch(console.error);
-                joinedChannelsRef.current.add(id);
+                try {
+                    await connection.invoke('JoinChannel', id);
+                    joinedChannelsRef.current.add(id);
+                    console.log(' Rejoined channel after reconnect:', id);
+                } catch (err) {
+                    console.error(' Failed to rejoin channel:', id, err);
+                }
             }
         });
+
         connection.onclose((err) => {
             if (!cancelled) {
                 console.warn('SignalR closed:', err);
@@ -105,21 +112,11 @@ export function useSignalR({
 
         setConnectionState('connecting');
         connection.start()
-            .then(async () => {
+            .then(() => {
                 if (cancelled) { connection.stop(); return; }
                 setConnectionState('connected');
-
-                const currentChannelIds = channelIdsRef.current;
-                console.log('🚀 Joining channels after connect:', currentChannelIds);
-                for (const id of currentChannelIds) {
-                    try {
-                        await connection.invoke('JoinChannel', id);
-                        joinedChannelsRef.current.add(id);
-                        console.log(' Joined channel:', id);
-                    } catch (err) {
-                        console.error(' Failed to join channel:', id, err);
-                    }
-                }
+                // Channels are joined by the useEffect below once
+                // connectionState === 'connected' and channelIds are ready
             })
             .catch(err => {
                 if (!cancelled) {
@@ -137,7 +134,7 @@ export function useSignalR({
         };
     }, [courseId, token]);
 
-    // Join newly added channels 
+    // Join any channels not yet joined — runs when channelIds arrive or connection becomes ready
     useEffect(() => {
         if (channelIds.length === 0) return;
         const connection = connectionRef.current;
@@ -146,7 +143,7 @@ export function useSignalR({
         const newChannels = channelIds.filter(id => !joinedChannelsRef.current.has(id));
         if (newChannels.length === 0) return;
 
-        console.log('🔗 Joining NEW channels:', newChannels);
+        console.log('🔗 Joining channels:', newChannels);
         Promise.all(
             newChannels.map(id =>
                 connection.invoke('JoinChannel', id)
