@@ -21,7 +21,7 @@ export default function ExamResultsPage() {
     const { data: analytics } = useQuery({
         queryKey: ['examAnalytics', examId],
         queryFn: () => getExamAnalytics(examId!),
-        enabled: !!examId,
+        enabled: false,
     });
 
     if (resultsLoading) {

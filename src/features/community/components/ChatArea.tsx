@@ -4,6 +4,7 @@ import type { CommunityChannel, MessageDto, CourseMemberDto } from '../types/com
 import { useMessages } from '../hooks/useMessages';
 import type { ConnectionState } from '../hooks/useSignalR';
 import MessageItem from './MessageItem';
+import { useTranslation } from 'react-i18next';
 
 interface ChatAreaProps {
     channel: CommunityChannel | null;
@@ -37,6 +38,7 @@ export default function ChatArea({
     // onRegisterMessageHandler,
     lastReceivedMessage,
 }: ChatAreaProps) {
+    const { t } = useTranslation();
     const [messageText, setMessageText] = useState('');
     const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
     const [showEmoji, setShowEmoji] = useState(false);
@@ -53,7 +55,6 @@ export default function ChatArea({
         messages, loading, loadingMore, hasMore,
         loadMore, appendMessage, handleEdit, handleDelete,
     } = useMessages(channelId);
-
     // Register appendMessage handler with parent so SignalR messages flow in
     // useEffect(() => {
     //     onRegisterMessageHandler((msg: MessageDto) => {
@@ -149,7 +150,7 @@ const toFullUrl = (url: string | null | undefined): string | null => {
 useEffect(() => {
     // Reset when channel changes
     setFirstUnreadId(null);
-    calculatedForChannelRef.current = null; // ← also reset the tracker
+    calculatedForChannelRef.current = null; 
 
     if (!channelId || messages.length === 0) return;
     if (calculatedForChannelRef.current === channelId) return;
@@ -249,7 +250,7 @@ useEffect(() => {
             <div className="h-14 flex flex-shrink-0 items-center justify-between px-4 border-b border-slate-200 dark:border-[#2a2a2e] shadow-sm">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-white">
                     <Hash size={20} className="text-slate-400" />
-                    <h3 className="font-bold">{channel?.name ?? 'Select a channel'}</h3>
+                    <h3 className="font-bold">{channel?.name ?? t('community.selectChannel')}</h3>
                     {channel?.topic && (
                         <>
                             <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
@@ -261,12 +262,12 @@ useEffect(() => {
                     <div className="flex items-center gap-1.5">
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : connectionState === 'reconnecting' ? 'bg-yellow-500 animate-pulse' : 'bg-slate-400'}`} />
                         <span className="text-xs hidden md:block text-slate-400">
-                            {isConnected ? 'Live' : connectionState}
+                            {isConnected ? t('community.live') : connectionState}
                         </span>
                     </div>
                     <div className="relative hidden md:block">
                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4" />
-                        <input type="text" placeholder="Search messages"
+                        <input type="text" placeholder={t('community.searchMessages')}
                             className="bg-slate-100 dark:bg-[#2a2a2e] text-sm rounded-md pl-8 pr-2 py-1 w-44 outline-none focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-white" />
                     </div>
                     <button onClick={onToggleMembers}
@@ -288,8 +289,8 @@ useEffect(() => {
                         <div className="w-16 h-16 bg-slate-200 dark:bg-[#2a2a2e] rounded-full flex items-center justify-center mb-4">
                             <Hash size={32} className="text-slate-500 dark:text-slate-400" />
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Welcome to #{channel?.name}</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">This is the beginning of the #{channel?.name} channel.</p>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{t('community.beginningOf', { channel: channel?.name })}</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">{t('community.beginningOf', { channel: channel?.name })}</p>
                     </div>
                 )}
                 {loading && (
@@ -308,7 +309,7 @@ useEffect(() => {
                 {!loading && messages.length > 0 && (
                     <div className="relative flex items-center py-2">
                         <div className="flex-1 border-t border-slate-200 dark:border-[#2a2a2e]" />
-                        <span className="px-3 text-xs font-semibold text-slate-400 dark:text-slate-500">Today</span>
+                        <span className="px-3 text-xs font-semibold text-slate-400 dark:text-slate-500">{t('community.today')}</span>
                         <div className="flex-1 border-t border-slate-200 dark:border-[#2a2a2e]" />
                     </div>
                 )}
@@ -317,7 +318,7 @@ useEffect(() => {
                         {msg.id === firstUnreadId && (
                             <div className="relative flex items-center py-2 my-2">
                                 <div className="flex-1 border-t border-red-400 dark:border-red-500" />
-                                <span className="px-3 text-xs font-semibold text-red-400 dark:text-red-500 bg-white dark:bg-[#1a1a1a]">New Messages</span>
+                                <span className="px-3 text-xs font-semibold text-red-400 dark:text-red-500 bg-white dark:bg-[#1a1a1a]">{t('community.newMessages')}</span>
                                 <div className="flex-1 border-t border-red-400 dark:border-red-500" />
                             </div>
                         )}
@@ -340,7 +341,7 @@ useEffect(() => {
                     <div className="flex items-center gap-2 text-sm">
                         <div className="w-0.5 h-4 bg-blue-500 rounded-full" />
                         <span className="text-slate-500 dark:text-slate-400">
-                            Replying to <span className="font-semibold text-slate-700 dark:text-slate-200">{replyTo.senderName}</span>
+                            {t('community.replyingTo')} <span className="font-semibold text-slate-700 dark:text-slate-200">{replyTo.senderName}</span>
                         </span>
                         <span className="text-slate-400 truncate max-w-xs">{replyTo.content}</span>
                     </div>
@@ -369,7 +370,7 @@ useEffect(() => {
                     <input type="text" value={messageText}
                         onChange={e => setMessageText(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                        placeholder={channel ? `Message #${channel.name}` : 'Select a channel'}
+                        placeholder={channel ? t('community.messagePlaceholder', { channel: channel.name }) : t('community.selectChannel')}
                         className="flex-1 bg-transparent outline-none px-2 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400" />
                     <div className="flex items-center gap-2">
                         <div className="relative" ref={emojiPickerRef}>

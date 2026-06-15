@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { CommunitySpace, CommunityChannel } from '../types/communityTypes';
+import { useTranslation } from 'react-i18next';
 
 interface CommunitySidebarProps {
     spaces: CommunitySpace[];
@@ -37,7 +38,7 @@ export default function CommunitySidebar({
     currentUserAvatar,
     onOpenSettings,
 }: CommunitySidebarProps) {
-
+     const { t } = useTranslation();
     const activeSpace = spaces.find(s => s.id === activeSpaceId);
     const textChannels = channels.filter(c => c.type === 'text');
     const voiceChannels = channels.filter(c => c.type === 'voice');
@@ -68,7 +69,7 @@ export default function CommunitySidebar({
                 <div className="w-8 h-[2px] bg-slate-200 dark:bg-[#2a2a2e] rounded-full my-1" />
 
                 <button
-                    title="Browse all communities"
+                    title={t('community.browseAll')}
                     className="w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-white dark:bg-[#2a2a2e] text-green-600 flex items-center justify-center transition-all duration-300 shadow-sm border border-slate-200 dark:border-transparent hover:bg-green-500 hover:text-white dark:hover:bg-green-500"
                 >
                     <Plus size={24} />
@@ -107,7 +108,7 @@ export default function CommunitySidebar({
                             {textChannels.length > 0 && (
                                 <>
                                     <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 mt-3 px-2 flex items-center justify-between group">
-                                        Text Channels
+                                        {t('community.textChannels')}
                                         <button onClick={onAddChannel} className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-slate-700 dark:hover:text-white">
                                             <Plus size={14} />
                                         </button>
@@ -127,7 +128,7 @@ export default function CommunitySidebar({
                             {voiceChannels.length > 0 && (
                                 <>
                                     <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 mt-4 px-2">
-                                        Voice Channels
+                                        {t('community.voiceChannels')}
                                     </p>
                                     {voiceChannels.map(channel => (
                                         <ChannelRow
@@ -144,9 +145,9 @@ export default function CommunitySidebar({
                             {channels.length === 0 && (
                                 <div className="text-center py-8 text-slate-400 dark:text-slate-500">
                                     <Hash size={32} className="mx-auto mb-2 opacity-40" />
-                                    <p className="text-sm">No channels yet</p>
+                                    <p className="text-sm">{t('community.noChannels')}</p>
                                     <button onClick={onAddChannel} className="text-xs text-blue-500 hover:underline mt-1">
-                                        Create one
+                                        {t('community.createOne')}
                                     </button>
                                 </div>
                             )}
@@ -170,7 +171,7 @@ export default function CommunitySidebar({
                         </div>
                         <div className="flex flex-col truncate">
                             <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{currentUserName}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">Online</span>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{t('community.online')}</span>
                         </div>
                     </div>
                     <button

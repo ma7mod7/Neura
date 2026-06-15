@@ -4,12 +4,45 @@ import {
   getExamAttempts,
   getScoreDistribution,
   getAttemptResults,
+  getStudentExamAnalytics, 
+  getStudentScoreDistribution,
+  getStudentAttempts,
 } from '../api/analysisApi';
 
 export function useExamAnalytics(examId: string | null) {
   return useQuery({
     queryKey: ['examAnalytics', examId],
     queryFn: () => getExamAnalytics(examId!),
+    enabled: !!examId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+export function useStudentExamAnalytics(examId: string | null) {
+  return useQuery({
+    queryKey: ['studentExamAnalytics', examId],
+    queryFn: () => getStudentExamAnalytics(examId!),
+    enabled: !!examId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+export function useStudentScoreDistribution(examId: string | null) {
+  return useQuery({
+    queryKey: ['studentScoreDistribution', examId],
+    queryFn: () => getStudentScoreDistribution(examId!),
+    enabled: !!examId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+export function useStudentAttempts(examId: string | null) {
+  return useQuery({
+    queryKey: ['studentAttempts', examId],
+    queryFn: () => getStudentAttempts(examId!),
     enabled: !!examId,
     staleTime: 1000 * 60 * 5,
     retry: false,

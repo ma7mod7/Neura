@@ -18,3 +18,18 @@ export const getEnrolledCourses = async (): Promise<{ id: string; title: string 
   const raw: { keyId: string; title: string }[] = res.data?.items ?? [];
   return raw.map((c) => ({ id: c.keyId, title: c.title }));
 };
+
+export const getStudentExamAnalytics = async (examId: string) => {
+  const res = await axiosInstance.get(`/api/exams/${examId}/analytics/student`);
+  return res.data;
+};
+
+export const getStudentScoreDistribution = async (examId: string) => {
+  const res = await axiosInstance.get(`/api/exams/${examId}/analytics/student/score-distribution`);
+  return res.data?.buckets ?? [];
+};
+
+export const getStudentAttempts = async (examId: string) => {
+  const res = await axiosInstance.get(`/api/exams/${examId}/analytics/student/attempts`);
+  return res.data?.attempts ?? [];
+};

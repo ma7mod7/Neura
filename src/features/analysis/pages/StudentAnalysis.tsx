@@ -8,7 +8,7 @@ import { ScoreTrendChart } from '../components/ScoreTrendChart';
 import { AttemptsTable }   from '../components/AttemptsTable';
 import { ExamSummaryCard } from '../components/ExamSummaryCard';
 import { useStudentExamList }                from '../hooks/useExamList';
-import { useExamAnalytics, useExamAttempts } from '../hooks/useExamAnalytics';
+import { useStudentExamAnalytics, useStudentAttempts } from '../hooks/useExamAnalytics';
 import { useTranslation } from 'react-i18next';
 import NavBar from '../../../shared/components/NavBar';
 import { useAuth } from '../../auth/hooks/useAuth';
@@ -232,37 +232,27 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
     setSelectedExamId(examId);
     localStorage.setItem(STORAGE_KEY, examId);
   };
+  const { data: attemptsRaw,     isLoading: attemptsLoading } = useStudentAttempts(selectedExamId);
 
-  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useExamAnalytics(selectedExamId);
-  const { data: attemptsRaw, isLoading: attemptsLoading, error: attemptsError  } = useExamAttempts(selectedExamId);
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useStudentExamAnalytics(selectedExamId);
+  // const { data: attemptsRaw, isLoading: attemptsLoading, error: attemptsError  } = useExamAttempts(selectedExamId);
+  const attempts     = Array.isArray(attemptsRaw) ? attemptsRaw : [];
 
-  const attempts = Array.isArray(attemptsRaw)
-    ? attemptsRaw
-    : Array.isArray((attemptsRaw as any)?.attempts)
-      ? (attemptsRaw as any).attempts
-      : Array.isArray((attemptsRaw as any)?.items)
-        ? (attemptsRaw as any).items
-        : [];
+    const isForbidden = is403(analyticsError);
 
-  const isForbidden = is403(analyticsError) || is403(attemptsError);
+    const heroStats = analytics ? [
+      { label: t('analysis.myScore'),        value: `${Math.round(analytics.studentScorePercentage ?? 0)}%` },
+      { label: t('analysis.totalAttempts'),  value: String(analytics.totalStudentAttempts) },
+      { label: t('analysis.classAverage'),   value: `${Math.round(analytics.classAveragePercentage)}%` },
+      { label: t('analysis.classHighest'),   value: `${Math.round(analytics.classHighestPercentage)}%` },
+    ] : [];
 
-  const heroStats = analytics
-    ? [
-        { label: t('analysis.avgScore'),      value: `${Math.round(analytics.averageScorePercentage)}%` },
-        { label: t('analysis.totalAttempts'), value: String(analytics.totalAttempts) },
-        { label: t('analysis.passRate'),      value: `${Math.round(analytics.passRate)}%` },
-        { label: t('analysis.bestScore'),     value: `${analytics.highestScorePercentage}%` },
-      ]
-    : [];
-
-  const statCards = analytics
-    ? [
-        { icon: <BarChart3 size={18} />, label: t('analysis.avgScore'),      value: `${Math.round(analytics.averageScorePercentage)}%`, color: '#0061EF' },
-        { icon: <Target size={18} />,    label: t('analysis.passRate'),      value: `${Math.round(analytics.passRate)}%`,               color: '#059669' },
-        { icon: <Activity size={18} />,  label: t('analysis.totalAttempts'), value: String(analytics.totalAttempts),                    color: '#0891b2' },
-        { icon: <Award size={18} />,     label: t('analysis.bestScore'),     value: `${analytics.highestScorePercentage}%`,             color: '#7c3aed' },
-      ]
-    : null;
+    const statCards = analytics ? [
+      { icon: <BarChart3 size={18} />, label: t('analysis.myScore'),       value: `${Math.round(analytics.studentScorePercentage ?? 0)}%`, color: '#0061EF' },
+      { icon: <Target size={18} />,    label: t('analysis.classAverage'),  value: `${Math.round(analytics.classAveragePercentage)}%`,      color: '#059669' },
+      { icon: <Activity size={18} />,  label: t('analysis.myAttempts'),    value: String(analytics.totalStudentAttempts),                  color: '#0891b2' },
+      { icon: <Award size={18} />,     label: t('analysis.classHighest'),  value: `${Math.round(analytics.classHighestPercentage)}%`,      color: '#7c3aed' },
+    ] : null;
 
   return (
     <div className="min-h-screen font-inter pb-20">
@@ -298,7 +288,7 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
 
         {/* Exam picker */}
         <GlassCard className="p-5 overflow-visible">
-           <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-7 h-7 rounded-xl bg-[#0061EF]/10 dark:bg-[#0061EF]/20 flex items-center justify-center">
               <BookOpen size={13} className="text-[#0061EF]" />
             </div>
@@ -321,10 +311,7 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
           </GlassCard>
         )}
 
-        {selectedExamId && (
-          <>
-            {isForbidden && <BackendPendingBanner t={t} />}
-            {!isForbidden && (
+       {selectedExamId && !isForbidden && (
               <>
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                   <GlassCard className="xl:col-span-2 p-6">
@@ -334,7 +321,7 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
 
                   <GlassCard className="p-6">
                     <SectionHeader icon={<Target size={15} />} title={t('analysis.examSummary')} />
-                    <ExamSummaryCard analytics={analytics} loading={analyticsLoading} />
+                    <ExamSummaryCard analytics={analytics} loading={analyticsLoading} mode="student" />
                   </GlassCard>
                 </div>
 
@@ -353,8 +340,7 @@ export const StudentAnalysis: React.FC<Props> = ({ userName }) => {
                 </GlassCard>
               </>
             )}
-          </>
-        )}
+            {selectedExamId && isForbidden && <BackendPendingBanner t={t} />}
       </div>
     </div>
   );
