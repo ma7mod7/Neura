@@ -1,7 +1,7 @@
 
 import { useQuery, useQueries, type UseQueryResult } from '@tanstack/react-query';
 import {
-  getEditableCourses,
+  getTeachingCourses,
   getEnrolledCourses,
   getCourseContent,
 } from '../api/analysisApi';
@@ -40,7 +40,7 @@ function flattenExams(
 export function useInstructorExamList() {
   const coursesQuery = useQuery({
     queryKey: ['editableCourses'],
-    queryFn: getEditableCourses,
+    queryFn: getTeachingCourses,
     staleTime: 1000 * 60 * 5,
   });
 
