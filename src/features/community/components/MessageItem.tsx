@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Smile, MoreVertical, Reply, Edit2, Trash2 } from "lucide-react";
 import type { MessageDto } from "../types/communityTypes";
+import { useTranslation } from 'react-i18next';
 
 interface MessageItemProps {
   message: MessageDto;
@@ -21,6 +22,7 @@ export default function MessageItem({
   onReply,
   onOpenSettings,
 }: MessageItemProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content ?? "");
   const [showActions, setShowActions] = useState(false);
@@ -46,7 +48,7 @@ export default function MessageItem({
         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-[#2a2a2e] flex-shrink-0" />
         <div className="flex-1">
           <p className="text-slate-400 dark:text-slate-600 italic text-sm">
-            This message was deleted.
+            {t('community.deletedMessage')}
           </p>
         </div>
       </div>
@@ -106,7 +108,7 @@ export default function MessageItem({
             })}
           </span>
           {message.editedAt && (
-            <span className="text-[10px] text-slate-400 italic">(edited)</span>
+            <span className="text-[10px] text-slate-400 italic">{t('community.edited')}</span>
           )}
         </div>
 
@@ -124,7 +126,7 @@ export default function MessageItem({
               className="w-full bg-white dark:bg-[#2a2a2e] border border-blue-400 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none"
             />
             <p className="text-xs text-slate-400 mt-1">
-              Enter to save · Esc to cancel
+              {t('community.enterToSave')}
             </p>
           </div>
         ) : (
@@ -139,7 +141,7 @@ export default function MessageItem({
         <div className="absolute right-2 -top-3 flex items-center bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-md z-10">
           <div className="relative">
             <button
-              title="Add Reaction"
+              title={t('community.addReaction')}
               onClick={() => setShowReactionPicker((v) => !v)}
               className="p-1.5 text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-[#3a3a3e] transition-colors"
             >
@@ -184,7 +186,7 @@ export default function MessageItem({
             )}
           </div>
           <button
-            title="Reply"
+            title={t('community.reply')}
             onClick={() => onReply?.(message)}
             className="p-1.5 text-slate-500 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-[#3a3a3e] transition-colors"
           >
@@ -193,7 +195,7 @@ export default function MessageItem({
           {isOwnMessage && (
             <>
               <button
-                title="Edit"
+                title={t('community.edit')}
                 onClick={() => {
                   setIsEditing(true);
                   setShowActions(false);
@@ -203,7 +205,7 @@ export default function MessageItem({
                 <Edit2 size={15} />
               </button>
               <button
-                title="Delete"
+                title={t('community.delete')}
                 onClick={() => onDelete?.(message.id)}
                 className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-[#3a3a3e] transition-colors"
               >
@@ -231,7 +233,7 @@ export default function MessageItem({
                   }}
                   className="w-full text-left px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#3a3a3e]"
                 >
-                  Reply
+                  {t('community.reply')}
                 </button>
                 {isOwnMessage && (
                   <>
@@ -243,7 +245,7 @@ export default function MessageItem({
                       }}
                       className="w-full text-left px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#3a3a3e]"
                     >
-                      Edit
+                      {t('community.edit')}
                     </button>
                     <button
                       onClick={() => {
@@ -253,7 +255,7 @@ export default function MessageItem({
                       }}
                       className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-slate-100 dark:hover:bg-[#3a3a3e]"
                     >
-                      Delete
+                      {t('community.delete')}
                     </button>
                   </>
                 )}

@@ -1,6 +1,7 @@
     import { Shield, Search } from 'lucide-react';
     import { useState } from 'react';
     import type { CourseMemberDto } from '../types/communityTypes';
+    import { useTranslation } from 'react-i18next';
 
     interface MembersListProps {
         members: CourseMemberDto[];
@@ -15,6 +16,7 @@
     };
 
     export default function MembersList({ members, loading, currentUserId, currentUserAvatar }: MembersListProps) {
+        const { t } = useTranslation();
         const [query, setQuery] = useState('');
         const filtered = members.filter(m =>
             (m.displayName ?? '').toLowerCase().includes(query.toLowerCase())
@@ -85,7 +87,7 @@
                         <input
                             value={query}
                             onChange={e => setQuery(e.target.value)}
-                            placeholder="Search members"
+                            placeholder={t('community.searchMembers')}
                             className="w-full bg-slate-100 dark:bg-[#2a2a2e] text-sm rounded-md pl-8 pr-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-white"
                         />
                     </div>
@@ -94,7 +96,7 @@
                     {admins.length > 0 && (
                         <section>
                             <h3 className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                                Instructors — {admins.length}
+                                {t('community.instructors')} — {admins.length}
                             </h3>
                             <div className="space-y-0.5">
                                 {admins.map(m => <MemberRow key={m.userId} member={m} />)}
@@ -104,7 +106,7 @@
                     {onlineStudents.length > 0 && (
                         <section>
                             <h3 className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                                Online — {onlineStudents.length}
+                                {t('community.online')} — {onlineStudents.length}
                             </h3>
                             <div className="space-y-0.5">
                                 {onlineStudents.map(m => <MemberRow key={m.userId} member={m} />)}
@@ -114,7 +116,7 @@
                     {offlineMembers.length > 0 && (
                         <section>
                             <h3 className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                                Offline — {offlineMembers.length}
+                                {t('community.offline')} — {offlineMembers.length}
                             </h3>
                             <div className="space-y-0.5">
                                 {offlineMembers.map(m => <MemberRow key={m.userId} member={m} />)}

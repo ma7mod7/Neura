@@ -11,8 +11,10 @@ import type { CommunityChannel } from '../types/communityTypes';
 import { Loader2 } from 'lucide-react';
 import CreateChannelModal from '../components/CreateChannelModal';
 import UserSettingsModal from '../components/UserSettingsModal';
+import { useTranslation } from 'react-i18next';
 
 export default function CommunityApp() {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const currentUserId = user?.id ?? '';
     const currentUserName = user?.firstName && user?.lastName
@@ -267,10 +269,10 @@ export default function CommunityApp() {
         return (
             <div className="flex h-screen items-center justify-center bg-white dark:bg-[#0e0e10] flex-col gap-3">
                 <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">
-                    You're not enrolled in any courses yet.
+                    {t('community.notEnrolled')}
                 </p>
                 <p className="text-slate-400 dark:text-slate-500 text-sm">
-                    Enroll in a course to access its community.
+                   {t('community.notEnrolledDesc')}
                 </p>
             </div>
         );
