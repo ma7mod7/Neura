@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast';
 // import { useProctoring } from '../../../dashboard/hooks/useProctoring';
 import { useExamSecurity } from '../../hooks/useExamSecurity';
-// import { useAuth } from '../../../auth/hooks/useAuth';
+//  import { useAuth } from '../../../auth/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 
 interface QuizLessonProps {
