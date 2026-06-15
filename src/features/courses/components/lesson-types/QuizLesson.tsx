@@ -10,9 +10,9 @@ import {
     resumeAttempt
 } from '../../api/examApi';
 import toast from 'react-hot-toast';
-import { useProctoring } from '../../../dashboard/hooks/useProctoring';
+// import { useProctoring } from '../../../dashboard/hooks/useProctoring';
 import { useExamSecurity } from '../../hooks/useExamSecurity';
-import { useAuth } from '../../../auth/hooks/useAuth';
+//  import { useAuth } from '../../../auth/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 
 interface QuizLessonProps {
@@ -42,7 +42,7 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const [showInstructions, setShowInstructions] = useState(false);
     const [acceptedRules, setAcceptedRules] = useState(false);
     const [isCheckingCamera, setIsCheckingCamera] = useState(false);
-    const {user}=useAuth()
+    // const {user}=useAuth()
     
     // Timer States
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -170,18 +170,19 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
         }
     });
 
-    // ⭐ تم نقل useProctoring هنا لكي يرى isSubmitting بشكل سليم
-    useProctoring({
-        isActive: started && !isSubmitting, 
-        attemptId: attemptId,
-        wsUrl: `wss://neura-lms-proctor-vision-api.hf.space/ws/proctor/${lessonId}/${user?.id}`, 
-        intervalMs: 3000 
-    });
+    // // ⭐ تم نقل useProctoring هنا لكي يرى isSubmitting بشكل سليم
+    // useProctoring({
+    //     isActive: started && !isSubmitting, 
+    //     attemptId: attemptId,
+    //     wsUrl: `wss://neura-lms-proctor-vision-api.hf.space/ws/proctor/${lessonId}/${user?.id}`, 
+    //     intervalMs: 3000 
+    // });
 
     // ⭐ Anti-cheating: copy/paste prevention + tab switch detection (warn only, no auto-submit)
     const { violationCount, isBlurred, examContainerRef } = useExamSecurity({
         isActive: started && !isSubmitting && !isRedirecting,
         attemptId: attemptId,
+        lessonId: lessonId ?? null,
     });
 
     const handleStartWithCameraCheck = async () => {

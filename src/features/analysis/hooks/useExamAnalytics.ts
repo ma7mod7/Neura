@@ -12,7 +12,7 @@ export function useExamAnalytics(examId: string | null) {
     queryFn: () => getExamAnalytics(examId!),
     enabled: !!examId,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
+    retry: false,
   });
 }
 
@@ -22,7 +22,7 @@ export function useExamAttempts(examId: string | null) {
     queryFn: () => getExamAttempts(examId!),
     enabled: !!examId,
     staleTime: 1000 * 60 * 5,
-    retry: 1,
+    retry: false,
   });
 }
 
