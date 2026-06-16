@@ -6,12 +6,15 @@ import Logo from '../../assets/logo.png'
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-import { hasAdminRole } from '../../utils/jwt'; 
+import { hasAdminRole, hasInstructorRole } from '../../utils/jwt';
+
 
 const NavBar = () => {
 
     const { token } = useAuth();
-    const isAuthor = hasAdminRole(token);
+    const isAdmin = hasAdminRole(token);
+    const isInstructor = hasInstructorRole(token);
+    const canAccessDashboard = isAdmin || isInstructor;
     const { t, i18n } = useTranslation();
     const toggleLanguage = () => {
         const newLang = i18n.resolvedLanguage === 'ar' ? 'en' : 'ar';
@@ -36,9 +39,11 @@ const NavBar = () => {
     { name: t('navigation.home'), path: '/', active: false, action: () => navigate('/announcements') },
     { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
     { name: t('navigation.community'), path: '/community', active: false, action: () => navigate('/community/students') },
-    ...(!isAuthor ? [{ name: 'Become an Instructor', path: '/instructor/apply', active: false, action: () => navigate('/instructor/apply') }] : []),
-    ...(isAuthor ? [{ name: 'Applications', path: '/dashboard/instructor-applications', active: false, action: () => navigate('/dashboard/instructor-applications') }] : []),
-    ];
+    // Hide "Become an Instructor" if already instructor or admin
+    ...(!canAccessDashboard ? [{ name: 'Become an Instructor', path: '/instructor/apply', active: false, action: () => navigate('/instructor/apply') }] : []),
+    // Only pure admins see Applications in navbar
+    ...(isAdmin ? [{ name: 'Applications', path: '/dashboard/instructor-applications', active: false, action: () => navigate('/dashboard/instructor-applications') }] : []),
+ ];
     const dataLogin = useAuth()
 
 

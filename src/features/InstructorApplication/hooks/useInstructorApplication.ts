@@ -4,11 +4,24 @@ import {
   getApplications, getApplicationById, approveApplication, rejectApplication,
 } from '../api/instructorApplicationApi';
 import type { ApplicationsListParams } from '../types/instructorApplication.types';
+import { useAuth } from '../../auth/hooks/useAuth'; 
+import { getTokenRoles } from '../../../utils/jwt'; 
 
 export function useMyApplicationStatus() {
+  const { refreshUser, token } = useAuth();
+  const isAlreadyInstructor = getTokenRoles(token).some(
+    (r) => r.toLowerCase() === 'instructor'
+  );
+
   return useQuery({
     queryKey: ['instructorApplication', 'me'],
-    queryFn: getMyApplicationStatus,
+    queryFn: async () => {
+      const data = await getMyApplicationStatus();
+      if (data.isInstructor && !isAlreadyInstructor) {
+        await refreshUser();
+      }
+      return data;
+    },
     staleTime: 1000 * 60,
   });
 }
@@ -29,7 +42,6 @@ export function useUpdateApplication() {
   });
 }
 
-// Admin 
 export function useApplicationsList(params: ApplicationsListParams = {}) {
   return useQuery({
     queryKey: ['instructorApplications', 'list', params],

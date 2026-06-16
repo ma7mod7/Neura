@@ -9,7 +9,7 @@ import {
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
-import { hasAdminRole } from '../../../utils/jwt';
+import { hasAdminRole, hasInstructorRole } from '../../../utils/jwt';
 import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 
@@ -37,6 +37,8 @@ const SideBar = () => {
     const location = useLocation();
     const { user, token, logout } = useAuth()
     const canSeeAdminDashboard = hasAdminRole(token);
+    const isInstructor = hasInstructorRole(token); 
+    const canAccessDashboard = canSeeAdminDashboard || isInstructor;
     const { t } = useTranslation();
 
     // دالة مساعدة عشان تفحص إذا كان المسار الحالي هو نفس مسار الزرار
@@ -81,12 +83,15 @@ const SideBar = () => {
                     {/* استخدمنا checkIsActive ومررنا الـ link لكل واحدة عشان ترجع true أو false */}
                     <MenuItem icon={BookOpen} label={t('navigation.myLearning')} link='/profile' isActive={checkIsActive('/profile')} />
                     <MenuItem icon={BarChart2} label={t('navigation.analysis', 'Analysis')} link='/analysis' isActive={checkIsActive('/analysis')} />
-                    {canSeeAdminDashboard && (
+                   {canAccessDashboard && (
                         <MenuItem icon={LayoutDashboard} label={t('navigation.adminDashboard')} link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
                     )}
-                     {canSeeAdminDashboard ? (
+
+                    {canSeeAdminDashboard && (
                         <MenuItem icon={ClipboardList} label="Applications Review" link="/dashboard/instructor-applications" isActive={checkIsActive('/dashboard/instructor-applications')} />
-                    ) : (
+                    )}
+
+                    {!canAccessDashboard && (
                         <MenuItem icon={GraduationCap} label="Become an Instructor" link="/instructor/apply" isActive={checkIsActive('/instructor/apply')} />
                     )}
                 </nav>

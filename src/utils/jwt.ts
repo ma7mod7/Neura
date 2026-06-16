@@ -73,3 +73,9 @@ export const getTokenRoles = (token: string | null): string[] => {
 export const hasAdminRole = (token: string | null) => {
     return getTokenRoles(token).some((role) => ADMIN_ROLES.has(normalizeRole(role)));
 };
+
+export const hasInstructorRole = (token: string | null) => {
+  return getTokenRoles(token).some(
+    (role) => normalizeRole(role) === 'instructor'
+  );
+};

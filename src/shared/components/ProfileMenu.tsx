@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef } from 'react';
-import { hasAdminRole } from '../../utils/jwt';
+import { hasAdminRole, hasInstructorRole } from '../../utils/jwt';
 import { useTranslation } from 'react-i18next';
 
 interface ProfileMenuProps {
@@ -35,6 +35,8 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
 
 
     const canSeeAdminDashboard = hasAdminRole(token);
+    const isInstructor = hasInstructorRole(token);
+    const canAccessDashboard = canSeeAdminDashboard || isInstructor;
 
     const menuItems = [
         {
@@ -49,13 +51,13 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             path: '/analysis',
             isActive: false
         },
-        ...(!canSeeAdminDashboard ? [{
-            label: 'Become an Instructor',
-            icon: GraduationCap,
-            path: '/instructor/apply',
-            isActive: false
+       ...(!canAccessDashboard ? [{
+        label: 'Become an Instructor',
+        icon: GraduationCap,
+        path: '/instructor/apply',
+        isActive: false
         }] : []),
-        ...(canSeeAdminDashboard ? [{
+        ...(canAccessDashboard ? [{
             label: t('navigation.adminDashboard'),
             icon: LayoutDashboard,
             path: '/admin/course-list',
