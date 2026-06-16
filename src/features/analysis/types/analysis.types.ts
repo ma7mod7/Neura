@@ -52,3 +52,101 @@ export interface EditableCourse {
   title: string;
   role: 'Owner' | 'CoInstructor';
 }
+
+//  Exam Review 
+export type ExamReviewStatus = 'Draft' | 'PendingReview' | 'Approved' | 'Rejected';
+
+export interface ExamReviewItem {
+  examId: number;
+  examTitle: string;
+  courseId: string;
+  courseTitle: string;
+  submittedByName: string;
+  submittedByRole: 'Owner' | 'CoInstructor' | string;
+  status: ExamReviewStatus;
+  submittedAt: string;
+  reviewedAt?: string | null;
+  reviewedByName?: string | null;
+  rejectionReason?: string | null;
+  questionCount: number;
+  totalPoints: number;
+}
+
+export interface ExamReviewOption {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ExamReviewQuestion {
+  id: number;
+  text: string;
+  points: number;
+  options: ExamReviewOption[];
+}
+
+export interface ExamReviewDetail extends ExamReviewItem {
+  questions: ExamReviewQuestion[];
+  durationMinutes?: number | null;
+  passingScore?: number | null;
+}
+
+export interface ExamReviewStats {
+  pendingCount: number;
+  approvedToday: number;
+  rejectedCount: number;
+  totalReviewed: number;
+}
+
+//  Attempt Result Review 
+export type AttemptReviewStatus = 'UnderReview' | 'Approved' | 'Rejected';
+
+export interface AttemptReviewItem {
+  attemptId: number;
+  examId: number;
+  examTitle: string;
+  courseTitle: string;
+  studentName: string;
+  studentEmail: string;
+  score: number;
+  scorePercentage: number;
+  totalPoints: number;
+  passed: boolean;
+  status: AttemptReviewStatus;
+  submittedAt: string;
+  violationCount: number;
+  reviewedAt?: string | null;
+  reviewedByName?: string | null;
+}
+
+export interface AttemptReviewOption {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+  isSelected: boolean;
+}
+
+export interface AttemptReviewAnswer {
+  questionId: number;
+  questionText: string;
+  points: number;
+  earnedPoints: number;
+  options: AttemptReviewOption[];
+}
+
+export interface AttemptReviewDetail extends AttemptReviewItem {
+  answers: AttemptReviewAnswer[];
+  durationInSeconds: number | null;
+}
+
+export interface AttemptReviewStats {
+  pendingCount: number;
+  approvedToday: number;
+  rejectedToday: number;
+  totalReviewed: number;
+}
+
+export interface AttemptReviewStatusResponse {
+  status: AttemptReviewStatus;
+  reviewedAt?: string | null;
+}

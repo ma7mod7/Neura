@@ -6,6 +6,8 @@ import {
     Sun,
     Globe,
     BarChart2,
+    GraduationCap,
+    ClipboardList ,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
@@ -42,18 +44,29 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             isActive: false
         },
         {
-        label: t('navigation.analysis', 'Analysis'),
-        icon: BarChart2,
-        path: '/analysis',
-        isActive: false
-       },
+            label: t('navigation.analysis', 'Analysis'),
+            icon: BarChart2,
+            path: '/analysis',
+            isActive: false
+        },
+        ...(!canSeeAdminDashboard ? [{
+            label: 'Become an Instructor',
+            icon: GraduationCap,
+            path: '/instructor/apply',
+            isActive: false
+        }] : []),
         ...(canSeeAdminDashboard ? [{
             label: t('navigation.adminDashboard'),
             icon: LayoutDashboard,
             path: '/admin/course-list',
             isActive: false
         }] : []),
-
+        ...(canSeeAdminDashboard ? [{
+            label: 'Applications Review',
+            icon: ClipboardList,
+            path: '/dashboard/instructor-applications',
+            isActive: false
+        }] : []),
     ];
 
     useEffect(() => {

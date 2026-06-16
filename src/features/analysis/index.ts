@@ -1,3 +1,11 @@
 export { default as AnalysisPage } from './pages/AnalysisPage';
 export { StudentAnalysis }    from './pages/StudentAnalysis';
 export { InstructorAnalysis } from './pages/InstructorAnalysis';
+export { ReviewQueueTab }            from './components/ReviewQueueTab';
+export { SubmitForReviewButton }     from './components/SubmitForReviewButton';
+export { ExamStatusBadge }           from './components/ExamStatusBadge';
+export { AttemptReviewQueueTab }     from './components/AttemptReviewQueueTab';
+export { AttemptUnderReviewState }   from './components/AttemptUnderReviewState';
+export { AttemptStatusBadge }        from './components/AttemptStatusBadge';
+export * from './hooks/useAttemptReview';
+export * from './hooks/useExamReview';

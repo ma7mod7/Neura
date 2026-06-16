@@ -2,7 +2,6 @@ import React from 'react';
 import type { ExamAnalytics } from '../types/analysis.types';
 import { useTranslation } from 'react-i18next';
 
-// Student analytics shape from /api/exams/{examId}/analytics/student
 interface StudentExamAnalytics {
   examId: number;
   examTitle: string | null;
@@ -57,7 +56,7 @@ export const ExamSummaryCard: React.FC<SummaryProps> = ({ analytics, loading, mo
     );
   }
 
-  // ── Student mode ──────────────────────────────────────────────────
+  //  Student mode 
   if (mode === 'student' && isStudentAnalytics(analytics)) {
     const avg = analytics.classAveragePercentage;
     const avgColor = avg >= 70 ? '#059669' : avg >= 50 ? '#d97706' : '#ef4444';
@@ -91,7 +90,7 @@ export const ExamSummaryCard: React.FC<SummaryProps> = ({ analytics, loading, mo
     );
   }
 
-  // ── Instructor mode ───────────────────────────────────────────────
+  //  Instructor mode 
   const inst = analytics as ExamAnalytics;
   const passRateColor = inst.passRate >= 70 ? '#059669' : inst.passRate >= 50 ? '#d97706' : '#ef4444';
 

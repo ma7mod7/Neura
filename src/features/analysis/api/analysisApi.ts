@@ -33,3 +33,30 @@ export const getStudentAttempts = async (examId: string) => {
   const res = await axiosInstance.get(`/api/exams/${examId}/analytics/student/attempts`);
   return res.data?.attempts ?? [];
 };
+export const publishExamGrades = async (examKeyId: string) => {
+  const examRes = await axiosInstance.get(`/api/Exams/by-lesson/${examKeyId}`);
+  const internalExamId = examRes.data?.id ?? examRes.data?.examId;
+  if (!internalExamId) throw new Error('Could not resolve exam ID');
+  try {
+    const res = await axiosInstance.put(`/api/Exams/${internalExamId}/grades/publish`);
+    return res.data;
+  } catch (err: any) {
+    // Already published = treat as success, not an error
+    if (err?.response?.status === 400) {
+      const errors = err.response.data?.errors ?? [];
+      const alreadyPublished = Array.isArray(errors)
+        ? errors.some((e: string) => e.includes('GradesAlreadyPublished'))
+        : String(errors).includes('GradesAlreadyPublished');
+      if (alreadyPublished) return { alreadyPublished: true };
+    }
+    throw err;
+  }
+};
+export const getExamViolationsByLesson = async (lessonId: string) => {
+  // Resolve internal exam ID first
+  const examRes = await axiosInstance.get(`/api/Exams/by-lesson/${lessonId}`);
+  const internalExamId = examRes.data?.id ?? examRes.data?.examId;
+  if (!internalExamId) return [];
+  const res = await axiosInstance.get(`/api/exams/${internalExamId}/analytics/violations`);
+  return Array.isArray(res.data) ? res.data : res.data?.violations ?? [];
+};
