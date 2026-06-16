@@ -14,7 +14,7 @@ interface User {
 
 interface AuthResponse extends User {
     token: string;
-    expiresin: number; 
+    expiresin: number;
     refreshToken: string;
     refreshTokenExpiration: string;
 }
@@ -27,8 +27,8 @@ interface AuthContextType {
     isLoading: boolean;
     login: (authData: AuthResponse) => void;
     logout: () => void;
-    // 1. أضفنا الدالة الجديدة هنا
-    updateUser: (updatedData: Partial<User>) => void; 
+    updateUser: (updatedData: Partial<User>) => void;
+    refreshUser: () => Promise<void>; 
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,47 +44,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('tokenExpiration'); 
+        localStorage.removeItem('tokenExpiration');
         delete axios.defaults.headers.common['Authorization'];
-        
-        window.location.href = '/auth/login'; 
+        window.location.href = '/auth/login';
     };
 
     const login = (authData: AuthResponse) => {
-    const { token, refreshToken, expiresin, ...userData } = authData;
-
-    const normalizedUser: User = {
-        ...userData,
-        userName: (userData as any).username ?? userData.userName,
+        const { token, refreshToken, expiresin, ...userData } = authData;
+        const normalizedUser: User = {
+            ...userData,
+            userName: (userData as any).username ?? userData.userName,
+        };
+        const expirationTime = new Date().getTime() + (expiresin * 1000);
+        setToken(token);
+        setUser(normalizedUser);
+        localStorage.setItem('token', token);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+        localStorage.setItem('tokenExpiration', expirationTime.toString());
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
 
-    const expirationTime = new Date().getTime() + (expiresin * 1000);
-
-    setToken(token);
-    setUser(normalizedUser);  
-
-    localStorage.setItem('token', token);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('user', JSON.stringify(normalizedUser));
-    localStorage.setItem('tokenExpiration', expirationTime.toString());
-
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    };
-
-    // 2. بناء دالة updateUser لتحديث الـ State والـ localStorage معاً
     const updateUser = (updatedData: Partial<User>) => {
         setUser((prevUser) => {
             if (!prevUser) return null;
             const newUser = { ...prevUser, ...updatedData };
-            localStorage.setItem('user', JSON.stringify(newUser)); // تحديث الـ Storage
-            return newUser; // تحديث الـ React State
+            localStorage.setItem('user', JSON.stringify(newUser));
+            return newUser;
         });
+    };
+
+    const refreshUser = async () => {
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+        if (!storedRefreshToken) return;
+        try {
+            const response = await axios.post('/Auth/refresh', { refreshToken: storedRefreshToken });
+            login(response.data);
+        } catch (e) {
+            console.error('Failed to refresh token', e);
+        }
     };
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
-        const storedExpiration = localStorage.getItem('tokenExpiration'); 
+        const storedExpiration = localStorage.getItem('tokenExpiration');
         const storedRefreshToken = localStorage.getItem('refreshToken');
 
         const isValidToken = storedToken && storedToken !== "undefined" && storedToken !== "null";
@@ -97,17 +101,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (currentTime > expirationTime) {
                 if (storedRefreshToken) {
                     axios.post('/Auth/refresh', { refreshToken: storedRefreshToken })
-                        .then(response => {
-                            login(response.data);
-                        })
+                        .then(response => login(response.data))
                         .catch(error => {
-                            console.error("Session expired. Please login again.", error);
+                            console.error("Session expired.", error);
                             logout();
                         })
-                        .finally(() => {
-                            setIsLoading(false);
-                        });
-                    return; 
+                        .finally(() => setIsLoading(false));
+                    return;
                 } else {
                     logout();
                     setIsLoading(false);
@@ -116,10 +116,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             try {
-                const parsedUser = JSON.parse(storedUser);
+                const parsedUser = JSON.parse(storedUser!);
                 const normalizedUser: User = {
                     ...parsedUser,
-                    userName: parsedUser.username ?? parsedUser.userName, 
+                    userName: parsedUser.username ?? parsedUser.userName,
                 };
                 setToken(storedToken);
                 setUser(normalizedUser);
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             delete axios.defaults.headers.common['Authorization'];
         }
-        
+
         setIsLoading(false);
     }, []);
 
@@ -146,7 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isLoading,
             login,
             logout,
-            updateUser 
+            updateUser,
+            refreshUser, 
         }}>
             {!isLoading && children}
         </AuthContext.Provider>

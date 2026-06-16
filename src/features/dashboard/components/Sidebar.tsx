@@ -3,12 +3,16 @@ import { BookOpen, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../../assets/logo.png'
+import { useAuth } from "../../auth/hooks/useAuth";
 import { ClipboardList } from 'lucide-react';
+import { hasAdminRole } from '../../../utils/jwt';
 
 export default function Sidebar() {
     const [isCoursesOpen, setIsCoursesOpen] = useState(true);
+    const { token } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const isAdmin = hasAdminRole(token);
 
     // استدعاء useLocation لمعرفة مسار الصفحة الحالي
     const location = useLocation();
@@ -74,6 +78,7 @@ export default function Sidebar() {
                             {t('admin.courseList', 'Course List')}
                         </button>
                     </div>
+                    {isAdmin && (
                     <div
                         onClick={() => navigate('/dashboard/instructor-applications')}
                         className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors font-medium ${
@@ -85,6 +90,7 @@ export default function Sidebar() {
                         <ClipboardList size={20} />
                         <span>Applications</span>
                         </div>
+                        )}
                 </div>
 
                 {/* Students Menu */}

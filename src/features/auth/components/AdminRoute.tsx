@@ -1,17 +1,15 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { hasAdminRole } from "../../../utils/jwt";
+import { hasAdminRole, hasInstructorRole } from "../../../utils/jwt";
 
 const AdminRoute = () => {
     const { token, isLoading } = useAuth();
-
     if (isLoading) return <p>Loading...</p>;
     
     if (!token) {
         return <Navigate to="/auth/login" replace />;
     }
-
-    if (!hasAdminRole(token)) {
+    if (!hasAdminRole(token) && !hasInstructorRole(token)) {
         return <Navigate to="/" replace />;
     }
 
