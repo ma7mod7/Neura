@@ -3,6 +3,7 @@ import { BookOpen, Plus, List, ChevronDown, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Logo from '../../../assets/logo.png'
+import { ClipboardList } from 'lucide-react';
 
 export default function Sidebar() {
     const [isCoursesOpen, setIsCoursesOpen] = useState(true);
@@ -73,6 +74,17 @@ export default function Sidebar() {
                             {t('admin.courseList', 'Course List')}
                         </button>
                     </div>
+                    <div
+                        onClick={() => navigate('/dashboard/instructor-applications')}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors font-medium ${
+                            currentPath.includes('/dashboard/instructor-applications')
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-[#2a2a2e]'
+                        }`}
+                        >
+                        <ClipboardList size={20} />
+                        <span>Applications</span>
+                        </div>
                 </div>
 
                 {/* Students Menu */}

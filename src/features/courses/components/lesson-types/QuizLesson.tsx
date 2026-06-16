@@ -153,7 +153,8 @@ export default function QuizLesson({ lessonId, lessonTitle }: QuizLessonProps) {
     const { mutate: submitExamMutation, isPending: isSubmitting } = useMutation({
         mutationFn: () => submitAttempt(attemptId!),
         onMutate: () => setIsRedirecting(true),
-        onSuccess: () => {
+        onSuccess: (data) => {
+            console.log(data)
             if (attemptId) clearLocalTimer(attemptId);
             toast.success(t('quiz.submittedToast'));
             navigate(`/exam/${lessonId}/results/${attemptId}`);

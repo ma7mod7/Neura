@@ -29,6 +29,9 @@ import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { AnalysisPage } from './features/analysis';
 import PaymentPage from './features/Payment/pages/PaymentPage';
+import ApplyPage from './features/InstructorApplication/pages/ApplyPage'
+import ApplicationsManagementPage from './features/InstructorApplication/pages/ApplicationsManagementPage'
+import AttemptReviewPage from './features/analysis/pages/AttemptReviewPage';
 function App() {
   const { i18n } = useTranslation();
 
@@ -62,12 +65,16 @@ function App() {
           <Route path="/exam/:examId/results/:attemptId" element={<ExamResultsPage />} />
           <Route path="/analysis" element={<AnalysisPage />} />
           <Route path="/courses/:courseId/checkout" element={<PaymentPage />} />
+          <Route path="/instructor/apply" element={<ApplyPage/>}/>
+          <Route path="/exam/:examId/results/:attemptId" element={<ExamResultsPage />} />
+          <Route path="/exam/:examId/attempts/:attemptId/review" element={<AttemptReviewPage />} />     
           { /* Admin Routes */}
           <Route element={<AdminRoute />}>
             <Route path="/admin/course-list" element={<CourseListDashboard />} />
             <Route path={`/admin/create-course/:id?`} element={<CreateCourse />} />
             <Route path="/admin/students" element={<StudentList />} />
             <Route path="/community/admin" element={<CommunityAdminDashboard />} />
+            <Route path="/dashboard/instructor-applications" element={<ApplicationsManagementPage />} />
           </Route>
           <Route path="/community/students" element={<CommunityApp />} />
           <Route path="/announcements/callback" element={<AuthCallback />} />

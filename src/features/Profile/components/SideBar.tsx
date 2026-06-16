@@ -4,12 +4,14 @@ import {
     Pencil,
     LayoutDashboard,
     BarChart2,
+    ClipboardList,
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { hasAdminRole } from '../../../utils/jwt';
 import { useTranslation } from 'react-i18next';
+import { GraduationCap } from 'lucide-react';
 
 // 1. Sidebar Menu Item
 const MenuItem = ({ icon: Icon, label, isActive = false, link }: { icon: any, label: string, isActive?: boolean, link?: string }) => {
@@ -81,6 +83,11 @@ const SideBar = () => {
                     <MenuItem icon={BarChart2} label={t('navigation.analysis', 'Analysis')} link='/analysis' isActive={checkIsActive('/analysis')} />
                     {canSeeAdminDashboard && (
                         <MenuItem icon={LayoutDashboard} label={t('navigation.adminDashboard')} link='/admin/course-list' isActive={checkIsActive('/admin/course-list')} />
+                    )}
+                     {canSeeAdminDashboard ? (
+                        <MenuItem icon={ClipboardList} label="Applications Review" link="/dashboard/instructor-applications" isActive={checkIsActive('/dashboard/instructor-applications')} />
+                    ) : (
+                        <MenuItem icon={GraduationCap} label="Become an Instructor" link="/instructor/apply" isActive={checkIsActive('/instructor/apply')} />
                     )}
                 </nav>
 

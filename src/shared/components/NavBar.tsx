@@ -6,10 +6,12 @@ import Logo from '../../assets/logo.png'
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
+import { hasAdminRole } from '../../utils/jwt'; 
 
 const NavBar = () => {
 
-
+    const { token } = useAuth();
+    const isAuthor = hasAdminRole(token);
     const { t, i18n } = useTranslation();
     const toggleLanguage = () => {
         const newLang = i18n.resolvedLanguage === 'ar' ? 'en' : 'ar';
@@ -31,9 +33,11 @@ const NavBar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const navLinks = [
-        { name: t('navigation.home'), path: '/', active: false, action: () => navigate('/announcements') },
-        { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
-        { name: t('navigation.community'), path: '/community', active: false, action: () => navigate('/community/students') },
+    { name: t('navigation.home'), path: '/', active: false, action: () => navigate('/announcements') },
+    { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
+    { name: t('navigation.community'), path: '/community', active: false, action: () => navigate('/community/students') },
+    ...(!isAuthor ? [{ name: 'Become an Instructor', path: '/instructor/apply', active: false, action: () => navigate('/instructor/apply') }] : []),
+    ...(isAuthor ? [{ name: 'Applications', path: '/dashboard/instructor-applications', active: false, action: () => navigate('/dashboard/instructor-applications') }] : []),
     ];
     const dataLogin = useAuth()
 

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getExamAnalytics,
   getExamAttempts,
@@ -7,6 +7,7 @@ import {
   getStudentExamAnalytics, 
   getStudentScoreDistribution,
   getStudentAttempts,
+  publishExamGrades
 } from '../api/analysisApi';
 
 export function useExamAnalytics(examId: string | null) {
@@ -83,5 +84,22 @@ export function useAttemptResults(attemptId: string | null) {
     enabled: !!attemptId,
     staleTime: 1000 * 60 * 10,
     retry: 1,
+  });
+}
+
+export function usePublishGrades(examId: string | null) {
+  const qc = useQueryClient();
+  const storageKey = `grades_published_${examId}`;
+
+  return useMutation({
+    mutationFn: () => publishExamGrades(examId!),
+    onSuccess: (data) => {
+      console.log(data)
+      // Mark as published in localStorage so refresh keeps the state
+      localStorage.setItem(storageKey, 'true');
+      qc.invalidateQueries({ queryKey: ['examAnalytics', examId] });
+      qc.invalidateQueries({ queryKey: ['examAttempts', examId] });
+      qc.invalidateQueries({ queryKey: ['examViolations', examId] });
+    },
   });
 }

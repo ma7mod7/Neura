@@ -139,27 +139,43 @@ export const AttemptsTable: React.FC<Props> = ({ attempts = [], loading, showStu
                     <td className="py-4 pr-4 text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
                       {a.durationInSeconds ? `${Math.round(a.durationInSeconds / 60)}m` : '—'}
                     </td>
-                    <td className="py-4 pr-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                        a.passed
-                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                          : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
-                      }`}>
-                        {a.passed
-                          ? <CheckCircle2 size={11} />
-                          : <XCircle size={11} />
-                        }
-                        {a.passed ? t('analysis.passed') : t('analysis.failed')}
-                      </span>
-                    </td>
-                    <td className="py-4">
-                      <button
-                        onClick={() => navigate(`/exam/${examId}/results/${a.attemptId}`)}
-                        className="flex items-center gap-1 text-xs text-[#0061EF] dark:text-blue-400 font-bold hover:gap-2 transition-all whitespace-nowrap"
-                      >
-                        {t('analysis.review')}
-                        <ChevronRight size={13} />
-                      </button>
+                  <td className="py-4 pr-4">
+                        {a.status === 'UnderReview' || (!a.passed && a.passed == null) ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                            {t('analysis.pending') ?? 'Pending'}
+                          </span>
+                        ) : a.passed ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                            <CheckCircle2 size={11} />
+                            {t('analysis.passed')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                            <XCircle size={11} />
+                            {t('analysis.failed')}
+                          </span>
+                        )}
+                      </td>
+                  <td className="py-4">
+                      {/* Only show review link if attempt is under review due to violation */}
+                      {a.status === 'UnderReview' ? (
+                        <button
+                          onClick={() => navigate(`/exam/${examId}/results/${a.attemptId}`)}
+                          className="flex items-center gap-1 text-xs text-amber-500 dark:text-amber-400 font-bold hover:gap-2 transition-all whitespace-nowrap"
+                        >
+                          {t('analysis.review')}
+                          <ChevronRight size={13} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => navigate(`/exam/${examId}/results/${a.attemptId}`)}
+                          className="flex items-center gap-1 text-xs text-[#0061EF] dark:text-blue-400 font-bold hover:gap-2 transition-all whitespace-nowrap"
+                        >
+                          {t('analysis.view')}
+                          <ChevronRight size={13} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
