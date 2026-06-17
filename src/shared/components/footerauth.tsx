@@ -1,12 +1,13 @@
 import { FacebookIcon, Github, Linkedin } from 'lucide-react'
 import Logo from '../../assets/logo.png'
-
-const navLinks = [
-    { name: 'Home', href: '/announcements' },
-    { name: 'community', href: '/community/students' },
-    { name: 'Courses', href: '/courses' },
-];
+import { useTranslation } from 'react-i18next';
 const Footer = () => {
+    const { t } = useTranslation();
+    const navLinks = [
+        { name: t('footer.links.home'), href: '/announcements' },
+        { name: t('footer.links.community'), href: '/community/students' },
+        { name: t('footer.links.courses'), href: '/courses' },
+    ];
     return (
         <div>
             {/* --- FOOTER (Reused from your previous pages) --- */}
@@ -28,7 +29,7 @@ const Footer = () => {
                             ))}
                         </div>
                         <div className="flex flex-col items-center md:items-end gap-4">
-                            <h4 className="text-slate-400 font-bold text-sm uppercase tracking-[0.2em]">Fast Links</h4>
+                            <h4 className="text-slate-400 font-bold text-sm uppercase tracking-[0.2em]">{t('footer.fastLinks')}</h4>
                             <nav className="flex flex-wrap justify-center gap-x-6 lg:gap-x-8 gap-y-2">
                                 {navLinks.map((link) => (
                                     <a key={link.name} href={link.href} className="text-slate-300 hover:text-[#0066FF] transition-colors font-medium">{link.name}</a>
@@ -37,7 +38,7 @@ const Footer = () => {
                         </div>
                     </div>
                     <div className="border-t border-white/5 pt-8 text-center">
-                        <p className="text-slate-500 text-sm font-medium">© 2026 Neura Community. All rights reserved.</p>
+                        <p className="text-slate-500 text-sm font-medium">{t('footer.copyright')}</p>
                     </div>
                 </div>
             </footer>

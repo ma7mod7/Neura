@@ -74,7 +74,7 @@ const SideBar = () => {
                         className="w-full bg-[#E6F7ED] dark:bg-[#00C267]/10 hover:bg-[#d1f0dd] dark:hover:bg-[#00C267]/20 text-[#00C267] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
                     >
                         <Pencil size={16} />
-                        {t('profile.editProfile', 'Edit Profile')}
+                        {t('profile.editProfile')}
                     </button>
                 </div>
 
@@ -88,11 +88,11 @@ const SideBar = () => {
                     )}
 
                     {canSeeAdminDashboard && (
-                        <MenuItem icon={ClipboardList} label="Applications Review" link="/dashboard/instructor-applications" isActive={checkIsActive('/dashboard/instructor-applications')} />
+                        <MenuItem icon={ClipboardList} label={t("navigation.Applications")} link="/dashboard/instructor-applications" isActive={checkIsActive('/dashboard/instructor-applications')} />
                     )}
 
                     {!canAccessDashboard && (
-                        <MenuItem icon={GraduationCap} label="Become an Instructor" link="/instructor/apply" isActive={checkIsActive('/instructor/apply')} />
+                        <MenuItem icon={GraduationCap} label={t("navigation.becomeAnInstructor")} link="/instructor/apply" isActive={checkIsActive('/instructor/apply')} />
                     )}
                 </nav>
 
