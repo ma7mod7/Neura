@@ -46,40 +46,52 @@ const AuthCallback = () => {
                 processedRef.current = true;
 
                 try {
-                    const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', {
-                        token,
-                        refreshToken
-                    });
-
-                    const data = response.data;
-
-                    if (!data.username && !data.userName) {
-                        const decoded = decodeToken(token);
-                        data.username =
-                            (decoded?.preferred_username as string) ||
-                            (decoded?.given_name as string) ||
-                            data.firstName ||
-                            data.email?.split('@')[0] ||
-                            'User';
+                    // DON'T call /Auth/refresh — decode the token we already have
+                    const decoded = decodeToken(token);
+                    
+                    if (!decoded) {
+                        navigate('/auth/login', { replace: true });
+                        return;
                     }
 
-                    // Write to storage first
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('refreshToken', data.refreshToken);
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+                    const data = {
+                        token,
+                        refreshToken,
+                        // Build expiresin from JWT exp claim
+                        expiresin: decoded.exp 
+                            ? (decoded.exp as number) - Math.floor(Date.now() / 1000)
+                            : 3600,
+                        refreshTokenExpiration: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        id: decoded.sub as string,
+                        email: decoded.email as string,
+                        firstName: (decoded.given_name as string) || '',
+                        lastName: (decoded.family_name as string) || '',
+                        username: (decoded.preferred_username as string) 
+                            || (decoded.given_name as string)
+                            || (decoded.email as string)?.split('@')[0]
+                            || 'User',
+                        userName: (decoded.preferred_username as string)
+                            || (decoded.given_name as string)
+                            || (decoded.email as string)?.split('@')[0]
+                            || 'User',
+                        discordHandle: '',
+                        imageUrl: (decoded.picture as string) || '',
+                    };
 
-                    // Use ref to avoid re-triggering this effect
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('refreshToken', refreshToken);
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
                     loginRef.current(data);
-
-                    // Clear stale query cache
                     queryClient.clear();
 
-                    setTimeout(() => navigate('/announcements', { replace: true }), 500);
+                    setTimeout(() => navigate('/announcements', { replace: true }), 300);
+
                 } catch (error: any) {
-                    console.error("Refresh error:", error.response?.status, error.response?.data);
+                    console.error("Auth error:", error);
                     navigate('/auth/login', { replace: true });
                 }
-            } else {
+            }else {
                 console.error("Missing tokens in hash. Keys found:", Object.keys(params));
                 navigate('/auth/login', { replace: true });
             }
