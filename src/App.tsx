@@ -52,6 +52,7 @@ function App() {
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/forget-password" element={<ForgotPasswordPage />} />
         <Route path="auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/announcements/callback" element={<AuthCallback />} />
 
         {/* Protected Routes */}
           <Route path="/announcements" element={<AnnouncmentPage />} />
@@ -77,7 +78,6 @@ function App() {
             <Route path="/dashboard/instructor-applications" element={<ApplicationsManagementPage />} />
           </Route>
           <Route path="/community/students" element={<CommunityApp />} />
-          <Route path="/announcements/callback" element={<AuthCallback />} />
 
 
         </Route>

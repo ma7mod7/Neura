@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import axios from 'axios';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -14,53 +15,60 @@ const AuthCallback = () => {
     useEffect(() => {
         if (processedRef.current) return;
 
-        // 1. استخراج الـ Hash من الـ URL
-        const hash = location.hash.substring(1);
-        
-        if (!hash) {
-            console.warn("AuthCallback: No hash found, redirecting to login.");
-            navigate('/auth/login', { replace: true });
-            return;
+       const handleCallback = async () => {
+    const hash = location.hash.substring(1);
+
+    if (!hash) {
+        navigate('/auth/login', { replace: true });
+        return;
+    }
+
+    const params: Record<string, string> = {};
+    hash.split('&').forEach(part => {
+        const eqIndex = part.indexOf('=');
+        if (eqIndex !== -1) {
+            const key = part.substring(0, eqIndex);
+            const value = part.substring(eqIndex + 1);
+            params[key] = decodeURIComponent(value.replace(/\+/g, ' '));
         }
+    });
 
-        // 2. تحليل البيانات يدوياً لضمان سلامة الرموز الخاصة (+, /, =)
-        const params: Record<string, string> = {};
-        hash.split('&').forEach(part => {
-            const [key, value] = part.split('=');
-            if (key && value) {
-                params[key] = decodeURIComponent(value);
-            }
-        });
+    const { token, refreshToken } = params;
 
-        const { token, refreshToken } = params;
+    if (token && refreshToken) {
+        processedRef.current = true;
 
-        if (token && refreshToken) {
-            processedRef.current = true; // علامة لمنع التكرار
-            
-            try {
-                // 3. تنفيذ عملية تسجيل الدخول
-                // تأكد أن دالة login تقوم بتحديث الـ State كاملاً (User + Token)
-                login({ token, refreshToken } as any);
+        try {
+            // Use /Auth/refresh to get full user data back
+            const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', {
+                token,
+                refreshToken
+            });
 
-                console.log("AuthCallback: Login successful, redirecting...");
+            // response.data has id, username, email, firstName, lastName, token, expiresin, etc.
+            login(response.data);
 
-                // 4. توجيه المستخدم للمسار المطلوب بـ delay بسيط
-                // لضمان استقرار الـ Context/LocalStorage
-                const timer = setTimeout(() => {
-                    navigate('/announcements', { replace: true });
-                }, 300);
-
-                return () => clearTimeout(timer);
-                
-            } catch (error) {
-                console.error("AuthCallback: Error during login execution:", error);
-                navigate('/auth/login', { replace: true });
-            }
-        } else {
-            console.error("AuthCallback: Missing tokens in hash.");
+            setTimeout(() => navigate('/announcements', { replace: true }), 300);
+        } catch (error: any) {
+            console.error("Refresh error:", error.response?.status, error.response?.data);
             navigate('/auth/login', { replace: true });
         }
+    } else {
+        console.error("Missing tokens in hash. Keys found:", Object.keys(params));
+        navigate('/auth/login', { replace: true });
+    }
+};
+
+        handleCallback();
     }, [location.hash, navigate, login]);
+
+    useEffect(() => {
+    console.log("=== AuthCallback mounted ===");
+    console.log("Full href:", window.location.href);
+    console.log("hash:", location.hash);
+    console.log("search:", location.search);
+    console.log("pathname:", location.pathname);
+}, []);
 
     return (
         <div className="h-screen w-full flex flex-col items-center justify-center bg-[#0e0e10]">
