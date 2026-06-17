@@ -15,7 +15,19 @@ axiosInstance.interceptors.request.use((config) => {
     }
     return config;
 });
-
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Clear stale token if server says unauthorized
+            const storedToken = localStorage.getItem('token');
+            if (!storedToken) {
+                delete axios.defaults.headers.common['Authorization'];
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 
 export default axiosInstance;

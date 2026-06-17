@@ -1,20 +1,20 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './styles/index.css'
-import App from './App.tsx'
-import './i18n';
-import { store } from './store/store.ts'
-import { Provider } from 'react-redux'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./styles/index.css";
+import App from "./App.tsx";
+import "./i18n";
+import { store } from "./store/store.ts";
+import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { AuthProvider } from './features/auth/context/AuthContext'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { Toaster } from 'react-hot-toast'
+import { AuthProvider } from "./features/auth/context/AuthContext";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "react-hot-toast";
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Provider store={store}>
@@ -27,5 +27,5 @@ createRoot(document.getElementById('root')!).render(
         </QueryClientProvider>
       </Provider>
     </BrowserRouter>
-  </StrictMode>
-)
+  </StrictMode>,
+);

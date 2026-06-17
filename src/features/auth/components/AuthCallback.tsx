@@ -4,12 +4,14 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
 import { decodeToken } from '../../../utils/jwt';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { login } = useAuth();
     const processedRef = useRef(false);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (processedRef.current) return;
@@ -55,13 +57,14 @@ const AuthCallback = () => {
                             data.email?.split('@')[0] ||
                             'User';
                     }
-
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('refreshToken', data.refreshToken);    
                     // Set axios header BEFORE calling login
                     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
                     
                     login(data);
-
-                    setTimeout(() => navigate('/announcements', { replace: true }), 300);
+                    queryClient.clear();
+                    setTimeout(() => navigate('/announcements', { replace: true }), 500);
                 } catch (error: any) {
                     console.error("Refresh error:", error.response?.status, error.response?.data);
                     navigate('/auth/login', { replace: true });

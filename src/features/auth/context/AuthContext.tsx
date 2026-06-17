@@ -49,26 +49,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.location.href = '/auth/login';
     };
 
-    const login = (authData: AuthResponse) => {
-        const { token, refreshToken, expiresin,refreshTokenExpiration, ...userData } = authData;
-        const normalizedUser: User = {
-            ...userData,
-            userName: (userData as any).username 
+  const login = (authData: AuthResponse) => {
+    const { token, refreshToken, expiresin, refreshTokenExpiration, ...userData } = authData;
+    
+    const normalizedUser: User = {
+        ...userData,
+        userName: (userData as any).username 
             ?? userData.userName 
-            ?? userData.firstName  // fallback for social login
-            ?? userData.email?.split('@')[0]  // last resort
+            ?? userData.firstName
+            ?? userData.email?.split('@')[0]
             ?? 'User',
-        };
-        const expirationTime = new Date().getTime() + (expiresin * 1000);
-        setToken(token);
-        setUser(normalizedUser);
-        localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(normalizedUser));
-        localStorage.setItem('tokenExpiration', expirationTime.toString());
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
-
+    
+    const expirationTime = new Date().getTime() + (expiresin * 1000);
+    
+    //  Write to localStorage FIRST before setting React state
+    localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    localStorage.setItem('tokenExpiration', expirationTime.toString());
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    
+    // Then update React state
+    setToken(token);
+    setUser(normalizedUser);
+};
     const updateUser = (updatedData: Partial<User>) => {
         setUser((prevUser) => {
             if (!prevUser) return null;
