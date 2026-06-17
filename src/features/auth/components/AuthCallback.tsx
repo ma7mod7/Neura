@@ -3,72 +3,77 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
+import { decodeToken } from '../../../utils/jwt';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { login } = useAuth();
-    
-    // استخدام useRef لمنع تنفيذ الكود أكثر من مرة في الـ Strict Mode
     const processedRef = useRef(false);
 
     useEffect(() => {
         if (processedRef.current) return;
 
-       const handleCallback = async () => {
-    const hash = location.hash.substring(1);
+        const handleCallback = async () => {
+            const hash = location.hash.substring(1);
 
-    if (!hash) {
-        navigate('/auth/login', { replace: true });
-        return;
-    }
+            if (!hash) {
+                navigate('/auth/login', { replace: true });
+                return;
+            }
 
-    const params: Record<string, string> = {};
-    hash.split('&').forEach(part => {
-        const eqIndex = part.indexOf('=');
-        if (eqIndex !== -1) {
-            const key = part.substring(0, eqIndex);
-            const value = part.substring(eqIndex + 1);
-            params[key] = decodeURIComponent(value);
-        }
-    });
-
-    const { token, refreshToken } = params;
-
-    if (token && refreshToken) {
-        processedRef.current = true;
-
-        try {
-            // Use /Auth/refresh to get full user data back
-            const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', {
-                token,
-                refreshToken
+            const params: Record<string, string> = {};
+            hash.split('&').forEach(part => {
+                const eqIndex = part.indexOf('=');
+                if (eqIndex !== -1) {
+                    const key = part.substring(0, eqIndex);
+                    const value = part.substring(eqIndex + 1);
+                    params[key] = decodeURIComponent(value);
+                }
             });
 
-            // response.data has id, username, email, firstName, lastName, token, expiresin, etc.
-            login(response.data);
+            const { token, refreshToken } = params;
 
-            setTimeout(() => navigate('/announcements', { replace: true }), 300);
-        } catch (error: any) {
-            console.error("Refresh error:", error.response?.status, error.response?.data);
-            navigate('/auth/login', { replace: true });
-        }
-    } else {
-        console.error("Missing tokens in hash. Keys found:", Object.keys(params));
-        navigate('/auth/login', { replace: true });
-    }
-};
+            if (token && refreshToken) {
+                processedRef.current = true;
+
+                try {
+                    const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', {
+                        token,
+                        refreshToken
+                    });
+
+                    const data = response.data;
+
+                    // Fix missing username for social login users
+                    if (!data.username && !data.userName) {
+                        const decoded = decodeToken(token);
+                        data.username =
+                            (decoded?.preferred_username as string) ||
+                            (decoded?.given_name as string) ||
+                            data.firstName ||
+                            data.email?.split('@')[0] ||
+                            'User';
+                    }
+
+                    // Set axios header BEFORE calling login
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+                    
+                    login(data);
+
+                    setTimeout(() => navigate('/announcements', { replace: true }), 300);
+                } catch (error: any) {
+                    console.error("Refresh error:", error.response?.status, error.response?.data);
+                    navigate('/auth/login', { replace: true });
+                }
+            } else {
+                console.error("Missing tokens in hash. Keys found:", Object.keys(params));
+                navigate('/auth/login', { replace: true });
+            }
+        };
 
         handleCallback();
     }, [location.hash, navigate, login]);
-
-    useEffect(() => {
-    console.log("=== AuthCallback mounted ===");
-    console.log("Full href:", window.location.href);
-    console.log("hash:", location.hash);
-    console.log("search:", location.search);
-    console.log("pathname:", location.pathname);
-}, []);
 
     return (
         <div className="h-screen w-full flex flex-col items-center justify-center bg-[#0e0e10]">
