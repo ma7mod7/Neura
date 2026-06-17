@@ -2,16 +2,22 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { decodeToken } from '../../../utils/jwt';
-import { useQueryClient } from '@tanstack/react-query';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { login } = useAuth();
-    const processedRef = useRef(false);
     const queryClient = useQueryClient();
+    const processedRef = useRef(false);
+    const loginRef = useRef(login);
+
+    // Keep loginRef current without adding login to effect deps
+    useEffect(() => {
+        loginRef.current = login;
+    });
 
     useEffect(() => {
         if (processedRef.current) return;
@@ -47,7 +53,6 @@ const AuthCallback = () => {
 
                     const data = response.data;
 
-                    // Fix missing username for social login users
                     if (!data.username && !data.userName) {
                         const decoded = decodeToken(token);
                         data.username =
@@ -57,13 +62,18 @@ const AuthCallback = () => {
                             data.email?.split('@')[0] ||
                             'User';
                     }
+
+                    // Write to storage first
                     localStorage.setItem('token', data.token);
-                    localStorage.setItem('refreshToken', data.refreshToken);    
-                    // Set axios header BEFORE calling login
+                    localStorage.setItem('refreshToken', data.refreshToken);
                     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-                    
-                    login(data);
+
+                    // Use ref to avoid re-triggering this effect
+                    loginRef.current(data);
+
+                    // Clear stale query cache
                     queryClient.clear();
+
                     setTimeout(() => navigate('/announcements', { replace: true }), 500);
                 } catch (error: any) {
                     console.error("Refresh error:", error.response?.status, error.response?.data);
@@ -76,7 +86,8 @@ const AuthCallback = () => {
         };
 
         handleCallback();
-    }, [location.hash, navigate, login]);
+    // Only depend on stable values — NOT login
+    }, [location.hash, navigate, queryClient]);
 
     return (
         <div className="h-screen w-full flex flex-col items-center justify-center bg-[#0e0e10]">
