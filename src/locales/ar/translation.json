@@ -31,19 +31,19 @@
     "becomeAnInstructor":"كن معلما",
     "SearchPlaceholder": "ابحث عن كورسات..."
 },
-  "profile": {
-    "editProfile": "Edit Profile",
-    "myLearning": "My Learning",
-    "totalCourses": "Total Courses",
-    "completed": "Completed",
-    "inProgress": "In Progress",
-    "totalHours": "Total Hours",
-    "myCourses": "My Courses",
-    "bookmarked": "Bookmarked",
-    "searchPlaceholder": "Search Your Course",
-    "noCoursesFound": "No courses found. Try adjusting your search or filter.",
-    "errorFetching": "Something went wrong while fetching your courses. Please try again later."
-  },
+ "profile": {
+  "editProfile": "تعديل الملف الشخصي",
+  "myLearning": "تعلّمي",
+  "totalCourses": "إجمالي الدورات",
+  "completed": "مكتملة",
+  "inProgress": "قيد التقدم",
+  "totalHours": "إجمالي الساعات",
+  "myCourses": "دوراتي",
+  "bookmarked": "المحفوظة",
+  "searchPlaceholder": "ابحث عن دورتك",
+  "noCoursesFound": "لم يتم العثور على دورات. حاول تعديل البحث أو الفلتر.",
+  "errorFetching": "حدث خطأ ما أثناء تحميل دوراتك. يرجى المحاولة مرة أخرى لاحقًا."
+},
   "auth": {
     "welcomeBack": "مرحباً بعودتك،",
     "welcome": "مرحباً،",
