@@ -86,6 +86,7 @@ function HeroBanner({
   loading: boolean;
 }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   return (
     <div
       className="relative overflow-hidden rounded-3xl p-8 lg:p-10"
@@ -132,7 +133,7 @@ function HeroBanner({
                 <Sparkles size={10} className="text-white" />
               </div>
               <span className="text-blue-200 text-xs font-semibold uppercase tracking-wider">
-                Class Dashboard
+                {t("analysis.classDashboardLabel")}
               </span>
             </div>
             <h1 className="text-2xl lg:text-3xl font-black text-white leading-tight">
@@ -140,7 +141,7 @@ function HeroBanner({
               <span className="text-blue-200">{userName.split(" ")[0]}</span>
             </h1>
             <p className="text-blue-300/80 text-sm mt-1">
-              Here's what's happening across your exams
+              {t("analysis.hereIsWhatsHappening")}
             </p>
           </div>
         </div>
@@ -320,7 +321,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
             },
             {
               id: "violations",
-              label: "Cheating Reviews",
+              label: t("analysis.cheatingReviews"),
               icon: <ClipboardCheck size={15} />,
               badge: violations.length || undefined,
             },
@@ -368,7 +369,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
           <GlassCard className="p-6">
             <SectionHeader
               icon={<AlertTriangle size={15} />}
-              title="Cheating Violations"
+              title={t("analysis.cheatingViolations")}
             />
 
             {!selectedExamId ? (
@@ -377,7 +378,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                   📋
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">
-                  Select an exam above to see violations
+                  {t("analysis.selectExamToSeeViolations")}
                 </p>
               </div>
             ) : violationsLoading ? (
@@ -395,10 +396,10 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                   <Inbox size={26} className="text-emerald-500" />
                 </div>
                 <p className="text-slate-700 dark:text-slate-300 font-bold">
-                  No violations detected
+                  {t("analysis.noViolationsDetected")}
                 </p>
                 <p className="text-sm text-slate-400">
-                  All students behaved well in this exam
+                 {t("analysis.allStudentsBehavedWell")}
                 </p>
               </div>
             ) : (
@@ -418,7 +419,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                         <span className="flex items-center gap-1 text-red-500">
                           <AlertTriangle size={11} />
                           {v.violationCount ?? v.totalViolations ?? 1}{" "}
-                          violations
+                          {t("analysis.violations")}
                         </span>
                         <span>
                           {v.submittedAt
@@ -438,14 +439,14 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                         disabled={resolveMut.isPending}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
                       >
-                        <CheckCircle2 size={13} /> Resolve (Pass)
+                        <CheckCircle2 size={13} /> {t("analysis.resolvePass")}
                       </button>
                       <button
                         onClick={() => flagMut.mutate(v.attemptId ?? v.id)}
                         disabled={flagMut.isPending}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-red-200 dark:border-red-900/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-xs font-bold transition-colors disabled:opacity-60"
                       >
-                        <XCircle size={13} /> Flag (Fail)
+                        <XCircle size={13} /> {t("analysis.flagFail")}
                       </button>
                     </div>
                   </div>
@@ -509,12 +510,10 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                   </div>
                   <div>
                     <p className="font-bold text-slate-800 dark:text-white text-sm">
-                      {isPublished ? "Grades Published!" : "Publish Grades"}
+                      {isPublished ? t("analysis.gradesPublished") : t("analysis.publishGrades")}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      {isPublished
-                        ? "All students can now see their results and analysis."
-                        : "Once published, all students will see their results and analysis."}
+                      {isPublished ? t("analysis.gradesPublishedDesc") : t("analysis.publishGradesDesc")}   
                     </p>
                   </div>
                 </div>
@@ -530,16 +529,16 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
                   {publishMut.isPending ? (
                     <>
                       <Loader2 size={15} className="animate-spin" />{" "}
-                      Publishing...
+                      {t("analysis.publishing")}
                     </>
                   ) : isPublished ? (
                     <>
                       <CheckCircle2 size={15} />
-                      {isPublished ? "Already Published" : "Published"}
+                      {isPublished ? <>{t("analysis.alreadyPublished")}</>: <>{t("analysis.published")}</>}
                     </>
                   ) : (
                     <>
-                      <Send size={15} /> Publish Grades
+                      <Send size={15} />  <>{t("analysis.publishGrades")}</>
                     </>
                   )}
                 </button>

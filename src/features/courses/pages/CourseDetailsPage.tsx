@@ -234,7 +234,7 @@ const CourseDetailsPage = () => {
                                     <div className="flex items-center gap-2 bg-purple-500/20 border border-purple-400/30 rounded-full px-3 py-1">
                                         <TrendingUp size={14} className="text-purple-300" />
                                         <span className="text-purple-200 font-semibold text-xs">
-                                            {progressPercent}% {t('courses.complete', { defaultValue: 'complete' })}
+                                            {progressPercent}% {t('courses.complete')}
                                         </span>
                                     </div>
                                 )}
@@ -435,7 +435,7 @@ const CourseDetailsPage = () => {
                                                 <div className="flex items-center justify-between mb-1.5">
                                                     <span className="text-xs font-semibold text-slate-600 dark:text-[#d0d0E0] flex items-center gap-1">
                                                         <TrendingUp size={13} className="text-purple-500" />
-                                                        {t('courses.yourProgress', { defaultValue: 'Your Progress' })}
+                                                        {t('courses.yourProgress')}
                                                     </span>
                                                     <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
                                                         {progressPercent}%

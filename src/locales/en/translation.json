@@ -6,6 +6,15 @@
     "free": "Free",
     "yes": "Yes"
   },
+  "footer": {
+  "copyright": "© 2026 Neura Community. All rights reserved.",
+  "fastLinks": "Fast Links",
+  "links": {
+    "home": "Home",
+    "community": "Community",
+    "courses": "Courses"
+  }
+},
   "navigation": {
     "home": "Home",
     "courses": "Courses",
@@ -17,10 +26,23 @@
     "theme": "Theme",
     "language": "Language",
     "signOut": "Sign Out",
-    "analysis": "Analysis"
+    "analysis": "Analysis",
+    "Applications":"Applications",
+    "becomeAnInstructor":"Become an instructor",
+    "SearchPlaceholder": "Search for courses..."
   },
   "profile": {
-    "editProfile": "Edit Profile"
+    "editProfile": "Edit Profile",
+    "myLearning": "My Learning",
+    "totalCourses": "Total Courses",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "totalHours": "Total Hours",
+    "myCourses": "My Courses",
+    "bookmarked": "Bookmarked",
+    "searchPlaceholder": "Search Your Course",
+    "noCoursesFound": "No courses found. Try adjusting your search or filter.",
+    "errorFetching": "Something went wrong while fetching your courses. Please try again later."
   },
   "auth": {
     "welcomeBack": "Welcome back,",
@@ -84,7 +106,7 @@
     "enrollNow": "Enroll Now",
     "enrolled": "Enrolled",
     "goToCourse": "Go to Course",
-    "price": "{{price}} E.L",
+    "price": "{{price}}$",
     "searchResultTitle": "Result of \"{{query}}\"",
     "filter": "Filter",
     "beginner": "Beginner",
@@ -98,7 +120,14 @@
     "noLessonContent": "No content available for this lesson.",
     "article": "Article",
     "videoNotAvailable": "Video not available",
-    "videoAccessMessage": "This video may not be finalized yet, or you may not have access. Please make sure you are enrolled in this course."
+    "videoAccessMessage": "This video may not be finalized yet, or you may not have access. Please make sure you are enrolled in this course.",
+    "markComplete": "Mark as Complete",
+    "markIncomplete": "Mark as Incomplete",
+    "lessonsLabel": "lessons",
+    "complete": "complete",
+    "yourProgress": "Your Progress",
+    "free": "Free",
+    "enrollFree": "Enroll for Free"
   },
   "courseDetails": {
     "backToCourses": "Back to Courses",
@@ -138,7 +167,10 @@
     "commentPlaceholder": "Tell us what you think about this course...",
     "submitReview": "Submit Review",
     "student": "Student",
-    "noComment": "No comment provided."
+    "noComment": "No comment provided.",
+    "enrollFree": "Enroll for Free",
+    "buyNow": "Buy Now — {{price}}",
+    "flagReason": "Reason for Failure"
   },
   "quiz": {
     "notFound": "Quiz Not Found",
@@ -181,7 +213,7 @@
   "examResults": {
     "couldNotLoad": "Results could not be loaded.",
     "goBack": "Go Back",
-    "backToCourse": "Back to Course",
+    "backToCourse": "Back to Analytics",
     "title": "Exam Results",
     "passedTitle": "Outstanding! You Passed.",
     "failedTitle": "Not Quite There",
@@ -293,7 +325,24 @@
   "myExams": "Analysis",
   "noAttemptsMatchFilter": "No attempts match this filter.",
   "pending": "Pending",
-  "view":"Review"
+  "view":"Review",
+  "cheatingReviews":"Cheating Reviews",
+  "classDashboardLabel": "Class Dashboard",
+  "hereIsWhatsHappening": "Here's what's happening across your exams",
+  "cheatingViolations": "Cheating Violations",
+  "selectExamToSeeViolations": "Select an exam above to see violations",
+  "noViolationsDetected": "No violations detected",
+  "allStudentsBehavedWell": "All students behaved well in this exam",
+  "resolvePass": "Resolve (Pass)",
+  "flagFail": "Flag (Fail)",
+  "violations": "violations",
+  "gradesPublished": "Grades Published!",
+  "publishGrades": "Publish Grades",
+  "gradesPublishedDesc": "All students can now see their results and analysis.",
+  "publishGradesDesc": "Once published, all students will see their results and analysis.",
+  "publishing": "Publishing...",
+  "alreadyPublished": "Already Published",
+  "published": "Published"
 },
   "payment": {
     "back": "Back",
@@ -427,7 +476,50 @@
     "noHistory": "No review history yet.",
     "submitForReview": "Submit for Review",
     "resubmit": "Resubmit for Review",
-    "total": "total"
+    "total": "total",
+    "back": "← Back",
+    "attemptReview": "Attempt Review",
+    "decisionAlreadyMade": "Decision Already Made",
+    "alreadyApproved": "You already approved this attempt. The student can now see their result.",
+    "alreadyFlagged": "You already flagged this attempt. The student can now see their result.",
+    "backToList": "← Back to List",
+    "flagged": "Flagged",
+    "underReview": "Under Review",
+    "examAttempt": "Exam attempt",
+    "attemptNumber": "Attempt #{{id}}",
+    "score": "score",
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "skipped": "Skipped",
+    "violations": "Violations",
+    "violationDetected": "Violation detected",
+    "instructorDecision": "Instructor Decision",
+    "approvedAndPassed": "Approved & Passed",
+    "flaggedAndFailed": "Flagged & Failed",
+    "studentWillBeNotified": "Student will be notified",
+    "noViolationsDesc": "No violations detected. Publish grades to release results to all students.",
+    "publishGrades": "Publish Grades",
+    "publishing": "Publishing...",
+    "failedToPublish": "Failed to publish. Try again.",
+    "gradesPublished": "Grades Published!",
+    "allStudentsCanSeeResults": "All students can now see their results",
+    "approveAndPass": "Approve & Pass",
+    "flagAndFail": "Flag & Fail",
+    "provideReasonForFlagging": "Provide a reason for flagging:",
+    "describeViolation": "Describe the violation...",
+    "confirmFlagAndFail": "Confirm Flag & Fail",
+    "questionBreakdown": "Question breakdown",
+    "selectedCorrect": "✓ selected · correct",
+    "wrongSelected": "✗ selected",
+    "correctAnswer": "correct answer",
+    "cheatingViolationsPending": "Cheating Violations — Pending Review",
+    "pending": "pending",
+    "selectExamToSeeViolations": "Select an exam to see violations",
+    "noViolationsDetected": "No violations detected",
+    "allStudentsBehavedWell": "All students behaved well in this exam",
+    "resolvePass": "Resolve (Pass)",
+    "flagFail": "Flag (Fail)",
+    "violations": "violations"
   },
   "attemptReview": {
     "attemptReviewTab": "Attempt Reviews",
@@ -482,7 +574,8 @@
     "selectedWrong": "✗ selected",
     "correctAnswer": "correct answer",
     "examAttempt": "Exam attempt",
-    "attempt": "Attempt #{{id}}"
+    "attempt": "Attempt #{{id}}",
+    "totalReviewed": "Total Reviewed"
   },
   "instructorApp": {
     "pageTitle": "Become an Instructor",

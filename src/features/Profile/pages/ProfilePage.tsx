@@ -5,20 +5,24 @@ import {
     Loader2,
     Clock,
     Search,
+    Bookmark,
 } from 'lucide-react';
 import NavBar from '../../../shared/components/NavBar';
 import CourseCard from '../../../shared/components/CourseCard';
 import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
 import Pagination from '../../dashboard/components/Pagination';
+import { useTranslation } from 'react-i18next';
 import { useProfileCourses } from '../hooks/useProfileCourses';
+import { useEnrollmentDashboard } from '../hooks/useEnrollmentDashboard';
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) => {
     const colors: Record<string, { border: string, text: string, iconBg: string, bgColor: string }> = {
-        blue: { border: 'border-blue-200 dark:border-blue-900', text: 'text-blue-600', iconBg: 'text-blue-600', bgColor: "bg-blue-50 dark:bg-blue-900/20" },
-        green: { border: 'border-green-200 dark:border-green-900', text: 'text-green-600', iconBg: 'text-green-600', bgColor: "bg-green-50 dark:bg-green-900/20" },
-        purple: { border: 'border-purple-200 dark:border-purple-900', text: 'text-purple-600', iconBg: 'text-purple-600', bgColor: "bg-purple-50 dark:bg-purple-900/20" },
-        orange: { border: 'border-orange-200 dark:border-orange-900', text: 'text-orange-600', iconBg: 'text-orange-600', bgColor: "bg-orange-50 dark:bg-orange-900/20" },
+        blue:   { border: 'border-blue-200 dark:border-blue-900',   text: 'text-blue-600',   iconBg: 'text-blue-600',   bgColor: 'bg-blue-50 dark:bg-blue-900/20'   },
+        green:  { border: 'border-green-200 dark:border-green-900',  text: 'text-green-600',  iconBg: 'text-green-600',  bgColor: 'bg-green-50 dark:bg-green-900/20'  },
+        purple: { border: 'border-purple-200 dark:border-purple-900',text: 'text-purple-600', iconBg: 'text-purple-600', bgColor: 'bg-purple-50 dark:bg-purple-900/20' },
+        orange: { border: 'border-orange-200 dark:border-orange-900',text: 'text-orange-600', iconBg: 'text-orange-600', bgColor: 'bg-orange-50 dark:bg-orange-900/20' },
+        yellow: { border: 'border-yellow-200 dark:border-yellow-900',text: 'text-yellow-600', iconBg: 'text-yellow-600', bgColor: 'bg-yellow-50 dark:bg-yellow-900/20' },
     };
 
     const theme = colors[color];
@@ -28,40 +32,47 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string, value: s
             <h3 className={`font-semibold ${theme.text}`}>{label}</h3>
             <div className="flex items-end justify-between">
                 <span className={`text-4xl font-bold ${theme.text}`}>{value}</span>
-                <Icon size={36} className={`${theme.iconBg}`} strokeWidth={2.2} />
+                <Icon size={36} className={theme.iconBg} strokeWidth={2.2} />
             </div>
         </div>
     );
 };
 
 const ProfilePage = () => {
-    // States for Tabs, Pagination, and Search
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('My Courses');
     const [pageNumber, setPageNumber] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    
 
-    // React Query Hook
+    // Main query for the active tab
     const { data, isLoading, isError } = useProfileCourses(activeTab, pageNumber, searchTerm);
 
-    // Fetch real stat counts using the same API with large page size
-    const { data: allCoursesData } = useProfileCourses('My Courses', 1, '');
-    const { data: completedData } = useProfileCourses('Completed', 1, '');
-    const { data: inProgressData } = useProfileCourses('In Progress', 1, '');
+    // Stat queries single dashboard call + bookmarked count
+    const { data: dashboard } = useEnrollmentDashboard();
+    const { data: bookmarkedData } = useProfileCourses('Bookmarked', 1, '');
 
-    // Derive stats
-    const totalCourses = allCoursesData?.items?.length ?? 0;
-    const totalCompleted = completedData?.items?.length ?? 0;
-    const totalInProgress = inProgressData?.items?.length ?? 0;
-    // Derive total hours from all courses items (hours field)
-    const totalHours = (allCoursesData?.items ?? []).reduce((acc: number, c: any) => acc + (c.hours || 0), 0);
+    const totalBookmarked = bookmarkedData?.items?.length ?? 0;
 
-    console.log(data);
+    // Log dashboard once to find field names — remove after confirming
+    // console.log('dashboard:', dashboard);
+    console.log('My Courses data:', data?.items?.map((c: any) => ({ 
+    title: c.title, 
+    isEnrolled: c.isEnrolled,
+    progressPercentage: c.progressPercentage,
+    roleName: c.roleName
+})));
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
         setPageNumber(1);
     };
+
+    const tabs = [
+        { key: 'My Courses',  label: t('profile.myCourses')  },
+        { key: 'In Progress', label: t('profile.inProgress')  },
+        { key: 'Completed',   label: t('profile.completed')   },
+        { key: 'Bookmarked',  label: t('profile.bookmarked')  },
+    ];
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0e0e10] font-inter">
@@ -73,29 +84,58 @@ const ProfilePage = () => {
                     <SideBar />
 
                     <div className="lg:col-span-9 space-y-8">
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">My Learning</h1>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                            {t('profile.myLearning')}
+                        </h1>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <StatCard label="Total Courses" value={String(totalCourses)} icon={GraduationCap} color="blue" />
-                            <StatCard label="Completed" value={String(totalCompleted)} icon={Award} color="green" />
-                            <StatCard label="In Progress" value={String(totalInProgress)} icon={Loader2} color="purple" />
-                            <StatCard label="Total Hours" value={String(totalHours)} icon={Clock} color="orange" />
+                        {/* Stat Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <StatCard
+                                label={t('profile.totalCourses')}
+                                value={String(dashboard?.totalCourses ?? 0)}
+                                icon={GraduationCap}
+                                color="blue"
+                            />
+                            <StatCard
+                                label={t('profile.completed')}
+                                value={String(dashboard?.completedCourses ?? 0)}
+                                icon={Award}
+                                color="green"
+                            />
+                            <StatCard
+                                label={t('profile.inProgress')}
+                                value={String(dashboard?.inProgressCourses ?? 0)}
+                                icon={Loader2}
+                                color="purple"
+                            />
+                            <StatCard
+                                label={t('profile.totalHours')}
+                                value={Number(dashboard?.totalHours ?? 0).toFixed(1)}
+                                icon={Clock}
+                                color="orange"
+                            />
+                            <StatCard
+                                label={t('profile.bookmarked')}
+                                value={String(totalBookmarked)}
+                                icon={Bookmark}
+                                color="yellow"
+                            />
                         </div>
 
                         {/* Filters & Search */}
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-2 bg-white dark:bg-[#1c1c1f] p-1 rounded-xl border border-slate-100 dark:border-[#2a2a2e] w-full md:w-auto overflow-x-auto">
-                                {['My Courses', 'In Progress', 'Completed', 'Bookmarked'].map((tab) => (
+                                {tabs.map((tab) => (
                                     <button
-                                        key={tab}
-                                        onClick={() => handleTabChange(tab)}
+                                        key={tab.key}
+                                        onClick={() => handleTabChange(tab.key)}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                                            activeTab === tab
+                                            activeTab === tab.key
                                                 ? 'bg-[#0061EF] text-white shadow-md'
                                                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#2a2a2e]'
                                         }`}
                                     >
-                                        {tab}
+                                        {tab.label}
                                     </button>
                                 ))}
                             </div>
@@ -109,24 +149,24 @@ const ProfilePage = () => {
                                         setSearchTerm(e.target.value);
                                         setPageNumber(1);
                                     }}
-                                    placeholder="Search Your Course"
+                                    placeholder={t('profile.searchPlaceholder')}
                                     className="w-full bg-blue-50/50 dark:bg-[#1c1c1f] dark:text-white dark:placeholder:text-slate-500 border border-blue-100 dark:border-[#2a2a2e] rounded-xl py-2.5 pl-10 pr-4 outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400"
                                 />
                             </div>
                         </div>
 
-                        {/* Courses Grid with Loading/Error States */}
+                        {/* Courses Grid */}
                         {isLoading ? (
                             <div className="flex justify-center items-center py-12">
                                 <Loader2 className="animate-spin text-blue-600" size={40} />
                             </div>
                         ) : isError ? (
                             <div className="text-center py-12 text-red-500 font-medium">
-                                Something went wrong while fetching your courses. Please try again later.
+                                {t('profile.errorFetching')}
                             </div>
                         ) : data?.items?.length === 0 ? (
                             <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium">
-                                No courses found. Try adjusting your search or filter to find what you're looking for.
+                                {t('profile.noCoursesFound')}
                             </div>
                         ) : (
                             <>
@@ -139,7 +179,7 @@ const ProfilePage = () => {
                                             title: course.title,
                                             instructorName: course.instructorName,
                                             rating: course.rating,
-                                            hours: 10,
+                                            hours: course.hours,
                                             totalReviews: course.totalReviews,
                                             numberOfLessons: course.numberOfLessons,
                                             price: course.price,
@@ -167,7 +207,6 @@ const ProfilePage = () => {
                                 )}
                             </>
                         )}
-
                     </div>
                 </div>
             </main>

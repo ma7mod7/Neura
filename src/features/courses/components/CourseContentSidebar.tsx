@@ -146,7 +146,7 @@ export default function CourseContentSidebar({
                                                         e.stopPropagation();
                                                         onLessonComplete(lesson.id, !lesson.isCompleted);
                                                     }}
-                                                    title={lesson.isCompleted ? t('courses.markIncomplete', { defaultValue: 'Mark as incomplete' }) : t('courses.markComplete', { defaultValue: 'Mark as complete' })}
+                                                    title={lesson.isCompleted ? t('courses.markIncomplete'): t('courses.markComplete')}
                                                     className={`mt-0.5 shrink-0 transition-all duration-200 rounded hover:scale-110 active:scale-95 focus:outline-none
                                                         ${lesson.isCompleted
                                                             ? 'text-[#a435f0] hover:text-purple-700'

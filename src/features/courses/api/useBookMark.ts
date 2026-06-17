@@ -15,11 +15,12 @@ export const useBookMark = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: bookMarkRequest,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById'] });
-            queryClient.invalidateQueries({ queryKey: ['courses'] });
-
-        },
+       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById'] });
+        queryClient.invalidateQueries({ queryKey: ['courses'] });
+        queryClient.invalidateQueries({ queryKey: ['profileCourses'] }); // ← add
+        queryClient.invalidateQueries({ queryKey: ['enrollmentDashboard'] }); // ← add
+    },
         onError: (error: any) => {
             console.log("field to enroll", error.response)
         }

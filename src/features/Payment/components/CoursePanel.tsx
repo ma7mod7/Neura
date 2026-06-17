@@ -26,7 +26,7 @@ export function CoursePanel({
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute top-4 end-4">
             <div className="px-4 py-1.5 rounded-full bg-white/20 dark:bg-black/40 backdrop-blur-md border border-white/30 text-white font-bold text-sm shadow-lg">
-              {course.price === 0 ? t('payment.free') : `EGP ${course.price.toLocaleString()}`}
+              {course.price === 0 ? t('payment.free') : `USD ${course.price.toLocaleString()}`}
             </div>
           </div>
           <div className="absolute bottom-4 start-4 flex items-center gap-1.5 text-white/80 text-xs">

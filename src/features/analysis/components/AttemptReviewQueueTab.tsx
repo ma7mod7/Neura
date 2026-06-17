@@ -41,14 +41,14 @@ export const AttemptReviewQueueTab: React.FC = () => {
       <GlassCard className="p-6">
         <SectionHeader
           icon={<AlertTriangle size={15} />}
-          title="Cheating Violations — Pending Review"
-          badge={!violationsLoading ? `${items.length} pending` : undefined}
+          title={t('examReview.cheatingViolationsPending')}
+          badge={!violationsLoading ? `${items.length} ${t('examReview.pending')}` : undefined}
         />
 
         {!selectedExamId ? (
           <div className="flex flex-col items-center gap-3 py-14 text-center">
             <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-[#222] flex items-center justify-center text-2xl">📋</div>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Select an exam to see violations</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">{t('examReview.selectExamToSeeViolations')}</p>
           </div>
         ) : violationsLoading ? (
           <div className="space-y-3">
@@ -61,8 +61,8 @@ export const AttemptReviewQueueTab: React.FC = () => {
             <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-900/15 flex items-center justify-center">
               <Inbox size={26} className="text-emerald-500" />
             </div>
-            <p className="text-slate-700 dark:text-slate-300 font-bold">No violations detected</p>
-            <p className="text-sm text-slate-400">All students behaved well in this exam</p>
+            <p className="text-slate-700 dark:text-slate-300 font-bold">{t('examReview.noViolationsDetected')}</p>
+            <p className="text-sm text-slate-400">{t('examReview.allStudentsBehavedWell')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -76,7 +76,7 @@ export const AttemptReviewQueueTab: React.FC = () => {
                   <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
                     <span className="flex items-center gap-1 text-red-500">
                       <AlertTriangle size={11} />
-                      {v.violationCount ?? v.totalViolations ?? 1} violations
+                      {v.violationCount ?? v.totalViolations ?? 1} {t('examReview.violations')}
                     </span>
                     <span>{v.submittedAt ? new Date(v.submittedAt).toLocaleDateString() : ''}</span>
                   </div>
@@ -88,7 +88,7 @@ export const AttemptReviewQueueTab: React.FC = () => {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
                   >
                     <CheckCircle2 size={13} />
-                    Resolve (Pass)
+                    {t('examReview.resolvePass')}
                   </button>
                   <button
                     onClick={() => flagMut.mutate(v.attemptId ?? v.id)}
@@ -96,7 +96,7 @@ export const AttemptReviewQueueTab: React.FC = () => {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-red-200 dark:border-red-900/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-xs font-bold transition-colors disabled:opacity-60"
                   >
                     <XCircle size={13} />
-                    Flag (Fail)
+                    {t('examReview.flagFail')}
                   </button>
                 </div>
               </div>

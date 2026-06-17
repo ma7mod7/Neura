@@ -251,8 +251,8 @@ export default function CoursePlayerPage() {
                                         }`}
                                 >
                                     {isActiveLessonCompleted
-                                        ? <><CheckSquare size={15} /><span>{t('courses.completed', { defaultValue: 'Completed' })}</span></>
-                                        : <><Square size={15} /><span>{t('courses.markComplete', { defaultValue: 'Mark as complete' })}</span></>
+                                        ? <><CheckSquare size={15} /><span>{t('courses.completed')}</span></>
+                                        : <><Square size={15} /><span>{t('courses.markComplete')}</span></>
                                     }
                                 </button>
                             )}

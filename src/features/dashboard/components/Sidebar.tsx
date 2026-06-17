@@ -88,7 +88,7 @@ export default function Sidebar() {
                         }`}
                         >
                         <ClipboardList size={20} />
-                        <span>Applications</span>
+                        <span>{t("navigation.Applications")}</span>
                         </div>
                         )}
                 </div>

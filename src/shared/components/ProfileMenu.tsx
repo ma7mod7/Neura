@@ -52,7 +52,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             isActive: false
         },
        ...(!canAccessDashboard ? [{
-        label: 'Become an Instructor',
+        label: t('navigation.becomeAnInstructor'),
         icon: GraduationCap,
         path: '/instructor/apply',
         isActive: false
@@ -64,7 +64,7 @@ const ProfileMenu = ({ setIsOpen }: ProfileMenuProps) => {
             isActive: false
         }] : []),
         ...(canSeeAdminDashboard ? [{
-            label: 'Applications Review',
+            label: t('analysis.cheatingReviews'),
             icon: ClipboardList,
             path: '/dashboard/instructor-applications',
             isActive: false

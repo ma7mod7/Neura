@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import axiosInstance from '../../../shared/api/axiosInstance';
 import { publishExamGrades } from '../api/analysisApi';
+import { useTranslation } from 'react-i18next';
 
 export default function AttemptReviewPage() {
+  const { t } = useTranslation();
   const { examId, attemptId } = useParams<{ examId: string; attemptId: string }>();
   const navigate = useNavigate();
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -90,26 +92,25 @@ const alreadyDecided = attempt?.areGradesPublished === true;
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-slate-500 dark:text-[#7a7a9a] hover:text-slate-800 dark:hover:text-[#e8e8f0] text-sm font-semibold hover:bg-slate-100 dark:hover:bg-[#1e1e28] px-3 py-1.5 rounded-lg transition-all"
           >
-            ← Back
+            {t('examReview.back')}
           </button>
           <div className="w-px h-5 bg-slate-200 dark:bg-[#2a2a38]" />
-          <span className="text-sm font-semibold">Attempt Review</span>
+          <span className="text-sm font-semibold">{t('examReview.attemptReview')}</span>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white dark:bg-[#1A1A1A] rounded-3xl border border-slate-200 dark:border-[#2a2a2e] p-10 max-w-md w-full text-center space-y-4">
             <div className="text-4xl">{attempt.passed ? '✓' : '✕'}</div>
             <h2 className="text-xl font-black text-slate-800 dark:text-white">
-              Decision Already Made
+             {t('examReview.decisionAlreadyMade')}
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              You already {attempt.passed ? 'approved' : 'flagged'} this attempt.
-              The student can now see their result.
+             {attempt.passed ? t('examReview.alreadyApproved') : t('examReview.alreadyFlagged')}
             </p>
             <button
               onClick={() => navigate(-1)}
               className="mt-2 w-full py-3 rounded-2xl bg-[#0061EF] hover:bg-[#0052cc] text-white font-bold text-sm transition-colors"
             >
-              ← Back to List
+              {t('examReview.backToList')}
             </button>
           </div>
         </div>
@@ -129,26 +130,26 @@ const alreadyDecided = attempt?.areGradesPublished === true;
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back
+          {t('examReview.back')}
         </button>
         <div className="w-px h-5 bg-slate-200 dark:bg-[#2a2a38]" />
-        <span className="text-sm font-semibold">Attempt Review</span>
+        <span className="text-sm font-semibold">{t('examReview.attemptReview')}</span>
 
         <div className="ml-auto">
           {decided === 'approved' && (
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-50 dark:bg-[#0a1a14] border border-emerald-200 dark:border-[#1a4030] text-emerald-600 dark:text-[#22d3a0]">
-              ✓ Approved
+              {t('examReview.approved')}
             </span>
           )}
           {decided === 'flagged' && (
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-red-50 dark:bg-[#1a0f0f] border border-red-200 dark:border-[#3a1a1a] text-red-500 dark:text-[#ff5c5c]">
-              ⚑ Flagged
+              {t('examReview.flagged')}
             </span>
           )}
           {!decided && (
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-amber-50 dark:bg-[#1a1505] border border-amber-200 dark:border-[#4a3800] text-amber-600 dark:text-[#f5c518]">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#f5c518] animate-pulse" />
-              Under Review
+              {t('examReview.examAttempt')}
             </span>
           )}
         </div>
@@ -168,10 +169,10 @@ const alreadyDecided = attempt?.areGradesPublished === true;
               {/* Meta */}
               <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-[#2a2a38]">
                 <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-[#7a7a9a] font-mono mb-1.5">
-                  Exam attempt
+                  {t('examReview.examAttempt')}
                 </div>
                 <div className="text-lg font-black text-slate-800 dark:text-[#e8e8f0] mb-1">
-                  Attempt #{attempt.attemptId}
+                 {t('examReview.attemptNumber', { id: attempt.attemptId })}
                 </div>
                 <div className="text-[11px] font-mono text-slate-400 dark:text-[#7a7a9a]">
                   {new Date(attempt.startedAt).toLocaleDateString(undefined, {
@@ -192,7 +193,7 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                 </svg>
                 <div>
                   <div className="text-3xl font-black leading-none" style={{ color: ringColor }}>{pct}%</div>
-                  <div className="text-[11px] font-mono text-slate-400 dark:text-[#7a7a9a] mt-0.5">score</div>
+                  <div className="text-[11px] font-mono text-slate-400 dark:text-[#7a7a9a] mt-0.5">{t('examReview.score')}</div>
                   <div className="text-sm font-semibold text-slate-700 dark:text-[#e8e8f0] mt-1.5">
                     {attempt.score} / {attempt.totalPoints} pts
                   </div>
@@ -202,10 +203,10 @@ const alreadyDecided = attempt?.areGradesPublished === true;
               {/* Stats grid */}
               <div className="grid grid-cols-2 gap-px bg-slate-100 dark:bg-[#2a2a38] border-b border-slate-100 dark:border-[#2a2a38]">
                 {[
-                  { label: 'Correct',    val: attempt.correctAnswers,  color: 'text-emerald-500' },
-                  { label: 'Wrong',      val: attempt.wrongAnswers,    color: 'text-red-500' },
-                  { label: 'Skipped',    val: attempt.unanswered ?? 0, color: 'text-amber-500' },
-                  { label: 'Violations', val: attempt.violationCount,
+                  { label: t('examReview.correct'),    val: attempt.correctAnswers,  color: 'text-emerald-500' },
+                  { label: t('examReview.wrong'),      val: attempt.wrongAnswers,    color: 'text-red-500' },
+                  { label: t('examReview.skipped'),    val: attempt.unanswered ?? 0, color: 'text-amber-500' },
+                  { label: t('examReview.violations'), val: attempt.violationCount,
                     color: attempt.violationCount > 0 ? 'text-red-500' : 'text-slate-400 dark:text-[#7a7a9a]' },
                 ].map((s) => (
                   <div key={s.label} className="bg-white dark:bg-[#111118] p-4">
@@ -223,7 +224,7 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                       <path d="m10.29 3.86-8.4 14.5A1 1 0 0 0 2.74 20h16.52a1 1 0 0 0 .86-1.5L11.71 3.86a1 1 0 0 0-1.72 0z" />
                       <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
                     </svg>
-                    Violation detected
+                    {t('examReview.violationDetected')}
                   </div>
                   <div className="text-xs text-red-400 leading-relaxed">{attempt.violationReason}</div>
                 </div>
@@ -232,45 +233,45 @@ const alreadyDecided = attempt?.areGradesPublished === true;
               {/* Action panel */}
               <div className="p-4 mt-auto border-t border-slate-100 dark:border-[#2a2a38] bg-slate-50 dark:bg-[#111118]">
                 <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-[#7a7a9a] font-mono mb-3">
-                  Instructor Decision
+                  {t('examReview.instructorDecision')}
                 </div>
 
                 {decided ? (
                   <div className="text-center py-2">
                     <div className="text-2xl mb-2">{decided === 'approved' ? '✓' : '⚑'}</div>
                     <div className={`text-sm font-bold ${decided === 'approved' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {decided === 'approved' ? 'Approved & Passed' : 'Flagged & Failed'}
+                      {decided === 'approved' ? t('examReview.approvedAndPassed') : t('examReview.flaggedAndFailed')}
                     </div>
                     <div className="text-[11px] text-slate-400 dark:text-[#7a7a9a] mt-1 font-mono">
-                      Student will be notified
+                      {t('examReview.studentWillBeNotified')}
                     </div>
                     <button
                       className="mt-3 w-full py-2.5 rounded-xl border border-slate-200 dark:border-[#2a2a38] text-slate-500 dark:text-[#7a7a9a] text-sm font-bold hover:bg-slate-100 dark:hover:bg-[#1e1e28] transition-colors"
                       onClick={() => navigate(-1)}
                     >
-                      ← Back to list
+                      {t('examReview.backToList')}
                     </button>
                   </div>
 
                 ) : publishMut.isSuccess ? (
                   <div className="text-center py-2">
                     <div className="text-2xl mb-2">📤</div>
-                    <div className="text-sm font-bold text-emerald-500">Grades Published!</div>
+                    <div className="text-sm font-bold text-emerald-500">{t('examReview.gradesPublished')}</div>
                     <div className="text-[11px] text-slate-400 dark:text-[#7a7a9a] mt-1 font-mono">
-                      All students can now see their results
+                     {t('examReview.allStudentsCanSeeResults')}
                     </div>
                     <button
                       className="mt-3 w-full py-2.5 rounded-xl border border-slate-200 dark:border-[#2a2a38] text-slate-500 dark:text-[#7a7a9a] text-sm font-bold hover:bg-slate-100 dark:hover:bg-[#1e1e28] transition-colors"
                       onClick={() => navigate(-1)}
                     >
-                      ← Back to list
+                      {t('examReview.backToList')}
                     </button>
                   </div>
 
                 ) : (attempt.violationCount ?? 0) === 0 ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-[11px] text-slate-500 dark:text-[#7a7a9a] leading-relaxed mb-1">
-                      No violations detected. Publish grades to release results to all students.
+                      {t('examReview.noViolationsDesc')}
                     </p>
                     <button
                       onClick={() => publishMut.mutate()}
@@ -280,15 +281,15 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                       {publishMut.isPending ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Publishing...
+                          {t('examReview.publishing')}
                         </>
                       ) : (
-                        'Publish Grades'
+                        t('examReview.publishGrades')
                       )}
                     </button>
                     {publishMut.isError && (
                       <p className="text-[11px] text-red-400 text-center mt-1">
-                        Failed to publish. Try again.
+                       {t('examReview.failedToPublish')}
                       </p>
                     )}
                   </div>
@@ -303,26 +304,26 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                       {resolveMut.isPending
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         : '✓'}
-                      Approve & Pass
+                      {t('examReview.approveAndPass')}
                     </button>
                     <button
                       onClick={() => setShowRejectForm(true)}
                       className="w-full py-2.5 rounded-xl border-2 border-red-100 dark:border-[#3a1a1a] text-red-500 hover:bg-red-50 dark:hover:bg-[#1a0f0f] text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                     >
-                      ✕ Flag & Fail
+                      {t('examReview.flagAndFail')}
                     </button>
                   </div>
 
                 ) : (
                   <div className="flex flex-col gap-2">
                     <p className="text-[11px] text-slate-500 dark:text-[#7a7a9a] leading-relaxed">
-                      Provide a reason for flagging:
+                      {t('examReview.provideReasonForFlagging')}
                     </p>
                     <textarea
                       rows={3}
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
-                      placeholder="Describe the violation..."
+                      placeholder={t('examReview.describeViolation')}
                       className="w-full px-3 py-2 text-sm rounded-xl bg-white dark:bg-[#1e1e28] border border-slate-200 dark:border-[#3a3a50] text-slate-800 dark:text-[#e8e8f0] placeholder:text-slate-400 dark:placeholder:text-[#7a7a9a] focus:outline-none focus:border-red-400 resize-none font-mono"
                     />
                     <button
@@ -333,13 +334,13 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                       {flagMut.isPending
                         ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         : '⚑'}
-                      Confirm Flag & Fail
+                      {t('examReview.confirmFlagAndFail')}
                     </button>
                     <button
                       onClick={() => { setShowRejectForm(false); setRejectReason(''); }}
                       className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-[#2a2a38] text-slate-500 dark:text-[#7a7a9a] text-sm font-bold hover:bg-slate-100 dark:hover:bg-[#1e1e28] transition-colors"
                     >
-                      Cancel
+                      {t('examReview.cancel')}
                     </button>
                   </div>
                 )}
@@ -359,9 +360,9 @@ const alreadyDecided = attempt?.areGradesPublished === true;
           {!isLoading && attempt && (
             <>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-bold text-slate-800 dark:text-[#e8e8f0]">Question breakdown</span>
+                <span className="text-sm font-bold text-slate-800 dark:text-[#e8e8f0]">{t('examReview.questionBreakdown')}</span>
                 <span className="font-mono text-xs text-slate-400 dark:text-[#7a7a9a] bg-slate-100 dark:bg-[#18181f] border border-slate-200 dark:border-[#2a2a38] px-3 py-0.5 rounded-full">
-                  {attempt.totalQuestions} questions
+                 { `${attempt.totalQuestions} ${t('examReview.questions')}`}
                 </span>
               </div>
 
@@ -414,9 +415,9 @@ const alreadyDecided = attempt?.areGradesPublished === true;
                               : 'bg-slate-300 dark:bg-[#3a3a50]'
                             }`} />
                             {opt.text}
-                            {correctSelected && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-emerald-500 dark:text-[#4a8a6a]">✓ selected · correct</span>}
-                            {wrongSelected    && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-red-400">✗ selected</span>}
-                            {correctOnly      && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-emerald-500 dark:text-[#4a8a6a]">correct answer</span>}
+                            {correctSelected && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-emerald-500 dark:text-[#4a8a6a]">{t('examReview.selectedCorrect')}</span>}
+                            {wrongSelected    && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-red-400">{t('examReview.wrongSelected')}</span>}
+                            {correctOnly      && <span className="ml-auto text-[10px] uppercase tracking-wide font-bold text-emerald-500 dark:text-[#4a8a6a]">{t('examReview.correctAnswer')}</span>}
                           </div>
                         );
                       })}

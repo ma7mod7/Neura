@@ -40,9 +40,9 @@ const NavBar = () => {
     { name: t('navigation.courses'), path: '/courses', active: false, action: () => navigate('/courses') },
     { name: t('navigation.community'), path: '/community', active: false, action: () => navigate('/community/students') },
     // Hide "Become an Instructor" if already instructor or admin
-    ...(!canAccessDashboard ? [{ name: 'Become an Instructor', path: '/instructor/apply', active: false, action: () => navigate('/instructor/apply') }] : []),
+    ...(!canAccessDashboard ? [{ name: t('navigation.becomeAnInstructor'), path: '/instructor/apply', active: false, action: () => navigate('/instructor/apply') }] : []),
     // Only pure admins see Applications in navbar
-    ...(isAdmin ? [{ name: 'Applications', path: '/dashboard/instructor-applications', active: false, action: () => navigate('/dashboard/instructor-applications') }] : []),
+    ...(isAdmin ? [{ name: t('navigation.Applications'), path: '/dashboard/instructor-applications', active: false, action: () => navigate('/dashboard/instructor-applications') }] : []),
  ];
     const dataLogin = useAuth()
 
