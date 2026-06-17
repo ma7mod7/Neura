@@ -29,7 +29,7 @@ const AuthCallback = () => {
         if (eqIndex !== -1) {
             const key = part.substring(0, eqIndex);
             const value = part.substring(eqIndex + 1);
-            params[key] = decodeURIComponent(value.replace(/\+/g, ' '));
+            params[key] = decodeURIComponent(value);
         }
     });
 
