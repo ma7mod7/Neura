@@ -50,10 +50,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const login = (authData: AuthResponse) => {
-        const { token, refreshToken, expiresin, ...userData } = authData;
+        const { token, refreshToken, expiresin,refreshTokenExpiration, ...userData } = authData;
         const normalizedUser: User = {
             ...userData,
-            userName: (userData as any).username ?? userData.userName,
+            userName: (userData as any).username 
+            ?? userData.userName 
+            ?? userData.firstName  // fallback for social login
+            ?? userData.email?.split('@')[0]  // last resort
+            ?? 'User',
         };
         const expirationTime = new Date().getTime() + (expiresin * 1000);
         setToken(token);
