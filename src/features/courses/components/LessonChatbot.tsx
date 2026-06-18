@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import axiosInstance from '../../../shared/api/axiosInstance';
 
-//  Types
+// Types
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -11,12 +12,11 @@ interface Message {
 }
 
 interface Props {
-  courseId: number | string;
   lessonId: number;
   lessonTitle?: string;
 }
 
-//  Typing animation 
+// Typing animation
 function TypingText({ text, onDone }: { text: string; onDone: () => void }) {
   const [displayed, setDisplayed] = useState('');
   const [done, setDone] = useState(false);
@@ -35,7 +35,7 @@ function TypingText({ text, onDone }: { text: string; onDone: () => void }) {
         setDone(true);
         onDone();
       }
-    }, 18); 
+    }, 18);
 
     return () => clearInterval(interval);
   }, [text]);
@@ -50,7 +50,7 @@ function TypingText({ text, onDone }: { text: string; onDone: () => void }) {
   );
 }
 
-//  Bubble 
+// Bubble
 function Bubble({ msg, isLatestAssistant, onTypingDone }: {
   msg: Message;
   isLatestAssistant: boolean;
@@ -59,19 +59,13 @@ function Bubble({ msg, isLatestAssistant, onTypingDone }: {
   const isUser = msg.role === 'user';
   return (
     <div className={`flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-      {/* Avatar */}
       <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
         isUser
           ? 'bg-[#0061EF] shadow-lg shadow-[#0061EF]/30'
           : 'bg-gradient-to-br from-purple-500 to-[#0061EF] shadow-lg shadow-purple-500/30'
       }`}>
-        {isUser
-          ? <User size={13} className="text-white" />
-          : <Bot size={13} className="text-white" />
-        }
+        {isUser ? <User size={13} className="text-white" /> : <Bot size={13} className="text-white" />}
       </div>
-
-      {/* Bubble */}
       <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm ${
         isUser
           ? 'bg-[#0061EF] text-white rounded-br-sm shadow-lg shadow-[#0061EF]/20'
@@ -86,7 +80,7 @@ function Bubble({ msg, isLatestAssistant, onTypingDone }: {
   );
 }
 
-//  Dots loader
+// Dots loader
 function ThinkingDots() {
   return (
     <div className="flex items-end gap-2">
@@ -106,13 +100,14 @@ function ThinkingDots() {
   );
 }
 
-//  Main component
-export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
-  const {  i18n } = useTranslation();
+// Main component
+export function LessonChatbot({ lessonId, lessonTitle }: Props) {
+  const { i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
-  const [open, setOpen]           = useState(false);
+
+  const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
-  const [messages, setMessages]   = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
       role: 'assistant',
@@ -120,20 +115,52 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput]         = useState('');
-  const [loading, setLoading]     = useState(false);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const [typingDone, setTypingDone] = useState(true);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
-  const bottomRef  = useRef<HTMLDivElement>(null);
-  const inputRef   = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const latestAIId = useRef<string | null>(null);
+
+  // Load chat history when opened for the first time
+  useEffect(() => {
+    if (!open || historyLoaded) return;
+
+    axiosInstance.get(`/api/Lessons/${lessonId}/chat`)
+      .then(res => {
+        const history: Message[] = (res.data ?? []).map((item: any) => ([
+          {
+            id: `h-q-${item.id}`,
+            role: 'user' as const,
+            text: item.question,
+            timestamp: new Date(item.createdOn),
+          },
+          {
+            id: `h-a-${item.id}`,
+            role: 'assistant' as const,
+            text: item.answer,
+            timestamp: new Date(item.createdOn),
+          },
+        ])).flat();
+
+        if (history.length > 0) {
+          setMessages(prev => [...prev, ...history]);
+        }
+      })
+      .catch(() => {
+      })
+      .finally(() => {
+        setHistoryLoaded(true);
+      });
+  }, [open, historyLoaded, lessonId]);
 
   // Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Focus input when opened
   useEffect(() => {
     if (open && !minimized) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -156,23 +183,19 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch('https://mer000-chatbot-api.hf.space/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: text,
-          course_id: courseId,
-          lesson_id: lessonId,
-        }),
+      const res = await axiosInstance.post(`/api/Lessons/${lessonId}/chat`, {
+        question: text,
       });
 
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const data = await res.json();
+      
+      const replyText = typeof res.data === 'string'
+        ? res.data
+        : res.data?.answer ?? res.data?.reply ?? 'Sorry, I could not get a response.';
 
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: data.reply ?? 'Sorry, I could not get a response.',
+        text: replyText,
         timestamp: new Date(),
       };
 
@@ -183,7 +206,7 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: '⚠️ Something went wrong. Please try again.',
+        text: 'Something went wrong. Please try again.',
         timestamp: new Date(),
       }]);
       setTypingDone(true);
@@ -196,7 +219,6 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  // Closed state
   if (!open) {
     return (
       <button
@@ -205,8 +227,7 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
           bg-gradient-to-br from-[#0061EF] to-purple-600
           shadow-xl shadow-[#0061EF]/40 hover:shadow-2xl hover:shadow-[#0061EF]/50
           flex items-center justify-center
-          transition-all duration-300 hover:scale-110 active:scale-95
-          group"
+          transition-all duration-300 hover:scale-110 active:scale-95 group"
         title="AI Assistant"
       >
         <MessageCircle size={24} className="text-white group-hover:scale-110 transition-transform" />
@@ -233,9 +254,7 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white font-bold text-sm leading-none">AI Assistant</p>
-          <p className="text-blue-200 text-[10px] mt-0.5 truncate">
-            {lessonTitle ?? 'Lesson Helper'}
-          </p>
+          <p className="text-blue-200 text-[10px] mt-0.5 truncate">{lessonTitle ?? 'Lesson Helper'}</p>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -294,7 +313,7 @@ export function LessonChatbot({ courseId, lessonId, lessonTitle }: Props) {
               </button>
             </div>
             <p className="text-[10px] text-slate-400 text-center mt-1.5">
-              Powered by Gemini AI · Press Enter to send
+              Powered by AI · Press Enter to send
             </p>
           </div>
         </>

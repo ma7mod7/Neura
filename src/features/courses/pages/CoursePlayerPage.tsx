@@ -306,7 +306,6 @@ export default function CoursePlayerPage() {
             {/* ====== AI Chatbot  ====== */}
             {showChatbot && (
                 <LessonChatbot
-                    courseId={courseId ?? ''}
                     lessonId={Number(activeLessonId)}
                     lessonTitle={activeLessonTitle}
                 />
