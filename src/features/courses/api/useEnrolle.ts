@@ -21,11 +21,12 @@ export const useEnroll = (courseId?:string) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: enrollRequest,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] });
-            queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById',courseId] });
-
-        },
+       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['courses'] });
+        queryClient.invalidateQueries({ queryKey: ['coursesMetaDataById', courseId] });
+        queryClient.invalidateQueries({ queryKey: ['profileCourses'] });
+        queryClient.invalidateQueries({ queryKey: ['enrollmentDashboard'] });
+    },
         onError: (error: any) => {
             console.log("failed to enroll", error.response?.data?.errors);
             console.log("full error", error.response?.data);

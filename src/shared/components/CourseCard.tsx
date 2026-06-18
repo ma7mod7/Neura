@@ -10,10 +10,9 @@ export interface Tag {
   name: string;
 }
 
-const CourseCard: React.FC<{ course: CourseListItem }> = ({
+const CourseCard: React.FC<{ course: CourseListItem; showGoToCourse?: boolean }> = ({
   course,
-}: {
-  course: CourseListItem;
+  showGoToCourse = false,
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -30,8 +29,13 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({
 
   const handleEnrollCard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const isFree = course.price === 0;
 
+    if (showGoToCourse && isEnrolled) {
+      navigate(`/courses/${course.keyId}/learn`);
+      return;
+    }
+
+    const isFree = course.price === 0;
     if (isFree) {
       Enrollment(course.keyId);
     } else {
@@ -145,16 +149,22 @@ const CourseCard: React.FC<{ course: CourseListItem }> = ({
               />
             </span>
           </div>
-          <button
+         <button
             onClick={handleEnrollCard}
-            disabled={isPending || isEnrolled}
-            className={`text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white transition-all z-10 ${isEnrolled ? "cursor-not-allowed bg-green-500 text-white border-green-500 hover:bg-green-500" : "cursor-pointer"}`}
+            disabled={isPending || (isEnrolled && !showGoToCourse)}
+            className={`text-[#0061EF] text-xs font-bold px-4 py-2 rounded-lg border border-[#0061EF] hover:bg-[#0061EF] hover:text-white transition-all z-10 ${
+              isEnrolled && !showGoToCourse
+                ? "cursor-not-allowed bg-green-500 text-white border-green-500 hover:bg-green-500"
+                : "cursor-pointer"
+            }`}
           >
             {isPending
               ? t("common.loading")
-              : course.price === 0 || course.isEnrolled
-                ? t("courses.enrolled")
-                : t("courses.enrollNow")}
+              : showGoToCourse && isEnrolled
+                ? t("courses.goToCourse")  
+                : course.price === 0 || isEnrolled
+                  ? t("courses.enrolled")
+                  : t("courses.enrollNow")}
           </button>
         </div>
       </div>

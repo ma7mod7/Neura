@@ -473,7 +473,7 @@ const CourseDetailsPage = () => {
                                 ) : (
                                    <button
                                         onClick={() => handleEnroll(courseId!)}
-                                        className="w-full mt-8 bg-[#00059f] text-white font-bold py-3.5 rounded-xl
+                                        className="w-full mt-8 bg-[#0061EF] text-white font-bold py-3.5 rounded-xl
                                                     hover:bg-blue-700 transition-all shadow-lg shadow-[#001123] dark:text-[#E0E0E0]"
                                         >
                                         {courseMetaData?.price === 0

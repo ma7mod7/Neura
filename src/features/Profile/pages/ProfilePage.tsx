@@ -170,27 +170,33 @@ const ProfilePage = () => {
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-                                    {data?.items.map((course: any) => (
-                                        <CourseCard key={course.keyId} course={{
-                                            keyId: course.keyId,
-                                            imageUrl: course.imageUrl,
-                                            tags: course.tags || [],
-                                            title: course.title,
-                                            instructorName: course.instructorName,
-                                            rating: course.rating,
-                                            hours: course.hours,
-                                            totalReviews: course.totalReviews,
-                                            numberOfLessons: course.numberOfLessons,
-                                            price: course.price,
-                                            isEnrolled: course.isEnrolled,
-                                            isBookmarked: course.isBookmarked,
-                                            isEnrollmentOpen: course.isEnrollmentOpen,
-                                            progressPercentage: course.progressPercentage,
-                                        }} />
-                                    ))}
-                                </div>
-
+                              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+                                {data?.items.map((course: any) => {
+                                    console.log(course.title, 'isEnrolled:', course.isEnrolled);
+                                    return (
+                                        <CourseCard 
+                                            key={course.keyId} 
+                                            showGoToCourse={true}
+                                            course={{
+                                                keyId: course.keyId,
+                                                imageUrl: course.imageUrl,
+                                                tags: course.tags || [],
+                                                title: course.title,
+                                                instructorName: course.instructorName,
+                                                rating: course.rating,
+                                                hours: course.hours,
+                                                totalReviews: course.totalReviews,
+                                                numberOfLessons: course.numberOfLessons,
+                                                price: course.price,
+                                                isEnrolled: activeTab === 'Bookmarked' ? course.isEnrolled : true,
+                                                isBookmarked: course.isBookmarked,
+                                                isEnrollmentOpen: course.isEnrollmentOpen,
+                                                progressPercentage: course.progressPercentage,
+                                            }} 
+                                        />
+                                    );
+                                })}
+                            </div>
                                 {data && data.totalPages > 1 && (
                                     <div className="flex justify-center items-center gap-4 mt-8">
                                         <Pagination
