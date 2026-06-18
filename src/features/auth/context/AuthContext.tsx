@@ -83,16 +83,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
-    const refreshUser = async () => {
-        const storedRefreshToken = localStorage.getItem('refreshToken');
-        if (!storedRefreshToken) return;
-        try {
-            const response = await axios.post('/Auth/refresh', { refreshToken: storedRefreshToken });
-            login(response.data);
-        } catch (e) {
-            console.error('Failed to refresh token', e);
-        }
-    };
+const refreshUser = async () => {
+    const storedRefreshToken = localStorage.getItem('refreshToken');
+    const storedToken = localStorage.getItem('token');
+    if (!storedRefreshToken || !storedToken) return;
+    
+    try {
+        // Use full URL
+        const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', { 
+            token: storedToken,
+            refreshToken: storedRefreshToken 
+        });
+        login(response.data);
+    } catch (e) {
+        console.error('Failed to refresh token', e);
+    }
+};
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
