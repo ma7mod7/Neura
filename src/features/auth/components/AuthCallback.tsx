@@ -48,7 +48,7 @@ const AuthCallback = () => {
                 try {
                     // DON'T call /Auth/refresh — decode the token we already have
                     const decoded = decodeToken(token);
-                    
+                    console.log('Decoded JWT:', decoded);
                     if (!decoded) {
                         navigate('/auth/login', { replace: true });
                         return;
