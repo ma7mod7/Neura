@@ -115,17 +115,21 @@ export default function VideoPlayer({
       {/* ====== Video ====== */}
       {videoUrl && (
         <video
-          ref={videoRef}
-          src={videoUrl}
-          className="w-full h-full object-contain cursor-pointer"
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => {
-            setIsPlaying(false);
-            onNext();
-          }}
-          onClick={togglePlay}
+            ref={videoRef}
+            src={videoUrl}
+            className="w-full h-full object-contain cursor-pointer"
+            onTimeUpdate={handleTimeUpdate}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => {
+                setIsPlaying(false);
+                onNext();
+            }}
+            onClick={togglePlay}
+            onContextMenu={(e) => e.preventDefault()}
+            controlsList="nodownload noremoteplayback"
+            disablePictureInPicture
+            playsInline
         />
       )}
 

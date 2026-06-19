@@ -71,11 +71,11 @@ const CourseCard: React.FC<{ course: CourseListItem; showGoToCourse?: boolean }>
         </button>
 
         {/* Progress bar overlay for enrolled courses */}
-        {isEnrolled && course.progressPercentage !== undefined && (
+       {isEnrolled && course.progressPercentage != null && (
           <div className="absolute bottom-3 left-3 right-3 z-10">
             <div className="flex items-center justify-between mb-0.5">
               <span className="text-[10px] font-semibold text-white drop-shadow">
-                {course.progressPercentage}% complete
+                {Math.round(course.progressPercentage)}% complete
               </span>
             </div>
             <div className="w-full h-1.5 bg-black/30 rounded-full overflow-hidden backdrop-blur-sm">
@@ -118,12 +118,12 @@ const CourseCard: React.FC<{ course: CourseListItem; showGoToCourse?: boolean }>
           <div className="flex items-center gap-1 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
             <Star size={14} className="fill-yellow-400 text-yellow-400" />
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-              {course.rating}
+              {Number(course.rating || 0).toFixed(2)}
             </span>
           </div>
           <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
             <Clock size={14} />
-            <span className="text-[10px]">{course.hours}</span>
+            <span className="text-[10px]">{Number(course.hours || 0).toFixed(2)}h</span>
           </div>
           <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-[#2a2a2e] rounded-lg p-1">
             <BookOpen size={14} />
