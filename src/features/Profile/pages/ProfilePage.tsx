@@ -8,7 +8,6 @@ import {
     Bookmark,
 } from 'lucide-react';
 import NavBar from '../../../shared/components/NavBar';
-import CourseCard from '../../../shared/components/CourseCard';
 import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
 import Pagination from '../../dashboard/components/Pagination';
