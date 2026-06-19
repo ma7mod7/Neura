@@ -31,6 +31,7 @@ export default function CommunityApp() {
     const [initialized, setInitialized] = useState(false);
     const [showCreateChannel, setShowCreateChannel] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     // const activeSpace = spaces.find(s => s.id === activeSpaceId);
 
@@ -38,7 +39,8 @@ export default function CommunityApp() {
         setUnreadCounts(prev => ({ ...prev, [channelId]: (prev[channelId] ?? 0) + 1 }));
     };
 
-    const handleSetActiveChannel = (id: string) => {
+   const handleSetActiveChannel = (id: string) => {
+        setIsMobileSidebarOpen(false);
         if (activeChannelId && activeChannelId !== id) {
             const cached = JSON.parse(localStorage.getItem(`msg_cache_${activeChannelId}`) ?? 'null');
             const realMessages = (cached?.messages ?? []).filter((m: any) => m.id < 100_000_000);
@@ -279,7 +281,14 @@ export default function CommunityApp() {
     }
 
     return (
-        <div className="flex h-screen bg-white dark:bg-[#0e0e10] font-sans overflow-hidden">
+       <div className="flex h-screen bg-white dark:bg-[#0e0e10] font-sans overflow-hidden relative">
+            {isMobileSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                />
+            )}
+            <div className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 md:static md:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <CommunitySidebar
                 spaces={spaces}
                 activeSpaceId={activeSpaceId}
@@ -301,6 +310,7 @@ export default function CommunityApp() {
                 currentUserAvatar={currentUserAvatar}
                 onOpenSettings={() => setShowSettings(true)}
             />
+            </div>
 
             <ChatArea
                 channel={activeChannel}
@@ -308,6 +318,7 @@ export default function CommunityApp() {
                 currentUserName={currentUserName}
                 currentUserAvatar={currentUserAvatar}
                 onToggleMembers={() => setShowMembers(v => !v)}
+                onToggleSidebar={() => setIsMobileSidebarOpen(v => !v)}
                 showMembers={showMembers}
                 onOpenSettings={() => setShowSettings(true)}
                 members={members}
@@ -319,12 +330,20 @@ export default function CommunityApp() {
             />
 
             {showMembers && (
-                <MembersList
-                    members={members}
-                    loading={membersLoading}
-                    currentUserId={currentUserId}
-                    currentUserAvatar={currentUserAvatar}
-                />
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                        onClick={() => setShowMembers(false)}
+                    />
+                    <div className="fixed inset-y-0 right-0 z-40 lg:static lg:z-auto">
+                        <MembersList
+                            members={members}
+                            loading={membersLoading}
+                            currentUserId={currentUserId}
+                            currentUserAvatar={currentUserAvatar}
+                        />
+                    </div>
+                </>
             )}
             {showCreateChannel && (
                 <CreateChannelModal

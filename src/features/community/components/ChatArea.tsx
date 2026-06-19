@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Hash, Search, Users, Smile, Paperclip, Send, Plus, X, FileText } from 'lucide-react';
+import { Hash, Search, Users, Smile,  Send,  X, FileText, Menu } from 'lucide-react';
 import type { CommunityChannel, MessageDto, CourseMemberDto } from '../types/communityTypes';
 import { useMessages } from '../hooks/useMessages';
 import type { ConnectionState } from '../hooks/useSignalR';
@@ -12,6 +12,7 @@ interface ChatAreaProps {
     currentUserId: string;
     currentUserName: string;
     onToggleMembers: () => void;
+    onToggleSidebar?: () => void;
     onOpenSettings?: () => void;
     showMembers: boolean;
     members?: CourseMemberDto[];
@@ -28,6 +29,7 @@ export default function ChatArea({
     channel,
     currentUserId,
     onToggleMembers,
+    onToggleSidebar,
     currentUserAvatar,
     showMembers,
     onOpenSettings,
@@ -45,7 +47,6 @@ export default function ChatArea({
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const topSentinelRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const channelId = channel ? Number(channel.id) : null;
     const [firstUnreadId, setFirstUnreadId] = useState<number | null>(null);
@@ -235,30 +236,26 @@ useEffect(() => {
         }
     };
 
-    const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setAttachedFile(file);
-        e.target.value = '';
-    };
-
     const isConnected = connectionState === 'connected';
     const canSend = !!channel && isConnected && (messageText.trim().length > 0 || !!attachedFile);
 
     return (
         <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#1a1a1a]">
             <div className="h-14 flex flex-shrink-0 items-center justify-between px-4 border-b border-slate-200 dark:border-[#2a2a2e] shadow-sm">
-                <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-                    <Hash size={20} className="text-slate-400" />
-                    <h3 className="font-bold">{channel?.name ?? t('community.selectChannel')}</h3>
+               <div className="flex items-center gap-2 text-slate-900 dark:text-white min-w-0">
+                    <button onClick={onToggleSidebar} className="md:hidden p-1.5 -ml-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-md hover:bg-slate-100 dark:hover:bg-[#2a2a2e] flex-shrink-0">
+                        <Menu size={20} />
+                    </button>
+                    <Hash size={20} className="text-slate-400 flex-shrink-0" />
+                    <h3 className="font-bold truncate">{channel?.name ?? t('community.selectChannel')}</h3>
                     {channel?.topic && (
                         <>
-                            <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
-                            <span className="text-sm text-slate-400 truncate max-w-xs">{channel.topic}</span>
+                            <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1 hidden sm:block flex-shrink-0" />
+                            <span className="text-sm text-slate-400 truncate max-w-[100px] sm:max-w-xs hidden sm:block">{channel.topic}</span>
                         </>
                     )}
                 </div>
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5 sm:gap-3 text-slate-500 dark:text-slate-400 flex-shrink-0">
                     <div className="flex items-center gap-1.5">
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : connectionState === 'reconnecting' ? 'bg-yellow-500 animate-pulse' : 'bg-slate-400'}`} />
                         <span className="text-xs hidden md:block text-slate-400">
@@ -277,7 +274,7 @@ useEffect(() => {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-1 custom-scrollbar">
                 <div ref={topSentinelRef} className="h-1" />
                 {loadingMore && (
                     <div className="flex justify-center py-2">
@@ -360,13 +357,8 @@ useEffect(() => {
                 </div>
             )}
 
-            <div className={`p-4 flex-shrink-0 ${(replyTo || attachedFile) ? 'pt-0' : ''}`}>
-                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
-                <div className="bg-slate-100 dark:bg-[#2a2a2e] rounded-xl flex items-center px-4 py-2 border border-transparent focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all shadow-sm">
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                        <Plus size={20} className="bg-slate-300 dark:bg-[#3a3a3e] rounded-full p-0.5" />
-                    </button>
+            <div className={`p-2 sm:p-4 flex-shrink-0 ${(replyTo || attachedFile) ? 'pt-0' : ''}`}>
+                 <div className="bg-slate-100 dark:bg-[#2a2a2e] rounded-xl flex items-center px-4 py-2 border border-transparent focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all shadow-sm">
                     <input type="text" value={messageText}
                         onChange={e => setMessageText(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
@@ -379,7 +371,7 @@ useEffect(() => {
                                 <Smile size={20} />
                             </button>
                             {showEmoji && (
-                                <div className="absolute bottom-12 right-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-20 w-56">
+                                <div className="absolute bottom-12 right-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-20 w-56 max-w-[80vw]">
                                     {EMOJIS.map(emoji => (
                                         <button key={emoji} type="button"
                                             onClick={() => { setMessageText(t => t + emoji); setShowEmoji(false); }}
@@ -390,10 +382,6 @@ useEffect(() => {
                                 </div>
                             )}
                         </div>
-                        <button type="button" onClick={() => fileInputRef.current?.click()}
-                            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                            <Paperclip size={20} />
-                        </button>
                         {(messageText.trim() || attachedFile) && (
                             <button type="button" onClick={handleSend} disabled={!canSend}
                                 className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
