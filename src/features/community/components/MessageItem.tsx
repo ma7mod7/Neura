@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Smile, MoreVertical, Reply, Edit2, Trash2 } from "lucide-react";
+import { MoreVertical, Reply, Edit2, Trash2 } from "lucide-react";
 import type { MessageDto } from "../types/communityTypes";
 import { useTranslation } from 'react-i18next';
 
@@ -28,7 +28,7 @@ export default function MessageItem({
   const [showActions, setShowActions] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-
+  console.log(showReactionPicker)
   const handleEditSubmit = () => {
     if (
       !editContent.trim() ||
@@ -139,52 +139,6 @@ export default function MessageItem({
       {/* Hover Actions */}
       {showActions && !isEditing && (
         <div className="absolute right-2 -top-3 flex items-center bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-md z-10">
-          <div className="relative">
-            <button
-              title={t('community.addReaction')}
-              onClick={() => setShowReactionPicker((v) => !v)}
-              className="p-1.5 text-slate-400 hover:text-yellow-500 hover:bg-slate-100 dark:hover:bg-[#3a3a3e] transition-colors"
-            >
-              <Smile size={15} />
-            </button>
-            {showReactionPicker && (
-              <div
-                className="absolute bottom-8 left-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-30 w-44"
-                onMouseLeave={(e) => e.stopPropagation()}
-              >
-                {[
-                  "😀",
-                  "😂",
-                  "❤️",
-                  "👍",
-                  "🎉",
-                  "🔥",
-                  "😢",
-                  "🙏",
-                  "😎",
-                  "👏",
-                ].map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => {
-                      console.log(
-                        "Reacted with",
-                        emoji,
-                        "on message",
-                        message.id,
-                      );
-                      // TODO: call reaction API
-                      setShowReactionPicker(false);
-                      setShowActions(false);
-                    }}
-                    className="text-xl hover:bg-slate-100 dark:hover:bg-[#3a3a3e] rounded p-1 flex items-center justify-center"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
           <button
             title={t('community.reply')}
             onClick={() => onReply?.(message)}

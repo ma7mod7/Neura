@@ -44,7 +44,7 @@ export default function CommunitySidebar({
     const voiceChannels = channels.filter(c => c.type === 'voice');
 
     return (
-        <div className="flex h-full flex-shrink-0 z-20 shadow-lg">
+        <div className="flex h-full flex-shrink-0 z-20 shadow-2xl">
 
             {/* Spaces column  */}
             <div className="w-[72px] flex-shrink-0 bg-slate-100 dark:bg-[#161619] border-r border-slate-200 dark:border-[#2a2a2e] flex flex-col items-center py-4 gap-3 overflow-y-auto custom-scrollbar">
@@ -68,13 +68,6 @@ export default function CommunitySidebar({
 
                 <div className="w-8 h-[2px] bg-slate-200 dark:bg-[#2a2a2e] rounded-full my-1" />
 
-                <button
-                    title={t('community.browseAll')}
-                    className="w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-white dark:bg-[#2a2a2e] text-green-600 flex items-center justify-center transition-all duration-300 shadow-sm border border-slate-200 dark:border-transparent hover:bg-green-500 hover:text-white dark:hover:bg-green-500"
-                >
-                    <Plus size={24} />
-                </button>
-
                 <div className="mt-auto pt-2">
                     <Link
                         to="/announcements"
@@ -87,7 +80,7 @@ export default function CommunitySidebar({
             </div>
 
             {/* Channels column */}
-            <div className="w-64 flex-shrink-0 bg-slate-50 dark:bg-[#1c1c1f] border-r border-slate-200 dark:border-[#2a2a2e] flex flex-col">
+            <div className="w-[80vw] max-w-[280px] sm:w-64 flex-shrink-0 bg-slate-50 dark:bg-[#1c1c1f] border-r border-slate-200 dark:border-[#2a2a2e] flex flex-col h-full">
 
                 {/* Space header */}
                 <div className="h-14 flex items-center justify-between px-4 border-b border-slate-200 dark:border-[#2a2a2e] shadow-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-[#2a2a2e] transition-colors">

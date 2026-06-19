@@ -80,7 +80,7 @@
         }
 
         return (
-            <div className="w-60 flex-shrink-0 bg-slate-50 dark:bg-[#1c1c1f] border-l border-slate-200 dark:border-[#2a2a2e] flex flex-col z-10">
+            <div className="w-[75vw] max-w-[240px] sm:w-60 h-full flex-shrink-0 bg-slate-50 dark:bg-[#1c1c1f] border-l border-slate-200 dark:border-[#2a2a2e] flex flex-col z-10 shadow-2xl lg:shadow-none">
                 <div className="p-3 border-b border-slate-200 dark:border-[#2a2a2e]">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

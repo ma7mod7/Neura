@@ -33,9 +33,9 @@ export default function UserSettingsModal({ onClose, currentUserName, currentUse
 
     return (
         <div className="fixed inset-0 z-50 flex bg-black/60 backdrop-blur-sm" onClick={onClose}>
-            <div className="flex w-full h-full" onClick={e => e.stopPropagation()}>
+           <div className="flex flex-col md:flex-row w-full h-full overflow-y-auto" onClick={e => e.stopPropagation()}>
                 {/* Tabs sidebar */}
-                <div className="w-60 bg-slate-100 dark:bg-[#1c1c1f] flex flex-col py-12 px-3 ml-auto">
+                <div className="w-full md:w-60 bg-slate-100 dark:bg-[#1c1c1f] flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-3 md:py-12 px-3 md:ml-auto">
                     <p className="text-xs font-bold uppercase text-slate-400 px-3 mb-2">{t('community.userSettings')}</p>
                     {TABS.map(tab => {
                         const Icon = tab.icon;
@@ -61,10 +61,10 @@ export default function UserSettingsModal({ onClose, currentUserName, currentUse
                 </div>
 
                 {/* Content panel */}
-                <div className="flex-1 max-w-2xl bg-white dark:bg-[#2a2a2e] py-12 px-10 relative">
+                <div className="flex-1 max-w-2xl bg-white dark:bg-[#2a2a2e] py-6 px-5 md:py-12 md:px-10 relative">
                     <button
                         onClick={onClose}
-                        className="absolute top-12 right-10 text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-full p-1.5"
+                        className="absolute top-4 right-4 md:top-12 md:right-10 text-slate-400 hover:text-slate-700 dark:hover:text-white border border-slate-300 dark:border-slate-600 rounded-full p-1.5"
                     >
                         <X size={18} />
                     </button>
