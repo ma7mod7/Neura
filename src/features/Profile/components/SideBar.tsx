@@ -55,7 +55,7 @@ const SideBar = () => {
                     <div className='flex mb-2'>
                         <div className="relative mb-3">
                             <img
-                                src={user?.imageUrl}
+                                src={user?.imageUrl || '/default-avatar.png'}
                                 alt="Profile"
                                 className="w-20 h-20 me-2 rounded-full border-2 border-[#0061EF] object-cover shadow-sm"
                             />
