@@ -81,6 +81,7 @@ const formatDuration = (durationParam: string | number | null | undefined, t: TF
 
 const CourseDetailsPage = () => {
     const navigate = useNavigate();
+    // const location = useLocation();
     const { t } = useTranslation();
     const [openSection, setOpenSection] = useState<number | null>(0);
     const { courseId } = useParams();
@@ -187,7 +188,7 @@ const CourseDetailsPage = () => {
 
                 <div className="relative z-20 max-w-[1450px] mx-auto px-4 md:px-8 py-12 lg:py-16">
                     <button
-                        onClick={() => navigate(-1)} className="flex p-2 items-center gap-2 text-slate-300 hover:text-white mb-8 transition-colors rounded-xl hover:bg-blue-600">
+                        onClick={() => navigate('/courses')} className="flex p-2 items-center gap-2 text-slate-300 hover:text-white mb-8 transition-colors rounded-xl hover:bg-blue-600">
                         <ArrowLeft size={20} className="rtl:rotate-180" />
                         <span className="font-medium">{t('courseDetails.backToCourses')}</span>
                     </button>

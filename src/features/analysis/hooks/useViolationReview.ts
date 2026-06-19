@@ -25,7 +25,8 @@ export function useResolveViolation(examId: string) {
 export function useFlagViolation(examId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (attemptId: number | string) => flagViolation(examId, attemptId),
+    mutationFn: ({ attemptId, reason }: { attemptId: number | string; reason: string }) =>
+      flagViolation(examId, attemptId, reason),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['examViolations', examId] }),
   });
 }

@@ -46,3 +46,11 @@ export const getCourseProgress = async (keyId: string) => {
     const res = await axiosInstance.get(`/api/CourseProgress/${keyId}`);
     return res.data;
 };
+export const uncompleteLesson = async (lessonId: string) => {
+    try {
+        const res = await axiosInstance.delete(`/api/LessonProgres/lessons/${lessonId}/complete`);
+        return res.data;
+    } catch {
+        return null;
+    }
+};

@@ -7,7 +7,8 @@ import {
     completeCourse,
     completeLesson,
     getNextLesson,
-    getCourseProgress
+    getCourseProgress,
+    uncompleteLesson
 } from './coursePlayerApi';
 
 // ================= Course =================
@@ -86,3 +87,13 @@ export const useGetCourseProgress = (keyId: string | null) =>
         enabled: !!keyId,
         retry: false,
     });
+
+export const useUncompleteLesson = (courseId: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (lessonId: string) => uncompleteLesson(lessonId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courseContent', courseId] });
+        },
+    });
+};

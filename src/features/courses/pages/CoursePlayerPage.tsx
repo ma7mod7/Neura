@@ -18,6 +18,7 @@ import {
     useGetLessonArticle,
     useCompleteLesson,
     useGetNextLesson,
+    useUncompleteLesson,
 } from '../api/useCoursePlayer';
 
 // ================= Types =================
@@ -57,6 +58,7 @@ export default function CoursePlayerPage() {
         activeLessonType === 'article' ? activeLessonId : null
     );
     const { mutate: markLessonComplete } = useCompleteLesson(courseId!);
+    const { mutate: unmarkLessonComplete } = useUncompleteLesson(courseId!); 
     const { data: nextLessonData, isLoading: isNextLessonLoading } = useGetNextLesson(courseId!);
 
     // ================= Flat lessons for prev/next navigation =================
@@ -125,47 +127,55 @@ export default function CoursePlayerPage() {
     const currentFlatIndex = flatLessons.findIndex(l => l.id === activeLessonId);
 
     // ================= Lesson click handler =================
-    const handleLessonSelect = useCallback((lesson: { id: string | number; title: string; type?: string | number | undefined }) => {
-        setActiveLessonId(String(lesson.id));
-        setActiveLessonTitle(lesson.title);
-        setActiveLessonType(getLessonType(lesson.type));
-        if (window.innerWidth < 768) {
-            setIsSidebarOpen(false);
+const handleLessonSelect = useCallback((lesson: { id: string | number; title: string; type?: string | number | undefined }) => {
+    setActiveLessonId(String(lesson.id));
+    setActiveLessonTitle(lesson.title);
+    setActiveLessonType(getLessonType(lesson.type));
+    if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+    }
+}, []);
+
+
+// ================= Complete/Uncomplete =================
+const handleLessonComplete = useCallback((lessonId: string, completed: boolean) => {
+    setCompletedLessons(prev => {
+        const next = new Set(prev);
+        if (completed) {
+            next.add(lessonId);
+        } else {
+            next.delete(lessonId);
         }
-    }, []);
+        return next;
+    });
 
-    const handlePrev = useCallback(() => {
-        if (currentFlatIndex <= 0) return;
-        handleLessonSelect(flatLessons[currentFlatIndex - 1]);
-    }, [currentFlatIndex, flatLessons, handleLessonSelect]);
+    if (completed) {
+        markLessonComplete(lessonId);
+    } else {
+        unmarkLessonComplete(lessonId);
+    }
+}, [markLessonComplete, unmarkLessonComplete]);
 
-    const handleNext = useCallback(() => {
-        if (currentFlatIndex >= flatLessons.length - 1) return;
-        if (activeLessonId) {
-            setCompletedLessons(prev => new Set([...prev, activeLessonId]));
-            markLessonComplete(activeLessonId);
-        }
-        handleLessonSelect(flatLessons[currentFlatIndex + 1]);
-    }, [currentFlatIndex, flatLessons, activeLessonId, handleLessonSelect, markLessonComplete]);
+const handlePrev = useCallback(() => {
+    if (currentFlatIndex <= 0) return;
+    handleLessonSelect(flatLessons[currentFlatIndex - 1]);
+}, [currentFlatIndex, flatLessons, handleLessonSelect]);
 
-    const handleLessonComplete = useCallback((lessonId: string, completed: boolean) => {
-        setCompletedLessons(prev => {
-            const next = new Set(prev);
-            if (completed) {
-                next.add(lessonId);
-            } else {
-                next.delete(lessonId);
-            }
-            return next;
-        });
-        if (completed) markLessonComplete(lessonId);
-    }, [markLessonComplete]);
+const handleNext = useCallback(() => {
+    if (currentFlatIndex >= flatLessons.length - 1) return;
+    if (activeLessonId) {
+        setCompletedLessons(prev => new Set([...prev, activeLessonId]));
+        markLessonComplete(activeLessonId);
+    }
+    handleLessonSelect(flatLessons[currentFlatIndex + 1]);
+}, [currentFlatIndex, flatLessons, activeLessonId, handleLessonSelect, markLessonComplete]);
 
-    const isActiveLessonCompleted = activeLessonId ? completedLessons.has(activeLessonId) : false;
-    const handleMarkCurrentComplete = useCallback(() => {
-        if (!activeLessonId) return;
-        handleLessonComplete(activeLessonId, !isActiveLessonCompleted);
-    }, [activeLessonId, isActiveLessonCompleted, handleLessonComplete]);
+const isActiveLessonCompleted = activeLessonId ? completedLessons.has(activeLessonId) : false;
+
+const handleMarkCurrentComplete = useCallback(() => {
+    if (!activeLessonId) return;
+    handleLessonComplete(activeLessonId, !isActiveLessonCompleted);
+}, [activeLessonId, isActiveLessonCompleted, handleLessonComplete]);
 
     const totalLessons = flatLessons.length;
     const completedCount = completedLessons.size;
@@ -251,7 +261,7 @@ export default function CoursePlayerPage() {
                                         }`}
                                 >
                                     {isActiveLessonCompleted
-                                        ? <><CheckSquare size={15} /><span>{t('courses.completed')}</span></>
+                                        ? <><CheckSquare size={15} /><span>{t('courses.markComplete')}</span></>
                                         : <><Square size={15} /><span>{t('courses.markComplete')}</span></>
                                     }
                                 </button>
