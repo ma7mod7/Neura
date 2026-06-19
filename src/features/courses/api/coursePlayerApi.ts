@@ -41,3 +41,8 @@ export const getNextLesson = async (courseId: string) => {
     const res = await axiosInstance.get(`/api/LessonProgres/courses/${courseId}/next-lesson`);
     return res.data;
 };
+
+export const getCourseProgress = async (keyId: string) => {
+    const res = await axiosInstance.get(`/api/CourseProgress/${keyId}`);
+    return res.data;
+};

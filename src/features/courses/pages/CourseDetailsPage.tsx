@@ -211,7 +211,9 @@ const CourseDetailsPage = () => {
 
                             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-300">
                                 <div className="flex items-center gap-1 text-yellow-400">
-                                    <span className="font-bold text-lg">{courseMetaData?.rating || "0.0"}</span>
+                                    <span className="font-bold text-lg">
+                                        {courseMetaData?.rating ? Number(courseMetaData.rating).toFixed(2) : "0.00"}
+                                    </span>
                                     <div className="flex">
                                         {[...Array(5)].map((_, i) => (
                                             <Star key={i} size={16} fill={i < Math.round(courseMetaData?.rating || 0) ? "currentColor" : "none"} />

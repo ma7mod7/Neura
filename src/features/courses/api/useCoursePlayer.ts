@@ -7,6 +7,7 @@ import {
     completeCourse,
     completeLesson,
     getNextLesson,
+    getCourseProgress
 } from './coursePlayerApi';
 
 // ================= Course =================
@@ -77,3 +78,11 @@ export const useCompleteLesson = (courseId: string) => {
         },
     });
 };
+
+export const useGetCourseProgress = (keyId: string | null) =>
+    useQuery({
+        queryKey: ['courseProgress', keyId],
+        queryFn: () => getCourseProgress(keyId!),
+        enabled: !!keyId,
+        retry: false,
+    });

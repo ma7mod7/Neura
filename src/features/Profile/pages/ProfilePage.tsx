@@ -8,13 +8,13 @@ import {
     Bookmark,
 } from 'lucide-react';
 import NavBar from '../../../shared/components/NavBar';
-import CourseCard from '../../../shared/components/CourseCard';
 import Footer from '../../../shared/components/footerauth';
 import SideBar from '../components/SideBar';
 import Pagination from '../../dashboard/components/Pagination';
 import { useTranslation } from 'react-i18next';
 import { useProfileCourses } from '../hooks/useProfileCourses';
 import { useEnrollmentDashboard } from '../hooks/useEnrollmentDashboard';
+import CourseCardWithProgress from '../../courses/components/CourseCardWithProgress';
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) => {
     const colors: Record<string, { border: string, text: string, iconBg: string, bgColor: string }> = {
@@ -173,29 +173,16 @@ const ProfilePage = () => {
                               <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
                                 {data?.items.map((course: any) => {
                                     console.log(course.title, 'isEnrolled:', course.isEnrolled);
+                                    console.log(course.title, 'progress:', course.progressPercentage);
                                     return (
-                                        <CourseCard 
-                                            key={course.keyId} 
-                                            showGoToCourse={true}
-                                            course={{
-                                                keyId: course.keyId,
-                                                imageUrl: course.imageUrl,
-                                                tags: course.tags || [],
-                                                title: course.title,
-                                                instructorName: course.instructorName,
-                                                rating: course.rating,
-                                                hours: course.hours,
-                                                totalReviews: course.totalReviews,
-                                                numberOfLessons: course.numberOfLessons,
-                                                price: course.price,
-                                                isEnrolled: activeTab === 'Bookmarked' ? course.isEnrolled : true,
-                                                isBookmarked: course.isBookmarked,
-                                                isEnrollmentOpen: course.isEnrollmentOpen,
-                                                progressPercentage: course.progressPercentage,
-                                            }} 
+                                        <CourseCardWithProgress
+                                            key={course.keyId}
+                                            course={course}
+                                            showGoToCourse={activeTab !== 'Bookmarked'}
                                         />
                                     );
                                 })}
+                                
                             </div>
                                 {data && data.totalPages > 1 && (
                                     <div className="flex justify-center items-center gap-4 mt-8">
@@ -212,6 +199,7 @@ const ProfilePage = () => {
                                     </div>
                                 )}
                             </>
+                            
                         )}
                     </div>
                 </div>
