@@ -192,6 +192,7 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
   const violations = Array.isArray(violationsRaw)
     ? violationsRaw
     : ((violationsRaw as any)?.violations ?? []);
+    console.log('violations:', violations);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -223,6 +224,8 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
   const publishMut = usePublishGrades(selectedExamId);
   const storageKey = `grades_published_${selectedExamId}`;
   const wasAlreadyPublished = localStorage.getItem(storageKey) === "true";
+  // const [showImage, setShowImage] = useState(false); 
+  const [openImageId, setOpenImageId] = useState<string | number | null>(null);
   // const alreadyPublished = publishMut.isSuccess &&
   // (publishMut.data as any)?.alreadyPublished === true;
 
@@ -404,53 +407,75 @@ export const InstructorAnalysis: React.FC<Props> = ({ userName }) => {
               </div>
             ) : (
               <div className="space-y-3">
-                {violations.map((v: any) => (
-                  <div
-                    key={v.attemptId ?? v.id}
-                    className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-slate-100 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A]"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-800 dark:text-white text-sm truncate">
-                        {v.studentName ??
-                          v.userName ??
-                          `Attempt #${v.attemptId}`}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                        <span className="flex items-center gap-1 text-red-500">
-                          <AlertTriangle size={11} />
-                          {v.violationCount ?? v.totalViolations ?? 1}{" "}
-                          {t("analysis.violations")}
-                        </span>
-                        <span>
-                          {v.submittedAt
-                            ? new Date(v.submittedAt).toLocaleDateString()
-                            : ""}
-                        </span>
+                  {violations.map((v: any) => {
+                    const attemptId = v.examAttemptId;
+                    
+
+                    return (
+                      <div key={v.id} className="rounded-2xl border border-slate-100 dark:border-[#2a2a2e] bg-white dark:bg-[#1A1A1A] overflow-hidden">
+                        
+                        {/* Main row */}
+                        <div className="flex items-center justify-between gap-4 p-4">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-800 dark:text-white text-sm truncate">
+                              {v.studentName ?? `Attempt #${attemptId}`}
+                            </p>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                              <span className="flex items-center gap-1 text-red-500">
+                                <AlertTriangle size={11} />
+                                {v.severity} — {v.reason}
+                              </span>
+                              <span>{v.detectedAt ? new Date(v.detectedAt).toLocaleDateString() : ''}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {/* Toggle image button */}
+                            {v.frameImagePath && (
+                              <button
+                                onClick={() => setOpenImageId(prev => (prev === v.id ? null : v.id))}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-[#3a3a3e] text-slate-500 dark:text-slate-400 text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#2a2a2e] transition-colors"
+                              >
+                                {openImageId === v.id ? 'Hide Image' : 'Show Image'}
+                              </button>
+                            )}
+                            {attemptId != null ? (
+                              <>
+                                <button
+                                  onClick={() => resolveMut.mutate({ attemptId, newScore: v.score ?? 0, notes: 'Reviewed and approved by instructor.' })}
+                                  disabled={resolveMut.isPending}
+                                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
+                                >
+                                  <CheckCircle2 size={13} /> Resolve (Pass)
+                                </button>
+                                <button
+                                  onClick={() => flagMut.mutate({ attemptId, reason: v.reason ?? 'Cheating violation confirmed' })}
+                                  disabled={flagMut.isPending}
+                                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-red-200 dark:border-red-900/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-xs font-bold transition-colors disabled:opacity-60"
+                                >
+                                  <XCircle size={13} /> Flag (Fail)
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic px-2">No linked attempt</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Dropdown image */}
+                       {openImageId === v.id && v.frameImagePath && (
+                          <div className="px-4 pb-4 border-t border-slate-100 dark:border-[#2a2a2e] pt-3">
+                            <img
+                              src={v.frameImagePath}
+                              alt="Violation screenshot"
+                              className="w-full max-h-64 object-contain rounded-xl border border-slate-200 dark:border-[#2a2a2e]"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() =>
-                          resolveMut.mutate({
-                            attemptId: v.attemptId ?? v.id,
-                            newScore: v.score ?? 0,
-                          })
-                        }
-                        disabled={resolveMut.isPending}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
-                      >
-                        <CheckCircle2 size={13} /> {t("analysis.resolvePass")}
-                      </button>
-                      <button
-                        onClick={() => flagMut.mutate(v.attemptId ?? v.id)}
-                        disabled={flagMut.isPending}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-red-200 dark:border-red-900/40 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-xs font-bold transition-colors disabled:opacity-60"
-                      >
-                        <XCircle size={13} /> {t("analysis.flagFail")}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
               </div>
             )}
           </GlassCard>
