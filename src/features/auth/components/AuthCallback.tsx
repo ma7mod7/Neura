@@ -75,7 +75,7 @@ const AuthCallback = () => {
                             || (decoded.email as string)?.split('@')[0]
                             || 'User',
                         discordHandle: '',
-                        imageUrl: (decoded.picture as string) || '',
+                        imageUrl: (decoded.ImageUrl as string) || '',
                     };
 
                     localStorage.setItem('token', token);
