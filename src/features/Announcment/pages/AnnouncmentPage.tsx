@@ -10,8 +10,12 @@ import { useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useGetAllPosts, useCreatePost } from "../api";
 import type { AnnouncementPost } from "../api/types";
+import { useAuth } from "../../auth/hooks/useAuth";
+import { hasAdminRole, hasInstructorRole } from "../../../utils/jwt";
 
 const AnnouncementsPage = () => {
+  const { token } = useAuth();
+  const canCreatePost = !!token && (hasAdminRole(token) || hasInstructorRole(token));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postTitle, setPostTitle]     = useState("");
@@ -80,13 +84,15 @@ const AnnouncementsPage = () => {
         <div className="lg:col-span-12">
           <div className='flex justify-between items-center'>
             <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Announcements</h1>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className='bg-blue-600 text-white flex gap-3 p-2 rounded-xl hover:bg-blue-500 cursor-pointer transition-colors'
-            >
-              <p className='font-semibold'>Add Post</p>
-              <span><Plus className='text-white' /></span>
-            </button>
+            {canCreatePost && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className='bg-blue-600 text-white flex gap-3 p-2 rounded-xl hover:bg-blue-500 cursor-pointer transition-colors'
+              >
+                <p className='font-semibold'>Add Post</p>
+                <span><Plus className='text-white' /></span>
+              </button>
+            )}
           </div>
 
           {isLoading && (

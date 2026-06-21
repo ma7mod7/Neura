@@ -56,6 +56,8 @@ export const getViolationDetail = async (examId: number | string, violationId: n
 //   return res.data;
 // };
 
+const FIX_BASE_URL = 'https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net';
+
 export const resolveViolation = async (
   examId: number | string,
   attemptId: number | string,
@@ -63,12 +65,11 @@ export const resolveViolation = async (
   notes: string | null = null
 ) => {
   const res = await axiosInstance.put(
-    `/api/exams/${examId}/analytics/attempts/${attemptId}/resolve-violation`,
+    `${FIX_BASE_URL}/api/exams/${examId}/analytics/attempts/${attemptId}/resolve-violation`,
     { newScore, notes }
   );
   return res.data;
 };
-
 // FLAG violation = reject (mark as cheating/failed)
 // export const flagViolation = async (examId: number | string, attemptId: number | string) => {
 //   const res = await axiosInstance.put(
@@ -82,7 +83,7 @@ export const flagViolation = async (
   reason: string | null = null
 ) => {
   const res = await axiosInstance.put(
-    `/api/exams/${examId}/analytics/attempts/${attemptId}/flag-violation`,
+    `${FIX_BASE_URL}/api/exams/${examId}/analytics/attempts/${attemptId}/flag-violation`,
     { reason }
   );
   return res.data;
