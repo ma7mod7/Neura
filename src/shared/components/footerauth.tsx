@@ -1,4 +1,4 @@
-import { FacebookIcon, Github, Linkedin } from 'lucide-react'
+// import { FacebookIcon, Github, Linkedin } from 'lucide-react'
 import Logo from '../../assets/logo.png'
 import { useTranslation } from 'react-i18next';
 const Footer = () => {
@@ -21,13 +21,13 @@ const Footer = () => {
                             </div>
                             <span className="text-2xl font-bold tracking-tight">Neura</span>
                         </div>
-                        <div className="flex items-center gap-5">
+                        {/* <div className="flex items-center gap-5">
                             {[{ icon: <FacebookIcon size={20} />, label: "Facebook" }, { icon: <Linkedin size={20} />, label: "LinkedIn" }, { icon: <Github size={20} />, label: "GitHub" }].map((social, idx) => (
                                 <a key={idx} href="#" aria-label={social.label} className="w-12 h-12 rounded-full border border-[#0066FF] flex items-center justify-center text-[#0066FF] hover:bg-[#0066FF] hover:text-white transition-all">
                                     {social.icon}
                                 </a>
                             ))}
-                        </div>
+                        </div> */}
                         <div className="flex flex-col items-center md:items-end gap-4">
                             <h4 className="text-slate-400 font-bold text-sm uppercase tracking-[0.2em]">{t('footer.fastLinks')}</h4>
                             <nav className="flex flex-wrap justify-center gap-x-6 lg:gap-x-8 gap-y-2">
