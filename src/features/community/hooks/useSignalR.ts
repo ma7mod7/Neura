@@ -15,7 +15,7 @@ interface UseSignalROptions {
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 
-const HUB_URL = 'https://neura-lms.runasp.net/hubs/community';
+const HUB_URL = 'https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/hubs/community';
 
 export function useSignalR({
     courseId,
