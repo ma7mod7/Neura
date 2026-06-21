@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Hash, Search, Users, Smile,  Send,  X, FileText, Menu } from 'lucide-react';
+import { Hash, Search, Users, Smile, Send, X, FileText, Menu, Paperclip } from 'lucide-react';
 import type { CommunityChannel, MessageDto, CourseMemberDto } from '../types/communityTypes';
 import { useMessages } from '../hooks/useMessages';
 import type { ConnectionState } from '../hooks/useSignalR';
@@ -239,6 +239,14 @@ useEffect(() => {
     const isConnected = connectionState === 'connected';
     const canSend = !!channel && isConnected && (messageText.trim().length > 0 || !!attachedFile);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setAttachedFile(file);
+    e.target.value = ''; 
+};
+
     return (
         <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#1a1a1a]">
             <div className="h-14 flex flex-shrink-0 items-center justify-between px-4 border-b border-slate-200 dark:border-[#2a2a2e] shadow-sm">
@@ -365,29 +373,51 @@ useEffect(() => {
                         placeholder={channel ? t('community.messagePlaceholder', { channel: channel.name }) : t('community.selectChannel')}
                         className="flex-1 bg-transparent outline-none px-2 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400" />
                     <div className="flex items-center gap-2">
-                        <div className="relative" ref={emojiPickerRef}>
-                            <button type="button" onClick={() => setShowEmoji(v => !v)}
-                                className="p-2 text-slate-400 hover:text-yellow-500 transition-colors hidden sm:block">
-                                <Smile size={20} />
+                            {/* Hidden file input */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileSelect}
+                                className="hidden"
+                                accept="image/*,.pdf,.doc,.docx"
+                            />
+
+                            {/* Attach button */}
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="p-2 text-slate-400 hover:text-blue-500 transition-colors hidden sm:block"
+                                title="Attach file"
+                            >
+                                <Paperclip size={20} />
                             </button>
-                            {showEmoji && (
-                                <div className="absolute bottom-12 right-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-20 w-56 max-w-[80vw]">
-                                    {EMOJIS.map(emoji => (
-                                        <button key={emoji} type="button"
-                                            onClick={() => { setMessageText(t => t + emoji); setShowEmoji(false); }}
-                                            className="text-xl hover:bg-slate-100 dark:hover:bg-[#3a3a3e] rounded p-1.5 flex items-center justify-center">
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
+
+                            {/* Emoji button + picker */}
+                            <div className="relative" ref={emojiPickerRef}>
+                                <button type="button" onClick={() => setShowEmoji(v => !v)}
+                                    className="p-2 text-slate-400 hover:text-yellow-500 transition-colors hidden sm:block">
+                                    <Smile size={20} />
+                                </button>
+                                {showEmoji && (
+                                    <div className="absolute bottom-12 right-0 bg-white dark:bg-[#2a2a2e] border border-slate-200 dark:border-[#3a3a3e] rounded-lg shadow-lg p-2 grid grid-cols-5 gap-1 z-20 w-56 max-w-[80vw]">
+                                        {EMOJIS.map(emoji => (
+                                            <button key={emoji} type="button"
+                                                onClick={() => { setMessageText(t => t + emoji); setShowEmoji(false); }}
+                                                className="text-xl hover:bg-slate-100 dark:hover:bg-[#3a3a3e] rounded p-1.5 flex items-center justify-center">
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Send button */}
+                            {(messageText.trim() || attachedFile) && (
+                                <button type="button" onClick={handleSend} disabled={!canSend}
+                                    className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
+                                    <Send size={18} />
+                                </button>
                             )}
-                        </div>
-                        {(messageText.trim() || attachedFile) && (
-                            <button type="button" onClick={handleSend} disabled={!canSend}
-                                className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm">
-                                <Send size={18} />
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>

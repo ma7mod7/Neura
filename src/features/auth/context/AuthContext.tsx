@@ -90,7 +90,7 @@ const refreshUser = async () => {
     
     try {
         // Use full URL
-        const response = await axios.post('https://neura-lms.runasp.net/Auth/refresh', { 
+        const response = await axios.post('https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/Auth/refresh', { 
             token: storedToken,
             refreshToken: storedRefreshToken 
         });

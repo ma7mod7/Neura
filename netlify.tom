@@ -1,7 +1,7 @@
 # قاعدة الـ Proxy اللي عملناها للـ API (خليها زي ما هي)
 [[redirects]]
   from = "/api/*"
-  to = "http://neura.runasp.net/:splat"
+  to = "https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/:splat"
   status = 200
   force = true
 
