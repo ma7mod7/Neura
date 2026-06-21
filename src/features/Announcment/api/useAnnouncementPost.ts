@@ -8,7 +8,7 @@ import type {
   UpdatePostDto,
 } from "./types";
 
-const BASE_URL = "http://neura.runasp.net/";
+const BASE_URL = "https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/";
 
 // ── API calls ────────────────────────────────────────────────
 

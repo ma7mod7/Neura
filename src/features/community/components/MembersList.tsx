@@ -26,7 +26,7 @@
         const offlineMembers = filtered.filter(m => !m.isOnline && m.userId !== currentUserId && m.roleName !== 'admin' && m.roleName !== 'instructor');
         const MemberRow = ({ member }: { member: CourseMemberDto }) => {
             const isOnline = member.isOnline || member.userId === currentUserId;
-            const BASE_URL = 'https://neura-lms.runasp.net/';
+            const BASE_URL = 'https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/';
             const toFullUrl = (url: string | null | undefined): string | null => {
                 if (!url) return null;
                 if (url.startsWith('http')) return url;
