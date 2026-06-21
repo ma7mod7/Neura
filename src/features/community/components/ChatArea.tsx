@@ -88,7 +88,7 @@ useEffect(() => {
     }
 }, [lastReceivedMessage?.seq]);
 
-const BASE_URL = 'https://neura-lms.runasp.net/';
+const BASE_URL = 'https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net/';
 
 const toFullUrl = (url: string | null | undefined): string | null => {
     if (!url) return null;

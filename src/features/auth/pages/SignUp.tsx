@@ -9,7 +9,7 @@ import { useSignup } from '../api/useSignUp';
 import { useTranslation } from 'react-i18next';
 
 
-const BACKEND_BASE_URL = "https://neura-lms.runasp.net";
+const BACKEND_BASE_URL = "https://neura-brhac2ghgvdtbggn.francecentral-01.azurewebsites.net";
 
 const SignupPage = () => {
     const [showPassword, setShowPassword] = useState(false);
